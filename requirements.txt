@@ -9,7 +9,7 @@ openpyxl==3.1.5
 gTTS==2.5.4
 requests==2.34.2
 gunicorn==26.0.0
-psycopg2-binary==2.9.12
+PyMySQL==1.1.1
 
 # Optional desktop-automation features (disabled by default; app.py falls
 # back gracefully if these aren't installed). NOT recommended on a

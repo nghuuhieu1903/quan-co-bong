@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
 venv/
+.vscode/
 flask_session/
 instance/
 *.db

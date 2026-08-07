@@ -42,7 +42,7 @@ except ImportError:
 
 import tempfile
 import re
-from sqlalchemy import text
+from sqlalchemy import text, func
 import builtins
 import sys
 from functools import wraps
@@ -66,17 +66,18 @@ print = safe_print
 app = Flask(__name__)
 
 # Configuration
-basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key-change-this-in-production')
 
-# Support PostgreSQL on Render/Heroku and fallback to SQLite locally
-db_url = os.environ.get('DATABASE_URL')
-if db_url:
-    if db_url.startswith("postgres://"):
-        db_url = db_url.replace("postgres://", "postgresql://", 1)
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'instance', 'ecommerce.db')
+# MySQL database configuration.
+# Set DATABASE_URL to e.g. mysql+pymysql://user:password@host:3306/dbname
+# Falls back to a local MySQL default for development if not set.
+db_url = os.environ.get('DATABASE_URL', 'mysql+pymysql://root:@localhost:3306/ecommerce')
+if db_url.startswith('mysql://'):
+    db_url = db_url.replace('mysql://', 'mysql+pymysql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+# Force utf8mb4 on every connection so Vietnamese text is stored correctly
+# regardless of the MySQL server's default charset.
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'connect_args': {'charset': 'utf8mb4'}}
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -761,59 +762,22 @@ def admin_required_api_success(view):
         return view(*args, **kwargs)
     return wrapped
 
-def ensure_image_column():
+def ensure_column(table_name, column_name, add_column_sql):
+    """Add a column to a MySQL table if it doesn't already exist (idempotent, safe to call on every startup)."""
     try:
-        if 'sqlite' not in str(db.engine.url):
-            return
-        
-        # Check if image column exists in product table
-        rows = db.session.execute(text("PRAGMA table_info('product')")).fetchall()
-        cols = {r[1] for r in rows}
-        
-        if 'image' not in cols:
-            print("Adding image column to product table...")
-            db.session.execute(text("ALTER TABLE product ADD COLUMN image VARCHAR(200) DEFAULT 'placeholder.jpg'"))
-            db.session.commit()
-            print("Image column added successfully")
-    except Exception as e:
-        db.session.rollback()
-        print(f"Image column migration skipped/failed: {e}")
+        exists = db.session.execute(text(
+            "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+            "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = :table_name AND COLUMN_NAME = :column_name"
+        ), {'table_name': table_name, 'column_name': column_name}).scalar()
 
-def ensure_room_basic_costs_column():
-    try:
-        if 'sqlite' not in str(db.engine.url):
-            return
-        
-        # Check if basic_costs column exists in room table
-        rows = db.session.execute(text("PRAGMA table_info('room')")).fetchall()
-        cols = {r[1] for r in rows}
-        
-        if 'basic_costs' not in cols:
-            print("Adding basic_costs column to room table...")
-            db.session.execute(text("ALTER TABLE room ADD COLUMN basic_costs TEXT"))
+        if not exists:
+            print(f"Adding {column_name} column to {table_name} table...")
+            db.session.execute(text(add_column_sql))
             db.session.commit()
-            print("basic_costs column added successfully")
+            print(f"{column_name} column added successfully")
     except Exception as e:
         db.session.rollback()
-        print(f"Room basic costs columns migration check failed: {e}")
-
-def ensure_room_price_unit_column():
-    try:
-        if 'sqlite' not in str(db.engine.url):
-            return
-        
-        # Check if price_unit column exists in room table
-        rows = db.session.execute(text("PRAGMA table_info('room')")).fetchall()
-        cols = {r[1] for r in rows}
-        
-        if 'price_unit' not in cols:
-            print("Adding price_unit column to room table...")
-            db.session.execute(text("ALTER TABLE room ADD COLUMN price_unit VARCHAR(50) DEFAULT 'giờ'"))
-            db.session.commit()
-            print("price_unit column added successfully")
-    except Exception as e:
-        db.session.rollback()
-        print(f"Room price_unit column migration check failed: {e}")
+        print(f"{table_name}.{column_name} migration check failed: {e}")
 
 def populate_default_basic_costs():
     try:
@@ -1205,6 +1169,42 @@ def admin_dashboard():
     room_bookings = RoomBooking.query.order_by(RoomBooking.created_at.desc()).all()
     notifications = Notification.query.order_by(Notification.created_at.desc()).limit(20).all()
     unread_notifications_count = Notification.query.filter_by(is_read=False).count()
+
+    today = datetime.now().date()
+    month_start = today.replace(day=1)
+
+    completed_orders = [o for o in orders if o.status == 'completed']
+    debt_orders = [o for o in orders if o.status not in ('completed', 'cancelled')]
+    cancelled_orders = [o for o in orders if o.status == 'cancelled']
+    today_completed = [o for o in completed_orders if o.created_at and o.created_at.date() == today]
+    month_completed = [o for o in completed_orders if o.created_at and o.created_at.date() >= month_start]
+    today_orders_count = len([o for o in orders if o.created_at and o.created_at.date() == today])
+
+    top_products = db.session.query(
+        Product.name, func.sum(OrderItem.quantity).label('total_qty')
+    ).join(OrderItem, OrderItem.product_id == Product.id
+    ).join(Order, Order.id == OrderItem.order_id
+    ).filter(Order.status != 'cancelled'
+    ).group_by(Product.id, Product.name
+    ).order_by(func.sum(OrderItem.quantity).desc()
+    ).limit(5).all()
+
+    stats = {
+        'total_revenue': sum(o.total_amount for o in completed_orders),
+        'today_revenue': sum(o.total_amount for o in today_completed),
+        'month_revenue': sum(o.total_amount for o in month_completed),
+        'today_orders_count': today_orders_count,
+        'completed_orders_count': len(completed_orders),
+        'debt_orders_count': len(debt_orders),
+        'total_debt': sum(o.total_amount for o in debt_orders),
+        'cancelled_orders_count': len(cancelled_orders),
+        'low_stock_count': len([p for p in products if 0 < p.stock <= 10]),
+        'out_of_stock_count': len([p for p in products if p.stock == 0]),
+        'available_rooms_count': len([r for r in rooms if r.available]),
+        'pending_bookings_count': len([b for b in room_bookings if b.status == 'pending']),
+        'top_products': top_products,
+    }
+
     return render_template(
         'admin_dashboard.html',
         products=products,
@@ -1214,7 +1214,8 @@ def admin_dashboard():
         notifications=notifications,
         unread_notifications_count=unread_notifications_count,
         automation=automation_controller,
-        laptop_speaker=laptop_speaker
+        laptop_speaker=laptop_speaker,
+        stats=stats
     )
 
 @app.route('/admin/logout')
@@ -2191,10 +2192,10 @@ def toggle_tts_engine():
 # Database initialization (runs on both local development and production Gunicorn import)
 with app.app_context():
     try:
-        ensure_image_column()
-        ensure_room_basic_costs_column()
-        ensure_room_price_unit_column()
         db.create_all()
+        ensure_column('product', 'image', "ALTER TABLE product ADD COLUMN image VARCHAR(200) DEFAULT 'placeholder.jpg'")
+        ensure_column('room', 'basic_costs', "ALTER TABLE room ADD COLUMN basic_costs TEXT")
+        ensure_column('room', 'price_unit', "ALTER TABLE room ADD COLUMN price_unit VARCHAR(50) DEFAULT 'giờ'")
         populate_default_basic_costs()
         
         # Create default admin if not exists

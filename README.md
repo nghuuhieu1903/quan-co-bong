@@ -71,7 +71,7 @@ A modern e-commerce website built with Flask, featuring separate admin and custo
 - **Vanilla JavaScript**: No heavy frameworks needed
 
 ### Database
-- **SQLite**: Lightweight, file-based database
+- **MySQL**: Set via the `DATABASE_URL` environment variable (e.g. `mysql+pymysql://user:password@host:3306/dbname`)
 
 ## 📦 Installation
 
@@ -258,7 +258,7 @@ Enjoy your **Modern E-Commerce Platform** with **Light/Dark Mode** and **Advance
 - Modern dark theme UI
 - Responsive design for all devices
 - Session-based shopping cart
-- SQLite database for data persistence
+- MySQL database for data persistence
 - QR code integration for easy customer access
 
 ## Installation
@@ -328,7 +328,7 @@ ecommerce/
 
 ## Database Schema
 
-The application uses SQLite with the following tables:
+The application uses MySQL with the following tables:
 - `products` - Product information and inventory
 - `orders` - Customer orders
 - `order_items` - Individual items within orders
