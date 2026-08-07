@@ -96,6 +96,99 @@ body, .modal-content, .table, .dropdown-menu {
     background: #f87171;
 }
 
+/* Stat cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+}
+@media (max-width: 1100px) and (min-width: 769px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+    .stats-grid { grid-template-columns: 1fr; }
+}
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.25s ease;
+    text-decoration: none;
+}
+.stat-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+.stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    background: var(--stat-gradient, var(--gradient-primary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+.stat-info {
+    min-width: 0;
+}
+.stat-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+    white-space: nowrap;
+}
+.stat-unit {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 0.15rem;
+}
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 2rem 0 1rem;
+}
+.top-product-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.top-product-row:last-child {
+    border-bottom: none;
+}
+.top-product-rank {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--gradient-accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
 /* Quick Actions Grid layout */
 .quick-actions-grid {
     display: grid;
@@ -269,55 +362,91 @@ body, .modal-content, .table, .dropdown-menu {
     </div>
 </section>
 
-<!-- Stats Overview -->
-<section class="stats-overview" style="margin-bottom: 2rem;">
-    <div class="grid grid-cols-4">
-        <div class="card fade-in" style="text-align: center; padding: 2rem;">
-            <div style="background: var(--gradient-success); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
-                <i class="fas fa-box" style="font-size: 2rem; color: white;"></i>
+<!-- Stats Overview: revenue -->
+<div class="section-title"><i class="fas fa-chart-line" style="color: var(--accent-color);"></i> Doanh thu</div>
+<section class="stats-overview" style="margin-bottom: 1.25rem;">
+    <div class="stats-grid">
+        <div class="stat-card fade-in" style="--stat-gradient: var(--gradient-success);">
+            <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ "{:,.0f}".format(stats.today_revenue) }} <span class="stat-unit">VNĐ</span></div>
+                <div class="stat-label">Doanh thu hôm nay</div>
             </div>
-            <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Sản phẩm</h3>
-            <div style="font-size: 2.5rem; font-weight: 500; color: var(--accent-color); margin-bottom: 0.5rem;">
-                {{ products|length }}
-            </div>
-            <p style="color: var(--text-secondary);">Tổng số sản phẩm</p>
         </div>
-        
-        <div class="card fade-in" style="text-align: center; padding: 2rem;">
-            <div style="background: var(--gradient-info); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
-                <i class="fas fa-shopping-cart" style="font-size: 2rem; color: white;"></i>
+        <div class="stat-card fade-in" style="--stat-gradient: var(--gradient-accent);">
+            <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ "{:,.0f}".format(stats.month_revenue) }} <span class="stat-unit">VNĐ</span></div>
+                <div class="stat-label">Doanh thu tháng này</div>
             </div>
-            <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Đơn hàng</h3>
-            <div style="font-size: 2.5rem; font-weight: 500; color: var(--accent-color); margin-bottom: 0.5rem;">
-                {{ orders|length }}
-            </div>
-            <p style="color: var(--text-secondary);">Tổng đơn hàng</p>
         </div>
-        
-        <div class="card fade-in" style="text-align: center; padding: 2rem;">
-            <div style="background: var(--gradient-warning); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
-                <i class="fas fa-dollar-sign" style="font-size: 2rem; color: white;"></i>
+        <div class="stat-card fade-in" style="--stat-gradient: var(--gradient-primary);">
+            <div class="stat-icon"><i class="fas fa-coins"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ "{:,.0f}".format(stats.total_revenue) }} <span class="stat-unit">VNĐ</span></div>
+                <div class="stat-label">Tổng doanh thu (đã hoàn thành)</div>
             </div>
-            <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Doanh thu</h3>
-            <div style="font-size: 2.5rem; font-weight: 500; color: var(--accent-color); margin-bottom: 0.5rem;">
-                {% set total_revenue = orders|selectattr('total_amount')|map(attribute='total_amount')|sum %}
-                {{ "{:,.0f}".format(total_revenue) }}
-            </div>
-            <p style="color: var(--text-secondary);">VNĐ</p>
         </div>
-        
-        <div class="card fade-in" style="text-align: center; padding: 2rem;">
-            <div style="background: var(--gradient-danger); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
-                <i class="fas fa-clock" style="font-size: 2rem; color: white;"></i>
+        <a href="{{ url_for('admin_debts') }}" class="stat-card fade-in" style="--stat-gradient: var(--gradient-danger);">
+            <div class="stat-icon"><i class="fas fa-hand-holding-usd"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ "{:,.0f}".format(stats.total_debt) }} <span class="stat-unit">VNĐ</span></div>
+                <div class="stat-label">Tổng nợ ({{ stats.debt_orders_count }} đơn chưa thu)</div>
             </div>
-            <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Đơn mới</h3>
-            <div style="font-size: 2.5rem; font-weight: 500; color: var(--accent-color); margin-bottom: 0.5rem;">
-                {{ orders|selectattr('status', 'equalto', 'pending')|list|length }}
-            </div>
-            <p style="color: var(--text-secondary);">Chờ xử lý</p>
-        </div>
+        </a>
     </div>
 </section>
+
+<!-- Stats Overview: operations -->
+<div class="section-title"><i class="fas fa-clipboard-list" style="color: var(--accent-color);"></i> Tình hình vận hành</div>
+<section class="stats-overview" style="margin-bottom: 2rem;">
+    <div class="stats-grid">
+        <div class="stat-card fade-in" style="--stat-gradient: var(--gradient-accent);">
+            <div class="stat-icon"><i class="fas fa-receipt"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ stats.today_orders_count }}</div>
+                <div class="stat-label">Đơn hàng hôm nay</div>
+            </div>
+        </div>
+        <a href="{{ url_for('manage_products') }}?stock_filter=low_stock" class="stat-card fade-in" style="--stat-gradient: var(--gradient-warning);">
+            <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ stats.low_stock_count }}</div>
+                <div class="stat-label">Sản phẩm sắp hết hàng</div>
+            </div>
+        </a>
+        <a href="{{ url_for('manage_products') }}?stock_filter=out_of_stock" class="stat-card fade-in" style="--stat-gradient: var(--gradient-danger);">
+            <div class="stat-icon"><i class="fas fa-ban"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ stats.out_of_stock_count }}</div>
+                <div class="stat-label">Sản phẩm hết hàng</div>
+            </div>
+        </a>
+        <a href="{{ url_for('admin_rooms') }}" class="stat-card fade-in" style="--stat-gradient: var(--gradient-success);">
+            <div class="stat-icon"><i class="fas fa-door-open"></i></div>
+            <div class="stat-info">
+                <div class="stat-value">{{ stats.available_rooms_count }}/{{ rooms|length }}</div>
+                <div class="stat-label">Phòng còn trống</div>
+            </div>
+        </a>
+    </div>
+</section>
+
+<!-- Top selling products -->
+{% if stats.top_products %}
+<section class="top-products" style="margin-bottom: 2rem;">
+    <div class="card fade-in" style="padding: 1.25rem 1.5rem;">
+        <div class="section-title" style="margin: 0 0 0.5rem;"><i class="fas fa-fire" style="color: var(--accent-color);"></i> Sản phẩm bán chạy</div>
+        {% for name, qty in stats.top_products %}
+        <div class="top-product-row">
+            <div class="top-product-rank">{{ loop.index }}</div>
+            <div style="flex: 1; color: var(--text-primary); font-weight: 500;">{{ name }}</div>
+            <div style="color: var(--accent-color); font-weight: 600;">{{ qty|int }} đã bán</div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
 
 <!-- Quick Actions -->
 <section class="quick-actions" style="margin-bottom: 2rem;">

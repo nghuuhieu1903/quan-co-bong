@@ -4,22 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Cô Bông Cát Lái{% endblock %}</title>
-    
+
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- Modern CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/modern.css') }}">
-    
-    <!-- Mobile Menu CSS -->
+
+    <!-- Sidebar Layout CSS -->
     <style>
     /* Font Face - Agbalumo */
     @font-face {
         font-family: 'Agbalumo';
-        src: local('Agbalumo'), 
+        src: local('Agbalumo'),
              local('Agbalumo-Regular'),
              url('https://fonts.googleapis.com/css2?family=Agbalumo&display=swap');
         font-weight: normal;
@@ -27,518 +27,307 @@
         font-display: swap;
     }
 
-    /* Apply Agbalumo font to mobile menu elements */
-    .mobile-menu-btn, #nav-links, .nav-link {
-        font-family: 'Agbalumo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+    .app-shell {
+        display: flex;
+        min-height: 100vh;
     }
 
-    /* Mobile Navigation */
-    .mobile-menu-btn {
-        display: none;
-        background: none;
-        border: none;
-        color: var(--text-primary);
-        font-size: 1.5rem;
-        cursor: pointer;
-        padding: 0.5rem;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        position: absolute;
-        left: 2rem;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 1001;
+    /* ---- Sidebar ---- */
+    .sidebar {
+        width: 264px;
+        flex-shrink: 0;
+        background: var(--bg-card);
+        border-right: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        overflow-y: auto;
+        z-index: 1000;
+        transition: transform 0.3s ease;
     }
-    
-    .mobile-menu-btn:hover {
-        background: var(--hover-bg);
+
+    .sidebar-brand {
+        padding: 1.5rem 1.25rem;
+        font-family: 'Agbalumo', 'Verdana', sans-serif;
+        font-size: 1.15rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        border-bottom: 1px solid var(--border-color);
+        text-decoration: none;
+    }
+
+    .sidebar-brand i {
+        color: var(--accent-color);
+        font-size: 1.4rem;
+    }
+
+    .sidebar-nav {
+        flex: 1;
+        padding: 1rem 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        color: var(--text-secondary);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+    }
+
+    .sidebar-link i:first-child {
+        width: 20px;
+        text-align: center;
+        font-size: 1.05rem;
+    }
+
+    .sidebar-link:hover {
+        background: rgba(67, 97, 238, 0.08);
         color: var(--accent-color);
     }
-    
-    .mobile-menu-btn:active {
-        transform: translateY(-50%) scale(0.95);
+
+    .sidebar-link.active {
+        background: var(--gradient-accent);
+        color: white;
+        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
     }
-    
-    /* Hide mobile nav-links by default, show on mobile only */
-    #nav-links {
+
+    .sidebar-link .badge {
+        margin-left: auto;
+    }
+
+    .sidebar-footer {
+        padding: 0.75rem;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .sidebar-link-logout {
+        color: var(--danger-color);
+    }
+
+    .sidebar-link-logout:hover {
+        background: rgba(251, 86, 7, 0.1);
+        color: var(--danger-color);
+    }
+
+    /* ---- Main area ---- */
+    .main-area {
+        flex: 1;
+        margin-left: 264px;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    .mobile-topbar {
         display: none;
     }
-    
-    @media (min-width: 769px) {
-        #nav-links {
-            display: flex !important;
-            position: static !important;
-            background: none !important;
-            box-shadow: none !important;
-            width: auto !important;
-            height: auto !important;
-            padding: 0 !important;
-            z-index: auto !important;
-            flex-direction: row !important;
-            gap: 1.5rem !important;
-            list-style: none;
-            margin: 0;
-            align-items: center;
-        }
-        
-        #nav-links li {
-            margin: 0;
-            padding: 0;
-            border: none;
-        }
-        
-        #nav-links .nav-link {
-            padding: 0.4rem 0;
-            background: none;
-            color: var(--text-secondary);
-            font-weight: 500;
-            white-space: nowrap;
-        }
-        
-        #nav-links .nav-link:hover {
-            background: none;
-            transform: none;
-            color: var(--accent-color);
-        }
-        
-        #nav-links .nav-link i {
-            width: auto;
-            margin-right: 0.4rem;
-        }
-        
-        #nav-links .nav-link .badge {
-            margin-left: 0.5rem;
+
+    .sidebar-overlay {
+        display: none;
+    }
+
+    /* ---- Mobile (< 768px): off-canvas drawer ---- */
+    @media (max-width: 767px) {
+        .sidebar {
+            transform: translateX(-100%);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
         }
 
-        /* Desktop dropdown */
-        .nav-dropdown {
-            position: relative;
+        .sidebar.active {
+            transform: translateX(0);
         }
 
-        .nav-dropdown-menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-            padding: 0.5rem 0;
-            min-width: 220px;
-            z-index: 1100;
-            list-style: none;
-            margin: 0;
-            animation: dropdownFadeIn 0.2s ease;
+        .main-area {
+            margin-left: 0;
         }
 
-        @keyframes dropdownFadeIn {
-            from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
-            to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-
-        .nav-dropdown:hover > .nav-dropdown-menu,
-        .nav-dropdown.open > .nav-dropdown-menu {
-            display: block;
-        }
-
-        .nav-dropdown-arrow {
-            font-size: 0.7rem;
-            margin-left: 0.3rem;
-            transition: transform 0.2s ease;
-        }
-
-        .nav-dropdown:hover .nav-dropdown-arrow,
-        .nav-dropdown.open .nav-dropdown-arrow {
-            transform: rotate(180deg);
-        }
-
-        .nav-dropdown-item {
+        .mobile-topbar {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.7rem 1.2rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.95rem;
-            transition: all 0.15s ease;
-            white-space: nowrap;
-        }
-
-        .nav-dropdown-item:hover {
-            background: var(--hover-bg);
-            color: var(--accent-color);
-            padding-left: 1.5rem;
-        }
-
-        .nav-dropdown-item i {
-            width: 20px;
-            text-align: center;
-            font-size: 0.9rem;
-        }
-
-        .nav-dropdown-menu li {
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            background: var(--bg-card);
             border-bottom: 1px solid var(--border-color);
-        }
-        .nav-dropdown-menu li:last-child {
-            border-bottom: none;
+            position: sticky;
+            top: 0;
+            z-index: 900;
         }
 
-        /* Logout styling */
-        .nav-link-logout {
-            color: var(--danger-color) !important;
+        .mobile-topbar-brand {
+            font-family: 'Agbalumo', 'Verdana', sans-serif;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        .nav-link-logout:hover {
-            color: #c0392b !important;
-        }
-    }
-    
-    @media (max-width: 768px) {
+
         .mobile-menu-btn {
             display: block;
-            left: auto !important;
-            right: 2rem !important;
-        }
-        
-        #nav-links {
-            display: flex !important;
-            position: fixed;
-            top: 0;
-            left: -100%;
-            width: 80%;
-            max-width: 300px;
-            height: 100vh;
-            background: var(--bg-card);
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            transition: left 0.3s ease;
-            z-index: 1000;
-            flex-direction: column;
-            padding: 4rem 1rem 2rem 1rem;
-            overflow-y: auto;
-            list-style: none;
-            margin: 0;
-            gap: 0;
-        }
-        
-        #nav-links.active {
-            left: 0;
-        }
-        
-        #nav-links li {
-            margin: 0;
-            padding: 0.5rem 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        #nav-links li:last-child {
-            border-bottom: none;
-        }
-        
-        #nav-links .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1rem;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            font-size: 1rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-        
-        #nav-links .nav-link:hover {
-            background: var(--hover-bg);
-            transform: translateX(4px);
-            color: var(--accent-color);
-        }
-        
-        #nav-links .nav-link:active {
-            transform: translateX(4px) scale(0.98);
-        }
-        
-        #nav-links .nav-link i {
-            font-size: 1.2rem;
-            width: 24px;
-            text-align: center;
-        }
-        
-        #nav-links .nav-link .badge {
-            margin-left: auto;
-            font-size: 0.8rem;
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            color: var(--text-primary);
+            cursor: pointer;
             padding: 0.25rem 0.5rem;
         }
-        
-        /* Overlay */
-        .nav-overlay {
+
+        .sidebar-overlay {
+            display: block;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            background: rgba(0,0,0,0.5);
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
             z-index: 999;
             opacity: 0;
             visibility: hidden;
             transition: all 0.3s ease;
         }
-        
-        .nav-overlay.active {
+
+        .sidebar-overlay.active {
             opacity: 1;
             visibility: visible;
-            z-index: 1;
-        }
-        
-        /* Adjust navbar for mobile */
-        .navbar {
-            padding: 1rem 0;
-            position: relative;
-        }
-        
-        .nav-container {
-            position: relative;
-            padding: 0 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-        }
-        
-        .nav-brand {
-            font-size: 1.25rem !important;
-            text-align: left !important;
-            flex: none !important;
-            margin: 0 !important;
-        }
-
-        /* Mobile dropdown */
-        .nav-dropdown-menu {
-            display: none;
-            list-style: none;
-            padding: 0;
-            margin: 0.25rem 0 0 1.5rem;
-        }
-
-        .nav-dropdown.open > .nav-dropdown-menu {
-            display: block;
-        }
-
-        .nav-dropdown-arrow {
-            font-size: 0.7rem;
-            margin-left: 0.3rem;
-            transition: transform 0.2s ease;
-        }
-
-        .nav-dropdown.open .nav-dropdown-arrow {
-            transform: rotate(180deg);
-        }
-
-        .nav-dropdown-item {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.7rem 1rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.95rem;
-            border-radius: 8px;
-            transition: all 0.15s ease;
-        }
-
-        .nav-dropdown-item:hover {
-            background: var(--hover-bg);
-            color: var(--accent-color);
-        }
-
-        .nav-dropdown-item i {
-            width: 20px;
-            text-align: center;
-            font-size: 0.9rem;
-        }
-
-        .nav-dropdown-menu li {
-            padding: 0.15rem 0;
-            border-bottom: none !important;
-        }
-
-        /* Logout styling */
-        .nav-link-logout {
-            color: var(--danger-color) !important;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        #nav-links {
-            width: 90%;
-        }
-        
-        #nav-links .nav-link {
-            font-size: 0.9rem;
-            padding: 0.75rem;
-        }
-        
-        #nav-links .nav-link i {
-            font-size: 1rem;
-        }
-        
-        .mobile-menu-btn {
-            left: auto !important;
-            right: 1rem !important;
         }
     }
     </style>
-    
+
     {% block head %}{% endblock %}
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="{{ url_for('index') }}" class="nav-brand">
+    <div class="app-shell">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <a href="{{ url_for('index') }}" class="sidebar-brand">
                 <i class="fa-solid fa-mug-saucer"></i> Cô Bông Cát Lái
             </a>
-            
-            <!-- Mobile Menu Button -->
-            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
-                <i class="fas fa-bars" id="mobile-menu-icon"></i>
-            </button>
-            
-            <ul class="nav-links" id="nav-links">
-                <li><a href="{{ url_for('index') }}" class="nav-link" onclick="closeMobileMenu()">
+
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('index') }}" class="sidebar-link {% if request.endpoint in ['index', 'customer_home'] %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-home"></i> Trang chủ
-                </a></li>
-                <li><a href="{{ url_for('products') }}" class="nav-link" onclick="closeMobileMenu()">
+                </a>
+                <a href="{{ url_for('products') }}" class="sidebar-link {% if request.endpoint in ['products', 'product_detail_route'] %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-box"></i> Sản phẩm
-                </a></li>
-                <li><a href="{{ url_for('rooms') }}" class="nav-link" onclick="closeMobileMenu()">
+                </a>
+                <a href="{{ url_for('rooms') }}" class="sidebar-link {% if request.endpoint in ['rooms', 'room_detail'] %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-house-user"></i> Thuê trọ
-                </a></li>
-                <li><a href="{{ url_for('cart') }}" class="nav-link" onclick="closeMobileMenu()">
+                </a>
+                <a href="{{ url_for('cart') }}" class="sidebar-link {% if request.endpoint == 'cart' %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-shopping-cart"></i> Giỏ hàng
                     {% if session.get('cart', []) %}
                         <span class="badge badge-info">{{ session.get('cart', [])|length }}</span>
                     {% endif %}
-                </a></li>
+                </a>
                 {% if session.get('customer_logged_in') %}
-                <li><a href="javascript:void(0)" class="nav-link">
+                <a href="javascript:void(0)" class="sidebar-link">
                     <i class="fas fa-user-circle"></i> {{ session.get('customer_name', 'Khách') }}
-                </a></li>
-                <li><a href="{{ url_for('customer_logout') }}" class="nav-link nav-link-logout" onclick="closeMobileMenu()">
-                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
-                </a></li>
+                </a>
                 {% else %}
-                <li><a href="{{ url_for('customer_login') }}" class="nav-link" onclick="closeMobileMenu()">
+                <a href="{{ url_for('customer_login') }}" class="sidebar-link {% if request.endpoint == 'customer_login' %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-sign-in-alt"></i> Đăng nhập
-                </a></li>
+                </a>
                 {% endif %}
-            </ul>
-        </div>
-    </nav>
-        </div>
-    </nav>
-    
-    <!-- Mobile Menu Overlay -->
-    <div class="nav-overlay" id="nav-overlay" onclick="closeMobileMenu()"></div>
+            </nav>
 
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            <div class="container">
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} fade-in">
-                        <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'warning' %}exclamation-triangle{% elif category == 'danger' %}times-circle{% else %}info-circle{% endif %}"></i>
-                        {{ message }}
-                    </div>
-                {% endfor %}
+            {% if session.get('customer_logged_in') %}
+            <div class="sidebar-footer">
+                <a href="{{ url_for('customer_logout') }}" class="sidebar-link sidebar-link-logout">
+                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                </a>
             </div>
-        {% endif %}
-    {% endwith %}
+            {% endif %}
+        </aside>
 
-    <!-- Main Content -->
-    <main class="container">
-        {% block content %}{% endblock %}
-    </main>
+        <!-- Mobile overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 
-    <!-- Footer -->
-    <footer class="container" style="margin-top: 4rem; padding: 2rem 0; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-secondary);">
-        <p>&copy; 2024 Cô Bông Cát Lái. Đã đăng ký bản quyền.</p>
-        <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-            Made with <i class="fas fa-heart" style="color: var(--danger-color);"></i> using Flask & Modern CSS
-        </p>
-    </footer>
+        <!-- Main area -->
+        <div class="main-area">
+            <!-- Mobile top bar -->
+            <div class="mobile-topbar">
+                <a href="{{ url_for('index') }}" class="mobile-topbar-brand">
+                    <i class="fa-solid fa-mug-saucer"></i> Cô Bông Cát Lái
+                </a>
+                <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                    <i class="fas fa-bars" id="mobile-menu-icon"></i>
+                </button>
+            </div>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="container" style="padding-bottom: 0;">
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} fade-in">
+                                <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'warning' %}exclamation-triangle{% elif category == 'danger' %}times-circle{% else %}info-circle{% endif %}"></i>
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Main Content -->
+            <main class="container">
+                {% block content %}{% endblock %}
+            </main>
+
+            <!-- Footer -->
+            <footer class="container" style="margin-top: auto; padding: 2rem; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-secondary);">
+                <p>&copy; 2024 Cô Bông Cát Lái. Đã đăng ký bản quyền.</p>
+                <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+                    Made with <i class="fas fa-heart" style="color: var(--danger-color);"></i> using Flask & Modern CSS
+                </p>
+            </footer>
+        </div>
+    </div>
 
     <!-- JavaScript -->
     <script>
-        // Mobile Menu Toggle
-        function toggleMobileMenu() {
-            const navLinks = document.getElementById('nav-links');
-            const navOverlay = document.getElementById('nav-overlay');
-            const mobileMenuIcon = document.getElementById('mobile-menu-icon');
-            
-            navLinks.classList.toggle('active');
-            navOverlay.classList.toggle('active');
-            
-            // Toggle icon
-            if (navLinks.classList.contains('active')) {
-                mobileMenuIcon.className = 'fas fa-times';
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const icon = document.getElementById('mobile-menu-icon');
+
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+
+            if (sidebar.classList.contains('active')) {
+                icon.className = 'fas fa-times';
                 document.body.style.overflow = 'hidden';
             } else {
-                mobileMenuIcon.className = 'fas fa-bars';
+                icon.className = 'fas fa-bars';
                 document.body.style.overflow = '';
             }
         }
-        
-        function closeMobileMenu() {
-            const navLinks = document.getElementById('nav-links');
-            const navOverlay = document.getElementById('nav-overlay');
-            const mobileMenuIcon = document.getElementById('mobile-menu-icon');
-            
-            navLinks.classList.remove('active');
-            navOverlay.classList.remove('active');
-            mobileMenuIcon.className = 'fas fa-bars';
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('active');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+            document.getElementById('mobile-menu-icon').className = 'fas fa-bars';
             document.body.style.overflow = '';
-            navLinks.style.transition = 'left 0.3s ease';
         }
-        
-        // Close mobile menu on escape key
+
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeMobileMenu();
-            }
+            if (e.key === 'Escape') closeSidebar();
         });
-        
-        // Close mobile menu on window resize (if switching to desktop)
+
         window.addEventListener('resize', function() {
-            if (window.innerWidth > 768) {
-                closeMobileMenu();
-            }
-        });
-
-        // Dropdown toggle for mobile
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.nav-dropdown-toggle').forEach(function(toggle) {
-                toggle.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const parent = this.closest('.nav-dropdown');
-                    // Close other open dropdowns
-                    document.querySelectorAll('.nav-dropdown.open').forEach(function(dd) {
-                        if (dd !== parent) dd.classList.remove('open');
-                    });
-                    parent.classList.toggle('open');
-                });
-            });
-
-            // Close dropdowns when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!e.target.closest('.nav-dropdown')) {
-                    document.querySelectorAll('.nav-dropdown.open').forEach(function(dd) {
-                        dd.classList.remove('open');
-                    });
-                }
-            });
+            if (window.innerWidth >= 768) closeSidebar();
         });
 
         // Auto-hide flash messages
@@ -556,4 +345,3 @@
     {% block scripts %}{% endblock %}
 </body>
 </html>
-
