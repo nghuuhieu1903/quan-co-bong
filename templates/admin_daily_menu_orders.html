@@ -1,0 +1,114 @@
+{% extends "admin_base.html" %}
+
+{% block head %}
+<style>
+.orders-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.orders-table table { width: 100%; border-collapse: collapse; }
+.orders-table th {
+    background: var(--gradient-accent);
+    color: white !important;
+    padding: 1rem 1.5rem !important;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.orders-table td {
+    padding: 1rem 1.5rem !important;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+.orders-table tr:last-child td { border-bottom: none; }
+.action-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+@media (max-width: 768px) {
+    .page-header { padding: 2rem 0 !important; margin: -1rem -1rem 1rem -1rem !important; }
+    .table-responsive { overflow-x: auto !important; }
+    .orders-table th, .orders-table td { padding: 0.6rem 0.4rem !important; font-size: 0.85rem !important; }
+}
+</style>
+{% endblock %}
+
+{% block title %}Đơn món ăn hôm nay - Cô Bông Cát Lái{% endblock %}
+
+{% block content %}
+<section class="page-header" style="background: var(--gradient-accent); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+            <i class="fas fa-utensils"></i> Đơn đặt món hôm nay
+        </h1>
+        <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+            Khách hàng đặt trực tiếp từ thực đơn hôm nay do Manager đăng.
+        </p>
+    </div>
+</section>
+
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 1rem 4rem 1rem;">
+    {% if orders %}
+    <div class="orders-table fade-in">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th class="hide-mobile">Mã đơn</th>
+                        <th>Món</th>
+                        <th>Khách hàng</th>
+                        <th>SĐT</th>
+                        <th class="hide-mobile">SL</th>
+                        <th class="hide-mobile">Ghi chú</th>
+                        <th class="hide-mobile">Trạng thái</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td class="hide-mobile">#{{ order.id }}</td>
+                        <td><strong>{{ order.item.name if order.item else 'Món đã xóa' }}</strong></td>
+                        <td>{{ order.customer_name }}</td>
+                        <td>{{ order.customer_phone }}</td>
+                        <td class="hide-mobile">{{ order.quantity }}</td>
+                        <td class="hide-mobile">{{ order.notes or '-' }}</td>
+                        <td class="hide-mobile">
+                            {% if order.status == 'completed' %}
+                                <span class="badge badge-success">Hoàn thành</span>
+                            {% elif order.status == 'cancelled' %}
+                                <span class="badge badge-danger">Đã hủy</span>
+                            {% else %}
+                                <span class="badge badge-warning">Chờ xử lý</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                {% if order.status != 'completed' %}
+                                <form method="POST" action="{{ url_for('admin_update_daily_menu_order', order_id=order.id) }}" style="margin: 0;">
+                                    <input type="hidden" name="status" value="completed">
+                                    <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-check"></i></button>
+                                </form>
+                                {% endif %}
+                                {% if order.status != 'cancelled' %}
+                                <form method="POST" action="{{ url_for('admin_update_daily_menu_order', order_id=order.id) }}" style="margin: 0;">
+                                    <input type="hidden" name="status" value="cancelled">
+                                    <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-times"></i></button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="card" style="text-align: center; padding: 4rem 2rem; border: 1px solid var(--border-color);">
+        <i class="fas fa-utensils" style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+        <h3 style="color: var(--text-primary);">Chưa có đơn đặt món nào</h3>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

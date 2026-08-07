@@ -387,13 +387,13 @@ body, .modal-content, .table, .dropdown-menu {
                 <div class="stat-label">Tổng doanh thu (đã hoàn thành)</div>
             </div>
         </div>
-        <a href="{{ url_for('admin_debts') }}" class="stat-card fade-in" style="--stat-gradient: var(--gradient-danger);">
+        <{% if session.admin_role == 'super_admin' %}a href="{{ url_for('admin_debts') }}"{% else %}div{% endif %} class="stat-card fade-in" style="--stat-gradient: var(--gradient-danger);">
             <div class="stat-icon"><i class="fas fa-hand-holding-usd"></i></div>
             <div class="stat-info">
                 <div class="stat-value">{{ "{:,.0f}".format(stats.total_debt) }} <span class="stat-unit">VNĐ</span></div>
                 <div class="stat-label">Tổng nợ ({{ stats.debt_orders_count }} đơn chưa thu)</div>
             </div>
-        </a>
+        </{% if session.admin_role == 'super_admin' %}a{% else %}div{% endif %}>
     </div>
 </section>
 
@@ -468,8 +468,8 @@ body, .modal-content, .table, .dropdown-menu {
             <a href="{{ url_for('admin_room_bookings') }}" class="quick-chip" style="background: rgba(239,68,68,0.08); color: #dc2626; border: 1px solid rgba(239,68,68,0.2);">
                 <i class="fas fa-calendar-alt"></i> Lịch đặt
             </a>
-            <a href="{{ url_for('automation_settings') }}" class="quick-chip" style="background: rgba(245,158,11,0.1); color: #b45309; border: 1px solid rgba(245,158,11,0.25);">
-                <i class="fas fa-cogs"></i> Tự động hóa
+            <a href="{{ url_for('admin_daily_menu_orders') }}" class="quick-chip" style="background: rgba(139,90,43,0.08); color: #8B5A2B; border: 1px solid rgba(139,90,43,0.2);">
+                <i class="fas fa-utensils"></i> Đơn món ăn
             </a>
             <a href="{{ url_for('generate_qr') }}" class="quick-chip" style="background: rgba(14,165,233,0.08); color: #0369a1; border: 1px solid rgba(14,165,233,0.2);">
                 <i class="fas fa-qrcode"></i> Tạo QR
@@ -477,9 +477,14 @@ body, .modal-content, .table, .dropdown-menu {
             <a href="{{ url_for('generate_bank_qr') }}" class="quick-chip" style="background: rgba(16,185,129,0.08); color: #059669; border: 1px solid rgba(16,185,129,0.2);">
                 <i class="fas fa-university"></i> Tạo QR Ngân Hàng
             </a>
+            {% if session.admin_role == 'super_admin' %}
+            <a href="{{ url_for('automation_settings') }}" class="quick-chip" style="background: rgba(245,158,11,0.1); color: #b45309; border: 1px solid rgba(245,158,11,0.25);">
+                <i class="fas fa-cogs"></i> Tự động hóa
+            </a>
             <a href="{{ url_for('export_orders') }}" class="quick-chip" style="background: rgba(100,116,139,0.08); color: var(--text-secondary); border: 1px solid var(--border-color);">
                 <i class="fas fa-download"></i> Xuất đơn
             </a>
+            {% endif %}
         </div>
     </div>
 </section>

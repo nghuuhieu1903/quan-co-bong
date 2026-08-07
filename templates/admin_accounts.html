@@ -1,0 +1,196 @@
+{% extends "admin_base.html" %}
+
+{% block head %}
+<style>
+.accounts-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+.accounts-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.accounts-table th {
+    background: var(--gradient-accent);
+    color: white !important;
+    padding: 1rem 1.5rem !important;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.accounts-table td {
+    padding: 1rem 1.5rem !important;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+.accounts-table tr:last-child td {
+    border-bottom: none;
+}
+.role-badge {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.role-super_admin { background: rgba(139, 90, 43, 0.15); color: #8B5A2B; }
+.role-admin { background: rgba(67, 97, 238, 0.12); color: var(--accent-color); }
+.role-manager { background: rgba(6, 214, 160, 0.15); color: #059669; }
+.role-customer { background: var(--bg-secondary); color: var(--text-secondary); }
+
+@media (max-width: 768px) {
+    .page-header { padding: 2rem 0 !important; margin: -1rem -1rem 1rem -1rem !important; }
+    .table-responsive { overflow-x: auto !important; }
+    .accounts-table th, .accounts-table td { padding: 0.6rem 0.4rem !important; font-size: 0.85rem !important; }
+}
+</style>
+{% endblock %}
+
+{% block title %}Quản lý tài khoản - Cô Bông Cát Lái{% endblock %}
+
+{% block content %}
+<section class="page-header" style="background: var(--gradient-accent); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+            <i class="fas fa-users-cog"></i> Quản lý tài khoản
+        </h1>
+        <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+            Tạo tài khoản admin, chỉ định quyền, chọn khách hàng làm Manager cập nhật thực đơn.
+        </p>
+    </div>
+</section>
+
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 1rem 4rem 1rem;">
+
+    <!-- Add new admin -->
+    <div class="card fade-in" style="padding: 1.5rem; margin-bottom: 2rem;">
+        <h3 style="margin: 0 0 1rem; color: var(--text-primary);"><i class="fas fa-user-plus"></i> Thêm tài khoản Admin</h3>
+        <form method="POST" action="{{ url_for('admin_accounts_add_admin') }}" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+            <div class="form-group" style="flex: 1; min-width: 160px; margin: 0;">
+                <label class="form-label">Tên đăng nhập</label>
+                <input type="text" name="username" class="form-control" required>
+            </div>
+            <div class="form-group" style="flex: 1; min-width: 160px; margin: 0;">
+                <label class="form-label">Mật khẩu</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <div class="form-group" style="min-width: 160px; margin: 0;">
+                <label class="form-label">Vai trò</label>
+                <select name="role" class="form-control">
+                    <option value="admin">Admin</option>
+                    <option value="super_admin">Super Admin</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Tạo tài khoản</button>
+        </form>
+    </div>
+
+    <!-- Admin list -->
+    <h3 style="color: var(--text-primary); margin-bottom: 1rem;"><i class="fas fa-user-shield"></i> Tài khoản Admin ({{ admins|length }})</h3>
+    <div class="accounts-table fade-in">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tên đăng nhập</th>
+                        <th>Vai trò</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in admins %}
+                    <tr>
+                        <td><strong>{{ a.username }}</strong>{% if a.username == session.admin_username %} <span style="color: var(--text-secondary); font-size: 0.85rem;">(bạn)</span>{% endif %}</td>
+                        <td><span class="role-badge role-{{ a.role }}">{{ 'Super Admin' if a.role == 'super_admin' else 'Admin' }}</span></td>
+                        <td>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <form method="POST" action="{{ url_for('admin_accounts_change_role', admin_id=a.id) }}" style="margin: 0;">
+                                    <input type="hidden" name="role" value="{{ 'admin' if a.role == 'super_admin' else 'super_admin' }}">
+                                    <button type="submit" class="btn btn-sm btn-outline">
+                                        {% if a.role == 'super_admin' %}Hạ xuống Admin{% else %}Nâng lên Super Admin{% endif %}
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin_accounts_delete_admin', admin_id=a.id) }}" style="margin: 0;" onsubmit="return confirm('Xóa tài khoản {{ a.username }}?');">
+                                    <button type="submit" class="btn btn-sm btn-danger" {% if a.username == session.admin_username %}disabled{% endif %}>
+                                        <i class="fas fa-trash"></i> Xóa
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Manager list -->
+    <h3 style="color: var(--text-primary); margin-bottom: 1rem;"><i class="fas fa-utensils"></i> Manager (đăng nhập ở trang khách hàng) — {{ managers|length }}</h3>
+    <div class="accounts-table fade-in">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tên đăng nhập</th>
+                        <th>Họ tên</th>
+                        <th>SĐT</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in managers %}
+                    <tr>
+                        <td><strong>{{ m.username }}</strong></td>
+                        <td>{{ m.full_name }}</td>
+                        <td>{{ m.phone }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin_accounts_toggle_manager', customer_id=m.id) }}" style="margin: 0;">
+                                <button type="submit" class="btn btn-sm btn-outline"><i class="fas fa-user-minus"></i> Gỡ quyền Manager</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 2rem;">Chưa có Manager nào</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Promote a customer to manager -->
+    <h3 style="color: var(--text-primary); margin-bottom: 1rem;"><i class="fas fa-user-friends"></i> Chỉ định khách hàng làm Manager</h3>
+    <div class="accounts-table fade-in">
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tên đăng nhập</th>
+                        <th>Họ tên</th>
+                        <th>SĐT</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in customers %}
+                    <tr>
+                        <td><strong>{{ c.username }}</strong></td>
+                        <td>{{ c.full_name }}</td>
+                        <td>{{ c.phone }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('admin_accounts_toggle_manager', customer_id=c.id) }}" style="margin: 0;">
+                                <button type="submit" class="btn btn-sm btn-primary"><i class="fas fa-user-plus"></i> Chỉ định Manager</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 2rem;">Chưa có tài khoản khách hàng nào đăng ký</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

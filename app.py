@@ -762,6 +762,28 @@ def admin_required_api_success(view):
         return view(*args, **kwargs)
     return wrapped
 
+def super_admin_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if 'admin_logged_in' not in session:
+            return redirect(url_for('admin_login'))
+        if session.get('admin_role') != 'super_admin':
+            flash('Chỉ Super Admin mới có quyền truy cập chức năng này', 'error')
+            return redirect(url_for('admin_dashboard'))
+        return view(*args, **kwargs)
+    return wrapped
+
+def manager_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if 'customer_logged_in' not in session:
+            return redirect(url_for('customer_login'))
+        if session.get('customer_role') != 'manager':
+            flash('Bạn không có quyền truy cập chức năng này', 'error')
+            return redirect(url_for('customer_home'))
+        return view(*args, **kwargs)
+    return wrapped
+
 def ensure_column(table_name, column_name, add_column_sql):
     """Add a column to a MySQL table if it doesn't already exist (idempotent, safe to call on every startup)."""
     try:
@@ -862,6 +884,7 @@ class Admin(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
+    role = db.Column(db.String(20), default='admin', nullable=False)  # 'super_admin' or 'admin'
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -872,6 +895,7 @@ class Customer(db.Model):
     password = db.Column(db.String(255), nullable=False)
     full_name = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20), nullable=False)
+    role = db.Column(db.String(20), default='customer', nullable=False)  # 'customer' or 'manager'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def __init__(self, **kwargs):
@@ -964,6 +988,44 @@ class RoomBooking(db.Model):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+class DailyMenuItem(db.Model):
+    """A dish a manager posts as available today. Ordered directly (like a room),
+    not through the shopping cart."""
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.Text)
+    price = db.Column(db.Float, nullable=False)
+    image = db.Column(db.String(200), default='pngtree.png')
+    available = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_by_id = db.Column(db.Integer, db.ForeignKey('customer.id'))
+
+    created_by = db.relationship('Customer')
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    @property
+    def image_url(self):
+        if self.image and self.image not in ('pngtree.png', 'default_placeholder.png'):
+            return url_for('static', filename=f'images/{self.image}')
+        return url_for('static', filename='images/default_placeholder.png')
+
+class DailyMenuOrder(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    item_id = db.Column(db.Integer, db.ForeignKey('daily_menu_item.id'), nullable=False)
+    customer_name = db.Column(db.String(100), nullable=False)
+    customer_phone = db.Column(db.String(20), nullable=False)
+    quantity = db.Column(db.Integer, default=1)
+    notes = db.Column(db.Text)
+    status = db.Column(db.String(20), default='pending')  # pending, completed, cancelled
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    item = db.relationship('DailyMenuItem', backref='orders')
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
 def create_notification(notification_type, message):
     try:
         notification = Notification(type=notification_type, message=message)
@@ -986,7 +1048,8 @@ def index():
 @app.route('/customer')
 def customer_home():
     products = Product.query.all()  # Hiển thị tất cả sản phẩm kể cả hết hàng
-    return render_template('index.html', products=products)
+    daily_items = DailyMenuItem.query.filter_by(available=True).order_by(DailyMenuItem.created_at.desc()).all()
+    return render_template('index.html', products=products, daily_items=daily_items)
 
 @app.route('/admin/manage_products')
 @admin_required
@@ -1138,6 +1201,119 @@ def book_room(room_id):
         flash('Có lỗi xảy ra khi đặt phòng. Vui lòng thử lại!', 'error')
         return redirect(url_for('room_detail', room_id=room_id))
 
+@app.route('/order_daily_item/<int:item_id>', methods=['POST'])
+def order_daily_item(item_id):
+    item = DailyMenuItem.query.get_or_404(item_id)
+
+    if not item.available:
+        flash('Món này hiện không còn phục vụ', 'error')
+        return redirect(url_for('customer_home'))
+
+    customer_name = request.form.get('customer_name', '').strip() or 'Khách'
+    customer_phone = request.form.get('customer_phone', '').strip()
+    notes = request.form.get('notes', '').strip()
+
+    try:
+        quantity = max(1, int(request.form.get('quantity', 1)))
+    except ValueError:
+        quantity = 1
+
+    if not customer_phone:
+        flash('Vui lòng nhập số điện thoại để chúng tôi liên hệ', 'error')
+        return redirect(url_for('customer_home'))
+
+    order = DailyMenuOrder(
+        item_id=item.id,
+        customer_name=customer_name,
+        customer_phone=customer_phone,
+        quantity=quantity,
+        notes=notes
+    )
+    db.session.add(order)
+    create_notification('daily_menu_order', f"🍽️ Đặt món: {customer_name} đặt {quantity}x {item.name}")
+    db.session.commit()
+
+    flash(f'Đặt món "{item.name}" thành công! Chúng tôi sẽ liên hệ với bạn sớm.', 'success')
+    return redirect(url_for('customer_home'))
+
+# ---- Manager: daily menu management (logs in via /customer/login) ----
+@app.route('/customer/daily-menu')
+@manager_required
+def daily_menu_manage():
+    items = DailyMenuItem.query.order_by(DailyMenuItem.created_at.desc()).all()
+    return render_template('daily_menu_manage.html', items=items)
+
+@app.route('/customer/daily-menu/add', methods=['POST'])
+@manager_required
+def daily_menu_add():
+    name = request.form.get('name', '').strip()
+    description = request.form.get('description', '').strip()
+    price_raw = request.form.get('price', '').strip()
+
+    if not name or not price_raw:
+        flash('Vui lòng nhập tên món và giá', 'error')
+        return redirect(url_for('daily_menu_manage'))
+
+    try:
+        price = float(price_raw)
+    except ValueError:
+        flash('Giá không hợp lệ', 'error')
+        return redirect(url_for('daily_menu_manage'))
+
+    image = save_uploaded_file(request.files.get('image')) or 'pngtree.png'
+
+    item = DailyMenuItem(
+        name=name,
+        description=description,
+        price=price,
+        image=image,
+        created_by_id=session.get('customer_id')
+    )
+    db.session.add(item)
+    db.session.commit()
+    flash(f'Đã thêm "{name}" vào thực đơn hôm nay', 'success')
+    return redirect(url_for('daily_menu_manage'))
+
+@app.route('/customer/daily-menu/<int:item_id>/toggle', methods=['POST'])
+@manager_required
+def daily_menu_toggle(item_id):
+    item = DailyMenuItem.query.get_or_404(item_id)
+    item.available = not item.available
+    db.session.commit()
+    return redirect(url_for('daily_menu_manage'))
+
+@app.route('/customer/daily-menu/<int:item_id>/delete', methods=['POST'])
+@manager_required
+def daily_menu_delete(item_id):
+    item = DailyMenuItem.query.get_or_404(item_id)
+    name = item.name
+    try:
+        db.session.delete(item)
+        db.session.commit()
+        flash(f'Đã xóa "{name}" khỏi thực đơn', 'success')
+    except Exception:
+        db.session.rollback()
+        flash(f'Không thể xóa "{name}" vì đã có đơn đặt liên quan — hãy tắt hiển thị thay vì xóa', 'error')
+    return redirect(url_for('daily_menu_manage'))
+
+# ---- Admin: view daily menu orders ----
+@app.route('/admin/daily_menu_orders')
+@admin_required
+def admin_daily_menu_orders():
+    orders = DailyMenuOrder.query.order_by(DailyMenuOrder.created_at.desc()).all()
+    return render_template('admin_daily_menu_orders.html', orders=orders)
+
+@app.route('/admin/daily_menu_order/<int:order_id>/update', methods=['POST'])
+@admin_required
+def admin_update_daily_menu_order(order_id):
+    order = DailyMenuOrder.query.get_or_404(order_id)
+    new_status = request.form.get('status')
+    if new_status in ('pending', 'completed', 'cancelled'):
+        order.status = new_status
+        db.session.commit()
+        flash('Đã cập nhật trạng thái đơn món ăn', 'success')
+    return redirect(url_for('admin_daily_menu_orders'))
+
 @app.route('/admin')
 @app.route('/admin/login', methods=['GET'])
 def admin_login():
@@ -1154,6 +1330,7 @@ def admin_authenticate():
     if admin and check_password_hash(admin.password, password):
         session['admin_logged_in'] = True
         session['admin_username'] = username
+        session['admin_role'] = admin.role
         session.permanent = True  # Make session permanent
         return redirect(url_for('admin_dashboard'))
     else:
@@ -1222,6 +1399,7 @@ def admin_dashboard():
 def admin_logout():
     session.pop('admin_logged_in', None)
     session.pop('admin_username', None)
+    session.pop('admin_role', None)
     return redirect(url_for('admin_login'))
 
 @app.route('/admin/rooms')
@@ -1833,7 +2011,7 @@ def update_order_status(order_id):
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/admin/debts')
-@admin_required
+@super_admin_required
 def admin_debts():
     debt_orders = Order.query.filter(
         Order.status.notin_(['completed', 'cancelled'])
@@ -1842,7 +2020,7 @@ def admin_debts():
     return render_template('admin_debts.html', debt_orders=debt_orders, total_debt=total_debt)
 
 @app.route('/admin/debt/<int:order_id>/pay', methods=['POST'])
-@admin_required
+@super_admin_required
 def admin_debt_pay(order_id):
     order = Order.query.get_or_404(order_id)
     order.status = 'completed'
@@ -1851,7 +2029,7 @@ def admin_debt_pay(order_id):
     return redirect(url_for('admin_debts'))
 
 @app.route('/admin/debts/bulk_pay', methods=['POST'])
-@admin_required
+@super_admin_required
 def admin_debts_bulk_pay():
     order_ids = request.form.getlist('order_ids')
     if not order_ids:
@@ -1950,6 +2128,7 @@ def customer_authenticate():
         session['customer_logged_in'] = True
         session['customer_id'] = customer.id
         session['customer_name'] = customer.full_name
+        session['customer_role'] = customer.role
         flash('Đăng nhập thành công!', 'success')
         return redirect(url_for('customer_home'))
     else:
@@ -1961,6 +2140,7 @@ def customer_logout():
     session.pop('customer_logged_in', None)
     session.pop('customer_id', None)
     session.pop('customer_name', None)
+    session.pop('customer_role', None)
     flash('Đăng xuất thành công!', 'success')
     return redirect(url_for('customer_home'))
 
@@ -1995,7 +2175,7 @@ def customer_create():
 
 # Excel Export Routes
 @app.route('/admin/export_orders')
-@admin_required
+@super_admin_required
 def export_orders():
     # Get today's date
     today = datetime.now().strftime('%Y-%m-%d')
@@ -2094,7 +2274,7 @@ def export_orders():
 
 # Automation Control Routes
 @app.route('/admin/automation_settings')
-@admin_required
+@super_admin_required
 def automation_settings():
     screen_info = automation_controller.get_screen_info()
     return render_template('automation_settings.html',
@@ -2103,7 +2283,7 @@ def automation_settings():
                          screen_info=screen_info)
 
 @app.route('/admin/automation_toggle', methods=['POST'])
-@admin_required
+@super_admin_required
 def automation_toggle():
     automation_controller.enabled = not automation_controller.enabled
     status = "bật" if automation_controller.enabled else "tắt"
@@ -2112,7 +2292,7 @@ def automation_toggle():
     return redirect(url_for('automation_settings'))
 
 @app.route('/admin/emergency_stop', methods=['POST'])
-@admin_required
+@super_admin_required
 def emergency_stop():
     automation_controller.emergency_stop()
     flash('Đã dừng khẩn cấp tất cả tự động hóa!', 'warning')
@@ -2120,7 +2300,7 @@ def emergency_stop():
     return redirect(url_for('automation_settings'))
 
 @app.route('/admin/speaker_test', methods=['POST'])
-@admin_required
+@super_admin_required
 def speaker_test():
     try:
         success = laptop_speaker.test_speaker()
@@ -2134,7 +2314,7 @@ def speaker_test():
     return redirect(url_for('automation_settings'))
 
 @app.route('/admin/test_notification', methods=['POST'])
-@admin_required
+@super_admin_required
 def test_notification():
     automation_controller.show_order_notification(999, "Khách test", 100000)
     flash('Đã gửi thông báo kiểm tra!', 'success')
@@ -2143,7 +2323,7 @@ def test_notification():
 
 # Laptop Speaker Control Routes
 @app.route('/admin/speaker_toggle', methods=['POST'])
-@admin_required
+@super_admin_required
 def speaker_toggle():
     enabled = laptop_speaker.toggle_enabled()
     status = "bật" if enabled else "tắt"
@@ -2152,7 +2332,7 @@ def speaker_toggle():
     return redirect(url_for('automation_settings'))
 
 @app.route('/admin/speaker_voice_settings', methods=['POST'])
-@admin_required
+@super_admin_required
 def speaker_voice_settings():
     rate = request.form.get('voice_rate')
     volume = request.form.get('voice_volume')
@@ -2172,7 +2352,7 @@ def speaker_voice_settings():
     return redirect(url_for('automation_settings'))
 
 @app.route('/admin/toggle_tts_engine', methods=['POST'])
-@admin_required
+@super_admin_required
 def toggle_tts_engine():
     try:
         # Toggle between gTTS and pyttsx3
@@ -2189,6 +2369,88 @@ def toggle_tts_engine():
     
     return redirect(url_for('automation_settings'))
 
+# Account management (Super Admin only)
+@app.route('/admin/accounts')
+@super_admin_required
+def admin_accounts():
+    admins = Admin.query.order_by(Admin.username).all()
+    managers = Customer.query.filter_by(role='manager').order_by(Customer.username).all()
+    customers = Customer.query.filter_by(role='customer').order_by(Customer.username).all()
+    return render_template('admin_accounts.html', admins=admins, managers=managers, customers=customers)
+
+@app.route('/admin/accounts/add_admin', methods=['POST'])
+@super_admin_required
+def admin_accounts_add_admin():
+    username = request.form.get('username', '').strip()
+    password = request.form.get('password', '').strip()
+    role = request.form.get('role', 'admin')
+
+    if role not in ('admin', 'super_admin'):
+        role = 'admin'
+
+    if not username or not password:
+        flash('Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu', 'error')
+        return redirect(url_for('admin_accounts'))
+
+    if Admin.query.filter_by(username=username).first():
+        flash('Tên đăng nhập admin đã tồn tại', 'error')
+        return redirect(url_for('admin_accounts'))
+
+    db.session.add(Admin(username=username, password=generate_password_hash(password), role=role))
+    db.session.commit()
+    flash(f'Đã tạo tài khoản {role} "{username}"', 'success')
+    return redirect(url_for('admin_accounts'))
+
+@app.route('/admin/accounts/<int:admin_id>/change_role', methods=['POST'])
+@super_admin_required
+def admin_accounts_change_role(admin_id):
+    target = Admin.query.get_or_404(admin_id)
+    new_role = request.form.get('role')
+    if new_role not in ('admin', 'super_admin'):
+        flash('Vai trò không hợp lệ', 'error')
+        return redirect(url_for('admin_accounts'))
+
+    if target.role == 'super_admin' and new_role == 'admin':
+        remaining = Admin.query.filter(Admin.role == 'super_admin', Admin.id != target.id).count()
+        if remaining == 0:
+            flash('Không thể hạ quyền — đây là Super Admin cuối cùng', 'error')
+            return redirect(url_for('admin_accounts'))
+
+    target.role = new_role
+    db.session.commit()
+    flash(f'Đã đổi quyền của "{target.username}" thành {new_role}', 'success')
+    return redirect(url_for('admin_accounts'))
+
+@app.route('/admin/accounts/<int:admin_id>/delete_admin', methods=['POST'])
+@super_admin_required
+def admin_accounts_delete_admin(admin_id):
+    target = Admin.query.get_or_404(admin_id)
+
+    if target.username == session.get('admin_username'):
+        flash('Không thể tự xóa tài khoản đang đăng nhập', 'error')
+        return redirect(url_for('admin_accounts'))
+
+    if target.role == 'super_admin':
+        remaining = Admin.query.filter(Admin.role == 'super_admin', Admin.id != target.id).count()
+        if remaining == 0:
+            flash('Không thể xóa — đây là Super Admin cuối cùng', 'error')
+            return redirect(url_for('admin_accounts'))
+
+    db.session.delete(target)
+    db.session.commit()
+    flash(f'Đã xóa tài khoản "{target.username}"', 'success')
+    return redirect(url_for('admin_accounts'))
+
+@app.route('/admin/accounts/<int:customer_id>/toggle_manager', methods=['POST'])
+@super_admin_required
+def admin_accounts_toggle_manager(customer_id):
+    customer = Customer.query.get_or_404(customer_id)
+    customer.role = 'customer' if customer.role == 'manager' else 'manager'
+    db.session.commit()
+    status = 'chỉ định làm Manager' if customer.role == 'manager' else 'gỡ quyền Manager'
+    flash(f'Đã {status} cho "{customer.username}"', 'success')
+    return redirect(url_for('admin_accounts'))
+
 # Database initialization (runs on both local development and production Gunicorn import)
 with app.app_context():
     try:
@@ -2196,12 +2458,14 @@ with app.app_context():
         ensure_column('product', 'image', "ALTER TABLE product ADD COLUMN image VARCHAR(200) DEFAULT 'placeholder.jpg'")
         ensure_column('room', 'basic_costs', "ALTER TABLE room ADD COLUMN basic_costs TEXT")
         ensure_column('room', 'price_unit', "ALTER TABLE room ADD COLUMN price_unit VARCHAR(50) DEFAULT 'giờ'")
+        ensure_column('admin', 'role', "ALTER TABLE admin ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'admin'")
+        ensure_column('customer', 'role', "ALTER TABLE customer ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'customer'")
         populate_default_basic_costs()
-        
+
         # Create default admin if not exists
         admin = Admin.query.filter_by(username='admin').first()
         if not admin:
-            admin = Admin(username='admin', password=generate_password_hash('admin123'))
+            admin = Admin(username='admin', password=generate_password_hash('admin123'), role='super_admin')
             db.session.add(admin)
             
             # Add some sample products
@@ -2267,10 +2531,15 @@ with app.app_context():
                 db.session.add(room)
             db.session.commit()
 
-        # One-time migration: re-hash any legacy plaintext passwords
+        # One-time migration: re-hash any legacy plaintext passwords, and make
+        # sure the founding 'admin' account is always super_admin (it may
+        # have been created before the role column existed).
         legacy_dirty = False
         if admin.password.count('$') != 2:
             admin.password = generate_password_hash(admin.password)
+            legacy_dirty = True
+        if admin.role != 'super_admin':
+            admin.role = 'super_admin'
             legacy_dirty = True
         for customer in Customer.query.all():
             if customer.password and customer.password.count('$') != 2:

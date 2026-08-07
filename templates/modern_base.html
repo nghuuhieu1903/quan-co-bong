@@ -236,6 +236,11 @@
                 <a href="javascript:void(0)" class="sidebar-link">
                     <i class="fas fa-user-circle"></i> {{ session.get('customer_name', 'Khách') }}
                 </a>
+                {% if session.get('customer_role') == 'manager' %}
+                <a href="{{ url_for('daily_menu_manage') }}" class="sidebar-link {% if request.endpoint in ['daily_menu_manage'] %}active{% endif %}" onclick="closeSidebar()">
+                    <i class="fas fa-utensils"></i> Quản lý thực đơn hôm nay
+                </a>
+                {% endif %}
                 {% else %}
                 <a href="{{ url_for('customer_login') }}" class="sidebar-link {% if request.endpoint == 'customer_login' %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-sign-in-alt"></i> Đăng nhập

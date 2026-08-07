@@ -1,0 +1,109 @@
+{% extends "modern_base.html" %}
+
+{% block head %}
+<style>
+.menu-item-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+}
+.menu-item-card:last-child { border-bottom: none; }
+.menu-item-thumb {
+    width: 64px;
+    height: 64px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--bg-secondary);
+}
+.menu-item-info { flex: 1; min-width: 0; }
+.menu-item-name { font-weight: 600; color: var(--text-primary); margin-bottom: 0.2rem; }
+.menu-item-desc { font-size: 0.85rem; color: var(--text-secondary); }
+.menu-item-price { color: var(--accent-color); font-weight: 600; margin-top: 0.2rem; }
+.menu-item-actions { display: flex; gap: 0.5rem; flex-shrink: 0; }
+</style>
+{% endblock %}
+
+{% block title %}Quản lý thực đơn hôm nay - Cô Bông Cát Lái{% endblock %}
+
+{% block content %}
+<section class="page-header" style="background: var(--gradient-accent); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
+    <div class="container" style="max-width: 900px; margin: 0 auto; padding: 0 2rem;">
+        <h1 style="font-size: 2.2rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+            <i class="fas fa-utensils"></i> Quản lý thực đơn hôm nay
+        </h1>
+        <p style="color: rgba(255,255,255,0.9); font-size: 1.05rem;">
+            Thêm món ăn để khách hàng thấy ngay trên trang chủ.
+        </p>
+    </div>
+</section>
+
+<div class="container" style="max-width: 900px; margin: 0 auto; padding: 0 1rem 4rem 1rem;">
+
+    <div class="card fade-in" style="padding: 1.5rem; margin-bottom: 2rem;">
+        <h3 style="margin: 0 0 1rem; color: var(--text-primary);"><i class="fas fa-plus-circle"></i> Thêm món mới</h3>
+        <form method="POST" action="{{ url_for('daily_menu_add') }}" enctype="multipart/form-data">
+            <div class="grid grid-cols-2">
+                <div class="form-group">
+                    <label class="form-label">Tên món</label>
+                    <input type="text" name="name" class="form-control" placeholder="VD: Cơm gà xối mỡ" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Giá (VNĐ)</label>
+                    <input type="number" name="price" class="form-control" min="0" step="1000" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mô tả (không bắt buộc)</label>
+                <textarea name="description" class="form-control" rows="2" placeholder="Mô tả ngắn về món ăn"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Ảnh món ăn (không bắt buộc)</label>
+                <input type="file" name="image" class="form-control" accept="image/*">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fas fa-plus"></i> Thêm vào thực đơn</button>
+        </form>
+    </div>
+
+    <h3 style="color: var(--text-primary); margin-bottom: 1rem;">Món đã đăng ({{ items|length }})</h3>
+    {% if items %}
+    <div class="card fade-in" style="padding: 0;">
+        {% for item in items %}
+        <div class="menu-item-card">
+            <img src="{{ item.image_url }}" alt="{{ item.name }}" class="menu-item-thumb">
+            <div class="menu-item-info">
+                <div class="menu-item-name">
+                    {{ item.name }}
+                    {% if item.available %}
+                        <span class="badge badge-success">Đang bán</span>
+                    {% else %}
+                        <span class="badge badge-danger">Đã ẩn</span>
+                    {% endif %}
+                </div>
+                {% if item.description %}<div class="menu-item-desc">{{ item.description }}</div>{% endif %}
+                <div class="menu-item-price">{{ "{:,.0f}".format(item.price) }} VNĐ</div>
+            </div>
+            <div class="menu-item-actions">
+                <form method="POST" action="{{ url_for('daily_menu_toggle', item_id=item.id) }}" style="margin: 0;">
+                    <button type="submit" class="btn btn-sm btn-outline">
+                        {% if item.available %}<i class="fas fa-eye-slash"></i> Ẩn{% else %}<i class="fas fa-eye"></i> Hiện{% endif %}
+                    </button>
+                </form>
+                <form method="POST" action="{{ url_for('daily_menu_delete', item_id=item.id) }}" style="margin: 0;" onsubmit="return confirm('Xóa món {{ item.name }}?');">
+                    <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card" style="text-align: center; padding: 3rem; border: 1px solid var(--border-color);">
+        <i class="fas fa-utensils" style="font-size: 2.5rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+        <h4 style="color: var(--text-primary);">Chưa có món nào</h4>
+        <p style="color: var(--text-secondary);">Thêm món đầu tiên cho thực đơn hôm nay!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

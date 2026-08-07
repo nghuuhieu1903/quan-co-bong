@@ -330,18 +330,28 @@
                         <a href="{{ url_for('admin_dashboard') }}" class="sidebar-sublink" onclick="closeSidebar()">
                             <i class="fas fa-receipt"></i> Đơn hàng
                         </a>
+                        <a href="{{ url_for('admin_daily_menu_orders') }}" class="sidebar-sublink {% if request.endpoint == 'admin_daily_menu_orders' %}active{% endif %}" onclick="closeSidebar()">
+                            <i class="fas fa-utensils"></i> Đơn món ăn hôm nay
+                        </a>
+                        {% if session.admin_role == 'super_admin' %}
                         <a href="{{ url_for('admin_debts') }}" class="sidebar-sublink {% if request.endpoint == 'admin_debts' %}active{% endif %}" onclick="closeSidebar()">
                             <i class="fas fa-book"></i> Sổ nợ khách hàng
                         </a>
                         <a href="{{ url_for('export_orders') }}" class="sidebar-sublink" onclick="closeSidebar()">
                             <i class="fas fa-file-excel"></i> Xuất Excel
                         </a>
+                        {% endif %}
                     </div>
                 </div>
 
+                {% if session.admin_role == 'super_admin' %}
                 <a href="{{ url_for('automation_settings') }}" class="sidebar-link {% if request.endpoint == 'automation_settings' %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-cog"></i> Cài đặt
                 </a>
+                <a href="{{ url_for('admin_accounts') }}" class="sidebar-link {% if request.endpoint == 'admin_accounts' %}active{% endif %}" onclick="closeSidebar()">
+                    <i class="fas fa-users-cog"></i> Quản lý tài khoản
+                </a>
+                {% endif %}
             </nav>
 
             <div class="sidebar-footer">
