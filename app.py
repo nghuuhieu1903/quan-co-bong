@@ -1930,6 +1930,39 @@ def update_order_status(order_id):
     flash('Trạng thái đơn hàng đã cập nhật', 'success')
     return redirect(url_for('admin_dashboard'))
 
+@app.route('/admin/debts')
+@admin_required
+def admin_debts():
+    debt_orders = Order.query.filter(
+        Order.status.notin_(['completed', 'cancelled'])
+    ).order_by(Order.created_at.desc()).all()
+    total_debt = sum(order.total_amount for order in debt_orders)
+    return render_template('admin_debts.html', debt_orders=debt_orders, total_debt=total_debt)
+
+@app.route('/admin/debt/<int:order_id>/pay', methods=['POST'])
+@admin_required
+def admin_debt_pay(order_id):
+    order = Order.query.get_or_404(order_id)
+    order.status = 'completed'
+    db.session.commit()
+    flash(f'Đã xác nhận {order.customer_name} trả hết nợ cho đơn #{order.id}', 'success')
+    return redirect(url_for('admin_debts'))
+
+@app.route('/admin/debts/bulk_pay', methods=['POST'])
+@admin_required
+def admin_debts_bulk_pay():
+    order_ids = request.form.getlist('order_ids')
+    if not order_ids:
+        flash('Vui lòng chọn ít nhất một khoản nợ', 'error')
+        return redirect(url_for('admin_debts'))
+
+    count = Order.query.filter(Order.id.in_(order_ids)).update(
+        {'status': 'completed'}, synchronize_session=False
+    )
+    db.session.commit()
+    flash(f'Đã xóa {count} khoản nợ đã chọn', 'success')
+    return redirect(url_for('admin_debts'))
+
 @app.route('/admin/generate_qr', methods=['GET', 'POST'])
 @admin_required
 def generate_qr():
