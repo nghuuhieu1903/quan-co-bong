@@ -1,0 +1,304 @@
+{% extends "modern_base.html" %}
+
+{% block title %}{{ room.name }} - Chi tiết & Đặt phòng - Cô Bông Cát Lái{% endblock %}
+
+{% block content %}
+<!-- Back link -->
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 2rem 1rem 0 1rem;">
+    <a href="{{ url_for('rooms') }}" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.5rem; border: none; padding: 0.5rem 0;">
+        <i class="fas fa-arrow-left"></i> Quay lại danh sách phòng
+    </a>
+</div>
+
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 1rem 1rem 4rem 1rem;">
+    <div class="grid grid-cols-3" style="gap: 2rem; align-items: start;">
+        <!-- Left: Room Details (2 columns) -->
+        <div style="grid-column: span 2;">
+            <div class="card fade-in" style="padding: 0; overflow: hidden; border: 1px solid var(--border-color);">
+                <!-- Large Image Banner with navigation arrows -->
+                <div style="height: 400px; background: var(--bg-body); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 16px 16px 0 0; border-bottom: 1px solid var(--border-color);">
+                    <img id="main-room-image" src="{{ room.image_url }}" data-images='["{{ room.image_url }}"{% for img in room.images %}, "{{ img.image_url }}"{% endfor %}]' alt="{{ room.name }}" style="width: 100%; height: 100%; object-fit: cover; transition: opacity 0.3s ease;">
+                    
+                    {% if room.images %}
+                    <!-- Left Arrow Button -->
+                    <button type="button" onclick="prevImage()" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); background: rgba(0, 0, 0, 0.5); color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" onmouseover="this.style.background='var(--accent-color)'; this.style.transform='translateY(-50%) scale(1.1)';" onmouseout="this.style.background='rgba(0,0,0,0.5)'; this.style.transform='translateY(-50%)';">
+                        <i class="fas fa-chevron-left" style="font-size: 1.2rem;"></i>
+                    </button>
+                    
+                    <!-- Right Arrow Button -->
+                    <button type="button" onclick="nextImage()" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: rgba(0, 0, 0, 0.5); color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.3);" onmouseover="this.style.background='var(--accent-color)'; this.style.transform='translateY(-50%) scale(1.1)';" onmouseout="this.style.background='rgba(0,0,0,0.5)'; this.style.transform='translateY(-50%)';">
+                        <i class="fas fa-chevron-right" style="font-size: 1.2rem;"></i>
+                    </button>
+                    {% endif %}
+                </div>
+                
+                <!-- Thumbnails List (only if there are detail images) -->
+                {% if room.images %}
+                <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; padding: 1rem; background: var(--bg-card); border-bottom: 1px solid var(--border-color);">
+                    <!-- Cover Image Thumbnail -->
+                    <div class="thumbnail-wrapper active" style="width: 70px; height: 70px; border: 2px solid var(--accent-color); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--bg-body); transition: all 0.2s ease;">
+                        <img src="{{ room.image_url }}" alt="Cover" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    
+                    <!-- Detail Images Thumbnails -->
+                    {% for img in room.images %}
+                    <div class="thumbnail-wrapper" style="width: 70px; height: 70px; border: 2px solid transparent; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--bg-body); transition: all 0.2s ease;">
+                        <img src="{{ img.image_url }}" alt="Detail {{ loop.index }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Detail Info -->
+                <div style="padding: 2.5rem;">
+                    <h1 style="font-size: 2.2rem; color: var(--text-primary); margin-top: 0; margin-bottom: 1rem; font-weight: 500;">
+                        {{ room.name }}
+                    </h1>
+                    
+                    <div style="display: flex; gap: 2rem; margin-bottom: 2rem; padding: 1rem 0; border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color);">
+                        <div>
+                            <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;">Giá thuê theo {{ room.price_unit or 'giờ' }}</span>
+                            <span style="font-size: 1.5rem; font-weight: 600; color: var(--accent-color);">
+                                {{ "{:,.0f}".format(room.price_per_hour)|replace(',', '.') }} VNĐ / {{ room.price_unit or 'giờ' }}
+                            </span>
+                        </div>
+                        <div style="border-left: 1px solid var(--border-color); padding-left: 2rem;">
+                            <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;">Sức chứa tối đa</span>
+                            <span style="font-size: 1.5rem; font-weight: 600; color: var(--text-primary);">
+                                <i class="fas fa-users" style="color: var(--accent-color); margin-right: 0.5rem;"></i>{{ room.capacity }} người
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <h3 style="color: var(--text-primary); margin-top: 0; margin-bottom: 1rem; font-size: 1.3rem;">Mô tả phòng</h3>
+                    <p style="color: var(--text-secondary); font-size: 1.05rem; line-height: 1.7; margin-bottom: 2.5rem; white-space: pre-line;">
+                        {{ room.description }}
+                    </p>
+                    
+                    <!-- Basic Costs -->
+                    <div style="margin-bottom: 2.5rem; border-top: 1px solid var(--border-color); padding-top: 2rem;">
+                        <h3 style="color: #1a365d; margin-top: 0; margin-bottom: 1.5rem; font-size: 1.3rem; font-weight: 700;">Chi phí cơ bản</h3>
+                        
+                        <div style="display: flex; flex-direction: column;">
+                            <!-- Giá phòng -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #e5e7eb;">
+                                <div style="display: flex; align-items: center; gap: 1.25rem;">
+                                    <div style="width: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-money-bill-alt" style="color: #10b981; font-size: 1.4rem;"></i>
+                                    </div>
+                                    <span style="font-size: 1.25rem; color: #202124; font-weight: 500;">Giá phòng</span>
+                                </div>
+                                <span style="font-size: 1.4rem; font-weight: 700; color: #111827;">{{ "{:,.0f}".format(room.price_per_hour)|replace(',', '.') }} VNĐ/{{ room.price_unit or 'giờ' }}</span>
+                            </div>
+                            
+                            <!-- Dynamic Costs -->
+                            {% if room.basic_costs_list %}
+                                {% for cost in room.basic_costs_list %}
+                                    {% set icon = cost.icon %}
+                                    {% if icon == 'bolt' %}
+                                        {% set icon_class = 'fas fa-bolt cost-icon-bolt' %}
+                                    {% elif icon == 'droplet' or icon == 'tint' %}
+                                        {% set icon_class = 'fas fa-tint cost-icon-droplet' %}
+                                    {% elif icon == 'file-invoice' %}
+                                        {% set icon_class = 'fas fa-file-invoice cost-icon-file-invoice' %}
+                                    {% elif icon == 'wifi' %}
+                                        {% set icon_class = 'fas fa-wifi cost-icon-wifi' %}
+                                    {% elif icon == 'motorcycle' %}
+                                        {% set icon_class = 'fas fa-motorcycle cost-icon-motorcycle' %}
+                                    {% elif icon == 'trash' %}
+                                        {% set icon_class = 'fas fa-trash-alt cost-icon-trash' %}
+                                    {% elif icon == 'shield-alt' %}
+                                        {% set icon_class = 'fas fa-shield-alt cost-icon-shield-alt' %}
+                                    {% elif icon == 'money-bill-alt' %}
+                                        {% set icon_class = 'fas fa-money-bill-alt cost-icon-money-bill-alt' %}
+                                    {% elif icon == 'key' %}
+                                        {% set icon_class = 'fas fa-key cost-icon-key' %}
+                                    {% else %}
+                                        {% set icon_class = 'fas fa-concierge-bell cost-icon-other' %}
+                                    {% endif %}
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #e5e7eb;">
+                                        <div style="display: flex; align-items: center; gap: 1.25rem;">
+                                            <div style="width: 32px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                <i class="{{ icon_class }}" style="font-size: 1.4rem;"></i>
+                                            </div>
+                                            <span style="font-size: 1.25rem; color: #202124; font-weight: 500;">{{ cost.name }}</span>
+                                        </div>
+                                        <span style="font-size: 1.4rem; font-weight: 700; color: #111827;">{{ cost.value }}</span>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Amenities -->
+                    {% if room.amenities_list %}
+                        <h3 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1.3rem;">Tiện nghi đi kèm</h3>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem;">
+                            {% for amenity in room.amenities_list %}
+                                <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--bg-body); color: var(--text-primary); border: 1px solid var(--border-color); padding: 0.5rem 1rem; border-radius: 12px; font-size: 0.95rem;">
+                                    <i class="fas fa-check" style="color: var(--success-color); font-size: 0.85rem;"></i>
+                                    <span>{{ amenity }}</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right: Booking Form (1 column) -->
+        <div style="grid-column: span 1;">
+            <div class="card fade-in" style="border: 1px solid var(--border-color); position: sticky; top: 2rem;">
+                <div class="card-header" style="margin-bottom: 1.5rem;">
+                    <h3 style="margin: 0; color: var(--text-primary); font-size: 1.25rem;">
+                        <i class="fas fa-calendar-check"></i> Đặt Phòng Trọ
+                    </h3>
+                </div>
+                
+                <form method="POST" action="{{ url_for('book_room', room_id=room.id) }}">
+                    <!-- Customer Name -->
+                    <div class="form-group">
+                        <label class="form-label" for="customer_name">Tên của bạn *</label>
+                        <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Nhập họ và tên" required
+                               value="{% if session.get('customer_name') %}{{ session.get('customer_name') }}{% endif %}">
+                    </div>
+                    
+                    <!-- Customer Phone -->
+                    <div class="form-group">
+                        <label class="form-label" for="customer_phone">Số điện thoại liên hệ *</label>
+                        <input type="tel" id="customer_phone" name="customer_phone" class="form-control" placeholder="Nhập số điện thoại" required
+                               value="{% if session.get('customer_phone') %}{{ session.get('customer_phone') }}{% endif %}">
+                    </div>
+                    
+                    <!-- Booking Date -->
+                    <div class="form-group">
+                        <label class="form-label" for="booking_date">Ngày đặt *</label>
+                        <input type="date" id="booking_date" name="booking_date" class="form-control" required>
+                    </div>
+                    
+                    <!-- Start Time -->
+                    <div class="form-group">
+                        <label class="form-label" for="start_time">Giờ bắt đầu *</label>
+                        <input type="time" id="start_time" name="start_time" class="form-control" required>
+                    </div>
+                    
+                    <!-- Notes -->
+                    <div class="form-group">
+                        <label class="form-label" for="notes">Ghi chú thêm</label>
+                        <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="Nhập các yêu cầu khác nếu có..."></textarea>
+                    </div>
+                    
+                    <!-- Alert Notice -->
+                    <div style="background: rgba(var(--accent-color-rgb), 0.05); border-left: 3px solid var(--accent-color); padding: 0.75rem; border-radius: 4px; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
+                        <i class="fas fa-info-circle" style="color: var(--accent-color); margin-right: 0.3rem;"></i>
+                        Mỗi lượt đặt phòng có thời hạn mặc định là <strong>1 giờ</strong>.
+                    </div>
+                    
+                    <!-- Submit button -->
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                        <i class="fas fa-check-circle"></i> Xác Nhận Đặt Phòng
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.thumbnail-wrapper:hover {
+    border-color: rgba(var(--accent-color-rgb), 0.5) !important;
+    transform: scale(1.05);
+}
+.thumbnail-wrapper.active {
+    border-color: var(--accent-color) !important;
+}
+/* Basic Costs Icon Colors */
+.cost-icon-bolt { color: #f59e0b; }
+.cost-icon-droplet, .cost-icon-tint { color: #3b82f6; }
+.cost-icon-file-invoice { color: #ef4444; }
+.cost-icon-wifi { color: #10b981; }
+.cost-icon-motorcycle { color: #6b7280; }
+.cost-icon-trash { color: #8b5cf6; }
+.cost-icon-shield-alt { color: #14b8a6; }
+.cost-icon-money-bill-alt { color: #10b981; }
+.cost-icon-key { color: #f97316; }
+.cost-icon-other { color: #ec4899; }
+</style>
+
+<script>
+// Image Gallery Logic
+const mainImgEl = document.getElementById('main-room-image');
+const roomImages = JSON.parse(mainImgEl ? (mainImgEl.getAttribute('data-images') || '[]') : '[]');
+let currentRoomImageIdx = 0;
+
+function updateRoomImage() {
+    const mainImg = document.getElementById('main-room-image');
+    mainImg.style.opacity = '0';
+    
+    setTimeout(() => {
+        mainImg.src = roomImages[currentRoomImageIdx];
+        mainImg.style.opacity = '1';
+    }, 150);
+    
+    // Update thumbnail classes
+    const thumbs = document.querySelectorAll('.thumbnail-wrapper');
+    thumbs.forEach((thumb, idx) => {
+        if (idx === currentRoomImageIdx) {
+            thumb.classList.add('active');
+            thumb.style.borderColor = 'var(--accent-color)';
+        } else {
+            thumb.classList.remove('active');
+            thumb.style.borderColor = 'transparent';
+        }
+    });
+}
+
+function nextImage() {
+    currentRoomImageIdx = (currentRoomImageIdx + 1) % roomImages.length;
+    updateRoomImage();
+}
+
+function prevImage() {
+    currentRoomImageIdx = (currentRoomImageIdx - 1 + roomImages.length) % roomImages.length;
+    updateRoomImage();
+}
+
+function jumpToImage(idx) {
+    currentRoomImageIdx = idx;
+    updateRoomImage();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Bind click events to thumbnails to avoid inline Jinja template onclick warnings
+    const thumbs = document.querySelectorAll('.thumbnail-wrapper');
+    thumbs.forEach((thumb, idx) => {
+        thumb.addEventListener('click', function() {
+            jumpToImage(idx);
+        });
+    });
+
+    // Set default date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('booking_date').min = today;
+    document.getElementById('booking_date').value = today;
+    
+    // Set default time to next hour
+    const now = new Date();
+    now.setHours(now.getHours() + 1);
+    const nextHour = now.toTimeString().split(' ')[0].substring(0, 5);
+    document.getElementById('start_time').value = nextHour;
+
+    // Fade animation
+    const fadeElements = document.querySelectorAll('.fade-in');
+    fadeElements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

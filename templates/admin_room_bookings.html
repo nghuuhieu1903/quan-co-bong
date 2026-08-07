@@ -1,0 +1,342 @@
+{% extends "admin_base.html" %}
+
+{% block head %}
+<style>
+/* Table styling matching product management style */
+.bookings-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.bookings-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.bookings-table th {
+    background: var(--gradient-accent);
+    color: white !important;
+    padding: 1rem 1.5rem !important;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.bookings-table td {
+    padding: 1rem 1.5rem !important;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.bookings-table tr:hover {
+    background: var(--bg-secondary);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-buttons .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.mobile-detail-btn {
+    display: none !important;
+}
+
+@media (max-width: 768px) {
+    .page-header {
+        padding: 2rem 0 !important;
+        margin: -1rem -1rem 1rem -1rem !important;
+    }
+    
+    .table-responsive {
+        overflow-x: hidden !important;
+    }
+    
+    .table-responsive table {
+        min-width: 100% !important;
+    }
+    
+    .bookings-table th,
+    .bookings-table td {
+        padding: 0.6rem 0.4rem !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .hide-mobile {
+        display: none !important;
+    }
+    
+    .mobile-detail-btn {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        padding: 0 !important;
+        font-size: 1rem;
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+}
+</style>
+{% endblock %}
+
+{% block title %}Danh sách đặt phòng - Cô Bông Cát Lái{% endblock %}
+
+{% block content %}
+<section class="page-header" style="background: var(--gradient-accent); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+            <i class="fas fa-calendar-alt"></i> Lịch sử đặt phòng trọ
+        </h1>
+        <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+            Xem chi tiết các lượt đặt phòng của khách hàng và cập nhật trạng thái.
+        </p>
+    </div>
+</section>
+
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 1rem 4rem 1rem;">
+    {% if bookings %}
+        <div class="bookings-table fade-in">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="hide-mobile">Mã đặt</th>
+                            <th>Tên phòng</th>
+                            <th>Khách hàng</th>
+                            <th>Số điện thoại</th>
+                            <th class="hide-mobile">Thời gian đặt</th>
+                            <th class="hide-mobile">Tổng thanh toán</th>
+                            <th class="hide-mobile">Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                            <tr>
+                                <td class="hide-mobile">
+                                    #{{ booking.id }}
+                                </td>
+                                <td>
+                                    <strong>{{ booking.room.name }}</strong>
+                                </td>
+                                <td>
+                                    {{ booking.customer_name }}
+                                </td>
+                                <td>
+                                    {{ booking.customer_phone }}
+                                </td>
+                                <td class="hide-mobile" style="font-size: 0.95rem; line-height: 1.4;">
+                                    <strong>Ngày:</strong> {{ booking.booking_date.strftime('%d/%m/%Y') }}<br>
+                                    <strong>Giờ:</strong> {{ booking.start_time.strftime('%H:%M') }} - {{ booking.end_time.strftime('%H:%M') }} ({{ booking.total_hours }}h)
+                                </td>
+                                <td class="hide-mobile" style="color: var(--accent-color); font-weight: 600;">
+                                    {{ "{:,.0f}".format(booking.total_price) }} VNĐ
+                                </td>
+                                <td class="hide-mobile">
+                                    {% if booking.status == 'confirmed' %}
+                                        <span class="badge badge-success" style="padding: 0.4rem 0.8rem; border-radius: 12px;">Đã xác nhận</span>
+                                    {% elif booking.status == 'cancelled' %}
+                                        <span class="badge badge-danger" style="padding: 0.4rem 0.8rem; border-radius: 12px;">Đã hủy</span>
+                                    {% else %}
+                                        <span class="badge badge-warning" style="padding: 0.4rem 0.8rem; border-radius: 12px;">Chờ xác nhận</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="action-buttons hide-mobile">
+                                        {% if booking.status != 'confirmed' %}
+                                            <form method="POST" action="{{ url_for('admin_update_room_booking', booking_id=booking.id) }}" style="margin: 0; display: inline;">
+                                                <input type="hidden" name="status" value="confirmed">
+                                                <button type="submit" class="btn btn-success">
+                                                    <i class="fas fa-check"></i> Duyệt
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                        
+                                        {% if booking.status != 'cancelled' %}
+                                            <form method="POST" action="{{ url_for('admin_update_room_booking', booking_id=booking.id) }}" style="margin: 0; display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đặt phòng này?');">
+                                                <input type="hidden" name="status" value="cancelled">
+                                                <button type="submit" class="btn btn-danger">
+                                                    <i class="fas fa-times"></i> Hủy
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                        
+                                        {% if booking.status != 'pending' %}
+                                            <form method="POST" action="{{ url_for('admin_update_room_booking', booking_id=booking.id) }}" style="margin: 0; display: inline;">
+                                                <input type="hidden" name="status" value="pending">
+                                                <button type="submit" class="btn btn-outline" style="border-color: var(--border-color); color: var(--text-secondary);">
+                                                    Đặt lại chờ duyệt
+                                                </button>
+                                            </form>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Mobile details trigger button (icon only, no text) -->
+                                    <button class="mobile-detail-btn" title="Chi tiết"
+                                            data-id="{{ booking.id }}"
+                                            data-room-name="{{ booking.room.name }}"
+                                            data-customer-name="{{ booking.customer_name }}"
+                                            data-customer-phone="{{ booking.customer_phone }}"
+                                            data-date="{{ booking.booking_date.strftime('%d/%m/%Y') }}"
+                                            data-time="{{ booking.start_time.strftime('%H:%M') }} - {{ booking.end_time.strftime('%H:%M') }} ({{ booking.total_hours }}h)"
+                                            data-total-price="{{ '{:,.0f}'.format(booking.total_price) }} VNĐ"
+                                            data-status="{{ booking.status }}"
+                                            data-confirm-url="{{ url_for('admin_update_room_booking', booking_id=booking.id) }}"
+                                            data-cancel-url="{{ url_for('admin_update_room_booking', booking_id=booking.id) }}"
+                                            data-reset-url="{{ url_for('admin_update_room_booking', booking_id=booking.id) }}"
+                                            onclick="showBookingDetails(this)">
+                                        <i class="fas fa-info-circle"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="card" style="text-align: center; padding: 4rem 2rem; border: 1px solid var(--border-color);">
+            <div style="background: var(--gradient-secondary); width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i class="fas fa-calendar-times" style="font-size: 2.5rem; color: var(--text-muted);"></i>
+            </div>
+            <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Không có lượt đặt phòng nào</h3>
+            <p style="color: var(--text-secondary);">Hiện chưa có khách hàng nào đặt phòng trọ.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Booking Details Modal -->
+<div id="bookingModal" class="modal" style="display: none; position: fixed; z-index: 1100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
+    <div class="card" style="max-width: 450px; width: 90%; margin: auto; padding: 1.5rem; position: relative; border-radius: 16px; background: white; box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+            <h3 style="margin: 0; color: var(--text-primary); font-size: 1.25rem;">Chi tiết đặt phòng</h3>
+            <button onclick="closeBookingModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary);">&times;</button>
+        </div>
+        <div id="modal-details" style="font-size: 0.95rem; line-height: 1.6; color: var(--text-primary);">
+            <!-- Dynamic Content -->
+        </div>
+    </div>
+</div>
+
+<script>
+function showBookingDetails(button) {
+    const modal = document.getElementById('bookingModal');
+    const details = document.getElementById('modal-details');
+    
+    const data = {
+        id: button.dataset.id,
+        room_name: button.dataset.roomName,
+        customer_name: button.dataset.customerName,
+        customer_phone: button.dataset.customerPhone,
+        date: button.dataset.date,
+        time: button.dataset.time,
+        total_price: button.dataset.totalPrice,
+        status: button.dataset.status,
+        confirm_url: button.dataset.confirmUrl,
+        cancel_url: button.dataset.cancelUrl,
+        reset_url: button.dataset.resetUrl
+    };
+    
+    let statusBadge = '';
+    if (data.status === 'confirmed') {
+        statusBadge = '<span class="badge badge-success" style="padding: 0.4rem 0.8rem; border-radius: 12px;">Đã xác nhận</span>';
+    } else if (data.status === 'cancelled') {
+        statusBadge = '<span class="badge badge-danger" style="padding: 0.4rem 0.8rem; border-radius: 12px;">Đã hủy</span>';
+    } else {
+        statusBadge = '<span class="badge badge-warning" style="padding: 0.4rem 0.8rem; border-radius: 12px;">Chờ xác nhận</span>';
+    }
+    
+    let actionButtons = '<div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1.5rem;">';
+    
+    if (data.status !== 'confirmed') {
+        actionButtons += `
+            <form method="POST" action="${data.confirm_url}" style="margin: 0;">
+                <input type="hidden" name="status" value="confirmed">
+                <button type="submit" class="btn btn-success" style="width: 100%; padding: 0.6rem; border-radius: 8px; font-weight: 500; font-size: 0.9rem; cursor: pointer;">
+                    <i class="fas fa-check"></i> Duyệt đặt phòng
+                </button>
+            </form>
+        `;
+    }
+    
+    if (data.status !== 'cancelled') {
+        actionButtons += `
+            <form method="POST" action="${data.cancel_url}" style="margin: 0;" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đặt phòng này?');">
+                <input type="hidden" name="status" value="cancelled">
+                <button type="submit" class="btn btn-danger" style="width: 100%; padding: 0.6rem; border-radius: 8px; font-weight: 500; font-size: 0.9rem; cursor: pointer;">
+                    <i class="fas fa-times"></i> Hủy đặt phòng
+                </button>
+            </form>
+        `;
+    }
+    
+    if (data.status !== 'pending') {
+        actionButtons += `
+            <form method="POST" action="${data.reset_url}" style="margin: 0;">
+                <input type="hidden" name="status" value="pending">
+                <button type="submit" class="btn btn-outline" style="width: 100%; padding: 0.6rem; border-radius: 8px; font-weight: 500; font-size: 0.9rem; border-color: var(--border-color); color: var(--text-secondary); cursor: pointer;">
+                    Đặt lại chờ duyệt
+                </button>
+            </form>
+        `;
+    }
+    
+    actionButtons += '</div>';
+
+    details.innerHTML = `
+        <div style="display: grid; grid-template-columns: 110px 1fr; gap: 0.6rem; margin-bottom: 0.5rem; text-align: left;">
+            <strong style="color: var(--text-secondary);">Mã đặt:</strong> <span>#${data.id}</span>
+            <strong style="color: var(--text-secondary);">Phòng:</strong> <span>${data.room_name}</span>
+            <strong style="color: var(--text-secondary);">Khách hàng:</strong> <span>${data.customer_name}</span>
+            <strong style="color: var(--text-secondary);">Số điện thoại:</strong> <span>${data.customer_phone}</span>
+            <strong style="color: var(--text-secondary);">Ngày đặt:</strong> <span>${data.date}</span>
+            <strong style="color: var(--text-secondary);">Thời gian:</strong> <span>${data.time}</span>
+            <strong style="color: var(--text-secondary);">Tổng tiền:</strong> <span style="color: var(--accent-color); font-weight: 600;">${data.total_price}</span>
+            <strong style="color: var(--text-secondary);">Trạng thái:</strong> <span>${statusBadge}</span>
+        </div>
+        ${actionButtons}
+    `;
+    
+    modal.style.display = 'flex';
+}
+
+function closeBookingModal() {
+    document.getElementById('bookingModal').style.display = 'none';
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById('bookingModal');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fadeElements = document.querySelectorAll('.fade-in');
+    fadeElements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

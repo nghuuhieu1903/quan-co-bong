@@ -1,0 +1,396 @@
+{% extends "modern_base.html" %}
+
+{% block head %}
+<style>
+/* Font Face - Agbalumo */
+@font-face {
+    font-family: 'Agbalumo';
+    src: local('Agbalumo'), 
+         local('Agbalumo-Regular'),
+         url('https://fonts.googleapis.com/css2?family=Agbalumo&display=swap');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Apply Agbalumo font to hero section */
+.hero h1, .hero p, .hero .btn {
+    font-family: 'Agbalumo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+/* Enhanced responsive design for customer page */
+@media (max-width: 768px) {
+    .hero {
+        padding: 2rem 0 !important;
+        margin: -1rem -1rem 1rem -1rem !important;
+    }
+    
+    .hero .container {
+        padding: 0 1rem !important;
+    }
+    
+    .hero .container > div {
+        grid-template-columns: 1fr !important;
+        gap: 2rem !important;
+        text-align: center;
+    }
+    
+    .hero h1 {
+        font-size: 2rem !important;
+        text-align: center;
+    }
+    
+    .hero p {
+        font-size: 1.1rem !important;
+        text-align: center;
+    }
+    
+    .hero .fade-in:first-child div {
+        justify-content: center;
+    }
+    
+    .featured-products .grid,
+    .best-sellers .grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1rem !important;
+    }
+    
+    .product-card {
+        padding: 1rem !important;
+    }
+    
+    .product-title {
+        font-size: 0.9rem !important;
+    }
+    
+    .product-image {
+        height: 150px !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .hero {
+        padding: 1.5rem 0 !important;
+    }
+    
+    .hero h1 {
+        font-size: 1.5rem !important;
+    }
+    
+    .hero p {
+        font-size: 1rem !important;
+    }
+    
+    .hero .fade-in:first-child div {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .hero .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+    
+    .featured-products .grid,
+    .best-sellers .grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    .card-header {
+        flex-direction: column !important;
+        gap: 1rem !important;
+        text-align: center;
+    }
+    
+    .card-header .btn {
+        width: 100%;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (max-width: 768px) {
+    .btn {
+        min-height: 44px;
+        padding: 12px 20px;
+        font-size: 16px;
+    }
+    
+    .product-card .btn {
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+    
+    input, select, textarea {
+        min-height: 44px;
+        font-size: 16px;
+    }
+}
+
+/* Better mobile navigation */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 1rem;
+    }
+    
+    .nav-container {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .nav-links {
+        flex-direction: column;
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block title %}Trang chủ - Cô Bông Cát Lái{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero" style="background: var(--gradient-primary); padding: 4rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;">
+            <div class="fade-in">
+                <h1 style="font-size: 3rem; font-weight: 500; color: white; margin-bottom: 1rem; line-height: 1.2;">
+                    Chào mừng đến với<br>Cô Bông Cát Lái Hiện Đại
+                </h1>
+                <p style="font-size: 1.25rem; color: rgba(255,255,255,0.9); margin-bottom: 2rem; line-height: 1.6;">
+                    Khám phá những sản phẩm công nghệ mới nhất với chất lượng đảm bảo và giá cả cạnh tranh.
+                </p>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="{{ url_for('products') }}" class="btn btn-primary" style="background: white; color: var(--accent-color); padding: 16px 32px; font-size: 16px;">
+                        <i class="fas fa-shopping-bag"></i> Mua sắm ngay
+                    </a>
+                    <a href="{{ url_for('cart') }}" class="btn btn-outline" style="border-color: white; color: white; padding: 16px 32px; font-size: 16px;">
+                        <i class="fas fa-shopping-cart"></i> Giỏ hàng
+                        {% if session.get('cart', []) %}
+                            <span class="badge" style="background: var(--danger-color); color: white; margin-left: 8px;">{{ session.get('cart', [])|length }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+            <div class="fade-in" style="text-align: center;">
+                <div style="background: rgba(255,255,255,0.1); border-radius: 16px; padding: 2rem; backdrop-filter: blur(10px);">
+                    <i class="fas fa-laptop" style="font-size: 4rem; color: white; margin-bottom: 1rem;"></i>
+                    <h3 style="color: white; margin-bottom: 0.5rem;">Sản phẩm công nghệ</h3>
+                    <p style="color: rgba(255,255,255,0.8);">Luôn cập nhật xu hướng mới nhất</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products -->
+<section class="featured-products">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="fas fa-star" style="color: var(--warning-color);"></i> 
+                Sản phẩm nổi bật
+            </h2>
+            <a href="{{ url_for('products') }}" class="btn btn-primary">
+                Xem tất cả <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        
+        {% if products %}
+        <div class="grid grid-cols-4">
+            {% for product in products[:4] %}
+            <div class="product-card fade-in">
+                <a href="{{ url_for('product_detail_route', product_id=product.id) }}">
+                <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image">
+                </a>
+                
+                <div class="product-info">
+                    <a href="{{ url_for('product_detail_route', product_id=product.id) }}" style="text-decoration: none; color: inherit;">
+                        <h3 class="product-title">{{ product.name }}</h3>
+                    </a>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5;">
+                        {{ product.description[:100] }}{% if product.description|length > 100 %}...{% endif %}
+                    </p>
+                    <div class="product-price">
+                        {{ "{:,.0f}".format(product.price) }} VNĐ
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        {% if product.stock > 0 %}
+                            <span class="badge badge-success stock-badge">Còn hàng</span>
+                        {% else %}
+                            <span class="badge badge-danger stock-badge">Hết hàng</span>
+                        {% endif %}
+                    </div>
+                    <div class="product-actions">
+                        {% if product.stock > 0 %}
+                        <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
+                            <input type="hidden" name="next" class="next-redirect" value="">
+                            <div class="quantity-selector" style="margin-bottom: 0.5rem;">
+                                <div class="quantity-controls">
+                                    <button type="button" class="quantity-btn" onclick="decreaseQuantity(this)">−</button>
+                                    <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="quantity-input" placeholder="SL">
+                                    <button type="button" class="quantity-btn" onclick="increaseQuantity(this)">+</button>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; width: 100%;">
+                                <button type="submit" onclick="this.form.querySelector('.next-redirect').value='';" class="btn btn-outline" style="flex: 1; font-size: 0.85rem; padding: 10px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;">
+                                    <i class="fas fa-cart-plus"></i> Thêm giỏ
+                                </button>
+                                <button type="submit" onclick="this.form.querySelector('.next-redirect').value=this.dataset.redirect;" data-redirect="{{ url_for('checkout') }}" class="btn btn-primary" style="flex: 1; font-size: 0.85rem; padding: 10px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;">
+                                    <i class="fas fa-bolt"></i> Mua ngay
+                                </button>
+                            </div>
+                        </form>
+                        {% else %}
+                        <button class="btn btn-secondary" style="width: 100%;" disabled>
+                            <i class="fas fa-times-circle"></i> Hết hàng
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+            <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+            <p>Chưa có sản phẩm nào. Vui lòng quay lại sau!</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+
+<!-- Best Sellers Section -->
+<section class="best-sellers">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                <i class="fas fa-fire" style="color: var(--danger-color);"></i> 
+                Được mua nhiều nhất
+            </h2>
+            <a href="{{ url_for('products') }}" class="btn btn-primary">
+                Xem tất cả <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+        
+        {% if products %}
+        <div class="grid grid-cols-4">
+            {% for product in products[-4:] %}
+            <div class="product-card fade-in">
+                <a href="{{ url_for('product_detail_route', product_id=product.id) }}">
+                <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image">
+                </a>
+                
+                <div class="product-info">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <a href="{{ url_for('product_detail_route', product_id=product.id) }}" style="text-decoration: none; color: inherit;">
+                            <h3 class="product-title">{{ product.name }}</h3>
+                        </a>
+                        <span class="badge badge-danger" style="font-size: 0.7rem;">Hot</span>
+                    </div>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5;">
+                        {{ product.description[:80] }}{% if product.description|length > 80 %}...{% endif %}
+                    </p>
+                    <div class="product-price">
+                        {{ "{:,.0f}".format(product.price) }} VNĐ
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        {% if product.stock > 0 %}
+                            <span class="badge badge-success stock-badge">Còn hàng</span>
+                        {% else %}
+                            <span class="badge badge-danger stock-badge">Hết hàng</span>
+                        {% endif %}
+                    </div>
+                    <div class="product-actions">
+                        {% if product.stock > 0 %}
+                        <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
+                            <input type="hidden" name="next" class="next-redirect" value="">
+                            <div class="quantity-selector" style="margin-bottom: 0.5rem;">
+                                <div class="quantity-controls">
+                                    <button type="button" class="quantity-btn" onclick="decreaseQuantity(this)">−</button>
+                                    <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="quantity-input" placeholder="SL">
+                                    <button type="button" class="quantity-btn" onclick="increaseQuantity(this)">+</button>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; width: 100%;">
+                                <button type="submit" onclick="this.form.querySelector('.next-redirect').value='';" class="btn btn-outline" style="flex: 1; font-size: 0.85rem; padding: 10px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;">
+                                    <i class="fas fa-cart-plus"></i> Thêm giỏ
+                                </button>
+                                <button type="submit" onclick="this.form.querySelector('.next-redirect').value=this.dataset.redirect;" data-redirect="{{ url_for('checkout') }}" class="btn btn-primary" style="flex: 1; font-size: 0.85rem; padding: 10px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;">
+                                    <i class="fas fa-bolt"></i> Mua ngay
+                                </button>
+                            </div>
+                        </form>
+                        {% else %}
+                        <button class="btn btn-secondary" style="width: 100%;" disabled>
+                            <i class="fas fa-times-circle"></i> Hết hàng
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+            <i class="fas fa-box-open" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+            <p>Chưa có sản phẩm nào. Vui lòng quay lại sau!</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Add animation on scroll
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fadeElements = document.querySelectorAll('.fade-in');
+    fadeElements.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(el);
+    });
+});
+
+// Quantity selector functions
+function increaseQuantity(button) {
+    const input = button.parentElement.querySelector('.quantity-input');
+    const max = parseInt(input.getAttribute('max'));
+    let value = parseInt(input.value) || 1;
+    
+    if (value < max) {
+        input.value = value + 1;
+    }
+}
+
+function decreaseQuantity(button) {
+    const input = button.parentElement.querySelector('.quantity-input');
+    const min = parseInt(input.getAttribute('min'));
+    let value = parseInt(input.value) || 1;
+    
+    if (value > min) {
+        input.value = value - 1;
+    }
+}
+</script>
+{% endblock %}

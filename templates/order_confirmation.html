@@ -1,0 +1,857 @@
+{% extends "modern_base.html" %}
+
+{% block head %}
+<style>
+/* Font Face - Agbalumo */
+@font-face {
+    font-family: 'Agbalumo';
+    src: local('Agbalumo'), 
+         local('Agbalumo-Regular'),
+         url('https://fonts.googleapis.com/css2?family=Agbalumo&display=swap');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Apply Agbalumo font to order confirmation page */
+.page-header h1, .confirmation-section {
+    font-family: 'Agbalumo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+/* Enhanced responsive design for order confirmation page */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 2rem 0 !important;
+        margin: -1rem -1rem 1rem -1rem !important;
+    }
+    
+    .page-header .container {
+        padding: 0 1rem !important;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem !important;
+        text-align: center;
+    }
+    
+    .page-header p {
+        font-size: 1rem !important;
+        text-align: center;
+    }
+    
+    .page-header div {
+        text-align: center;
+    }
+    
+    .page-header div[style*="background"] {
+        width: 80px !important;
+        height: 80px !important;
+        margin: 0 auto 1rem !important;
+    }
+    
+    .page-header div[style*="background"] i {
+        font-size: 2rem !important;
+    }
+    
+    /* Order details grid */
+    .order-confirmation .grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    .order-confirmation .card {
+        padding: 1rem !important;
+    }
+    
+    .order-confirmation .card-header {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        text-align: center;
+    }
+    
+    .order-confirmation .badge {
+        font-size: 0.8rem !important;
+        padding: 0.25rem 0.5rem !important;
+    }
+    
+    /* Order items table */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .table {
+        min-width: 600px;
+        font-size: 0.9rem !important;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.5rem !important;
+        font-size: 0.85rem !important;
+    }
+    
+    /* Order summary */
+    .order-confirmation div[style*="text-align: right"] {
+        text-align: center !important;
+    }
+    
+    .order-confirmation div[style*="display: inline-block"] {
+        display: block !important;
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+    
+    /* Payment selection */
+    .payment-selection .grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    .payment-option {
+        padding: 1.5rem !important;
+    }
+    
+    .payment-option div[style*="width: 80px"] {
+        width: 60px !important;
+        height: 60px !important;
+        margin: 0 auto 1rem !important;
+    }
+    
+    .payment-option div[style*="width: 80px"] i {
+        font-size: 1.5rem !important;
+    }
+    
+    .payment-option h4 {
+        font-size: 1.1rem !important;
+    }
+    
+    .payment-option p {
+        font-size: 0.9rem !important;
+    }
+    
+    /* QR section */
+    #qr-section .grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+    }
+    
+    #qr-section h5 {
+        font-size: 1rem !important;
+        text-align: center;
+    }
+    
+    #qr-code-image {
+        width: 150px !important;
+        height: 150px !important;
+        margin: 0 auto;
+    }
+    
+    #qr-section p {
+        font-size: 0.85rem !important;
+        text-align: center;
+    }
+    
+    #qr-section div[style*="padding: 1.5rem"] {
+        padding: 1rem !important;
+    }
+    
+    #qr-section strong {
+        font-size: 0.85rem !important;
+    }
+    
+    #qr-section p[style*="font-size: 1.1rem"] {
+        font-size: 1rem !important;
+    }
+    
+    #qr-section p[style*="font-size: 1.2rem"] {
+        font-size: 1.1rem !important;
+    }
+    
+    /* Next steps */
+    .next-steps .grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1rem !important;
+    }
+    
+    .next-steps div[style*="text-align: center"] {
+        padding: 1rem !important;
+    }
+    
+    .next-steps div[style*="width: 60px"] {
+        width: 50px !important;
+        height: 50px !important;
+        margin: 0 auto 0.5rem !important;
+    }
+    
+    .next-steps div[style*="width: 60px"] i {
+        font-size: 1.25rem !important;
+    }
+    
+    .next-steps h4 {
+        font-size: 0.9rem !important;
+    }
+    
+    .next-steps p {
+        font-size: 0.8rem !important;
+    }
+    
+    /* Contact support */
+    .contact-support .grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    .contact-support div {
+        padding: 1rem !important;
+    }
+    
+    .contact-support i {
+        font-size: 1.25rem !important;
+    }
+    
+    .contact-support h4 {
+        font-size: 0.9rem !important;
+    }
+    
+    .contact-support p {
+        font-size: 0.8rem !important;
+    }
+    
+    /* Action buttons */
+    .action-buttons div[style*="display: flex"] {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
+        min-height: 44px;
+        font-size: 16px;
+        padding: 12px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-header h1 {
+        font-size: 1.5rem !important;
+    }
+    
+    .page-header p {
+        font-size: 0.9rem !important;
+    }
+    
+    .order-confirmation .card {
+        padding: 0.75rem !important;
+    }
+    
+    .table {
+        min-width: 500px;
+        font-size: 0.8rem !important;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.4rem !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .payment-option {
+        padding: 1rem !important;
+    }
+    
+    .payment-option h4 {
+        font-size: 1rem !important;
+    }
+    
+    .payment-option p {
+        font-size: 0.85rem !important;
+    }
+    
+    #qr-code-image {
+        width: 120px !important;
+        height: 120px !important;
+    }
+    
+    .next-steps .grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    .next-steps div[style*="text-align: center"] {
+        padding: 0.75rem !important;
+    }
+    
+    .next-steps h4 {
+        font-size: 0.85rem !important;
+    }
+    
+    .next-steps p {
+        font-size: 0.75rem !important;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (max-width: 768px) {
+    .payment-option {
+        transition: transform 0.2s ease;
+    }
+    
+    .payment-option:active {
+        transform: scale(0.98);
+    }
+    
+    .action-buttons .btn {
+        transition: all 0.2s ease;
+    }
+    
+    .action-buttons .btn:active {
+        transform: scale(0.95);
+    }
+    
+    #confirm-payment-btn {
+        transition: all 0.2s ease;
+    }
+    
+    #confirm-payment-btn:active {
+        transform: scale(0.95);
+    }
+}
+
+/* Better notification positioning on mobile */
+@media (max-width: 768px) {
+    .notification {
+        left: 1rem !important;
+        right: 1rem !important;
+        top: 1rem !important;
+        max-width: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block title %}Xác nhận đơn hàng - Cô Bông Cát Lái{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="page-header" style="background: var(--gradient-success); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <div style="text-align: center;">
+            <div style="background: rgba(255,255,255,0.2); width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
+                <i class="fas fa-check-circle" style="font-size: 3rem; color: white;"></i>
+            </div>
+            <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 1rem;">
+                Đặt hàng thành công!
+            </h1>
+            <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                Cảm ơn bạn đã đặt hàng. Đơn hàng của bạn đang được xử lý.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Order Details -->
+<section class="order-confirmation">
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-receipt"></i> Chi tiết đơn hàng #{{ order.id }}
+            </h3>
+            <span class="badge badge-warning">Đang xử lý</span>
+        </div>
+        
+        <div class="grid grid-cols-2">
+            <!-- Customer Information -->
+            <div>
+                <h4 style="color: var(--text-primary); margin-bottom: 1rem;">
+                    <i class="fas fa-user"></i> Thông tin khách hàng
+                </h4>
+                <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px;">
+                    <p style="margin: 0.5rem 0;"><strong>Họ và tên:</strong> {{ order.customer_name }}</p>
+                    <p style="margin: 0.5rem 0;"><strong>Số điện thoại:</strong> {{ order.customer_phone }}</p>
+                    {% if order.customer_email %}
+                    <p style="margin: 0.5rem 0;"><strong>Email:</strong> {{ order.customer_email }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Order Information -->
+            <div>
+                <h4 style="color: var(--text-primary); margin-bottom: 1rem;">
+                    <i class="fas fa-info-circle"></i> Thông tin đơn hàng
+                </h4>
+                <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px;">
+                    <p style="margin: 0.5rem 0;"><strong>Mã đơn hàng:</strong> #{{ order.id }}</p>
+                    <p style="margin: 0.5rem 0;"><strong>Ngày đặt:</strong> {{ order.created_at.strftime('%d/%m/%Y %H:%M') if order.created_at else 'N/A' }}</p>
+                    <p style="margin: 0.5rem 0;"><strong>Trạng thái:</strong> <span class="badge badge-warning">{{ order.status }}</span></p>
+                    <p style="margin: 0.5rem 0;"><strong>Phương thức thanh toán:</strong> {{ order.payment_method or 'Chưa xác định' }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Items -->
+        <div style="margin-top: 2rem;">
+            <h4 style="color: var(--text-primary); margin-bottom: 1rem;">
+                <i class="fas fa-shopping-bag"></i> Sản phẩm đã đặt
+            </h4>
+            
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Số lượng</th>
+                            <th>Đơn giá</th>
+                            <th>Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order_items %}
+                        <tr>
+                            <td>
+                                <strong>{{ item.product.name }}</strong>
+                                {% if item.product.description %}
+                                <br><small style="color: var(--text-secondary);">{{ item.product.description[:50] }}...</small>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ "{:,.0f}".format(item.price) }} VNĐ</td>
+                            <td style="color: var(--accent-color); font-weight: 600;">
+                                {{ "{:,.0f}".format(item.price * item.quantity) }} VNĐ
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Order Summary -->
+        <div style="margin-top: 2rem; text-align: right;">
+            <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 8px; display: inline-block; min-width: 300px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                    <span>Tạm tính:</span>
+                    <span>{{ "{:,.0f}".format(order.total_amount) }} VNĐ</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                    <span>Phí vận chuyển:</span>
+                    <span>Miễn phí</span>
+                </div>
+                <hr style="border-color: var(--border-color); margin: 1rem 0;">
+                <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 500; color: var(--accent-color);">
+                    <span>Tổng cộng:</span>
+                    <span>{{ "{:,.0f}".format(order.total_amount) }} VNĐ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Payment Selection -->
+<section class="payment-selection" style="margin-top: 2rem;">
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-info-circle"></i> Thông tin thanh toán
+            </h3>
+        </div>
+        
+        <div style="padding: 2rem;">
+            <div class="grid grid-cols-2" style="gap: 2rem;">
+                <!-- Cash Payment -->
+                <div class="payment-option" id="cash-option" style="border: 2px solid var(--border-color); border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s ease;" onclick="selectPayment('cash')">
+                    <div style="background: var(--gradient-success); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                        <i class="fas fa-money-bill-wave" style="font-size: 2rem; color: white;"></i>
+                    </div>
+                    <h4 style="margin-bottom: 1rem; color: var(--text-primary);">Thanh toán tiền mặt</h4>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        Thanh toán trực tiếp
+                    </p>
+                    <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px;">
+                        <i class="fas fa-truck" style="color: var(--success-color); margin-right: 0.5rem;"></i>
+                        Xác nhận thanh toán
+                    </div>
+                </div>
+                
+                <!-- Bank Transfer Payment -->
+                <div class="payment-option" id="transfer-option" style="border: 2px solid var(--border-color); border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s ease;" onclick="selectPayment('transfer')">
+                    <div style="background: var(--gradient-info); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                        <i class="fas fa-qrcode" style="font-size: 2rem; color: white;"></i>
+                    </div>
+                    <h4 style="margin-bottom: 1rem; color: var(--text-primary);">Chuyển khoản ngân hàng</h4>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        Quét mã QR hoặc chuyển khoản trực tiếp
+                    </p>
+                    <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px;">
+                        <i class="fas fa-check-circle" style="color: var(--info-color); margin-right: 0.5rem;"></i>
+                        Xác nhận thanh toán
+                    </div>
+                </div>
+            </div>
+            
+            <!-- QR Code Section (Hidden by default) -->
+            <div id="qr-section" style="display: none; margin-top: 2rem;">
+                <div style="background: var(--bg-secondary); border-radius: 12px; padding: 2rem;">
+                    <div class="grid grid-cols-2" style="gap: 2rem; align-items: center;">
+                        <!-- QR Code -->
+                        <div style="text-align: center;">
+                            <h5 style="margin-bottom: 1rem; color: var(--text-primary);">
+                                <i class="fas fa-qrcode"></i> Quét mã QR để thanh toán
+                            </h5>
+                            <div style="background: white; padding: 2rem; border-radius: 8px; display: inline-block;">
+                                <!-- Placeholder QR Code - Replace with actual QR code image -->
+                                <div id="qr-code-image" style="width: 200px; height: 200px;"></div>
+                            </div>
+                            <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+                                Sử dụng ứng dụng ngân hàng để quét mã QR
+                            </p>
+                        </div>
+                        
+                        <!-- Bank Transfer Info -->
+                        <div>
+                            <h5 style="margin-bottom: 1rem; color: var(--text-primary);">
+                                <i class="fas fa-university"></i> Thông tin chuyển khoản
+                            </h5>
+                            <div style="padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-primary);">
+                                <div style="margin-bottom: 0.5rem; font-size: 0.95rem;">
+                                    <strong style="color: var(--text-secondary);">Ngân hàng:</strong>
+                                    <span style="color: var(--text-primary); margin-left: 0.25rem;">Vietcombank - Chi nhánh Hà Nội</span>
+                                </div>
+                                <div style="margin-bottom: 0.5rem; font-size: 0.95rem;">
+                                    <strong style="color: var(--text-secondary);">Chủ tài khoản:</strong>
+                                    <span style="color: var(--text-primary); margin-left: 0.25rem;">Cô Bông Cát Lái ABC</span>
+                                </div>
+                                <div style="margin-bottom: 0.5rem; font-size: 0.95rem;">
+                                    <strong style="color: var(--text-secondary);">Số tài khoản:</strong>
+                                    <span style="font-weight: 600; color: var(--accent-color); margin-left: 0.25rem;">1234567890</span>
+                                </div>
+                                <div style="margin-bottom: 0.5rem; font-size: 0.95rem;">
+                                    <strong style="color: var(--text-secondary);">Số tiền:</strong>
+                                    <span style="font-weight: 600; color: var(--accent-color); margin-left: 0.25rem;">{{ "{:,.0f}".format(order.total_amount) }} VNĐ</span>
+                                </div>
+                                <div style="font-size: 0.95rem;">
+                                    <strong style="color: var(--text-secondary);">Nội dung chuyển khoản (ghi đúng nội dung này):</strong>
+                                    <span style="font-weight: bold; color: var(--accent-color); background: rgba(67, 97, 238, 0.1); padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px dashed var(--accent-color); display: inline-block; margin-left: 0.25rem;">DH{{ order.id }} chuyen tien</span>
+                                </div>
+                            </div>
+                            
+                            <div style="margin-top: 1rem; padding: 1rem; background: var(--warning-bg); border-radius: 8px; border-left: 4px solid var(--warning-color);">
+                                <p style="margin: 0; color: var(--warning-color); font-size: 0.9rem;">
+                                    <i class="fas fa-info-circle"></i> 
+                                    Sau khi chuyển khoản thành công, đơn hàng của bạn sẽ được xử lý ngay lập tức.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Confirmation Button -->
+            <div style="margin-top: 2rem; text-align: center;">
+                <button id="confirm-payment-btn" class="btn btn-primary" style="padding: 1rem 3rem; font-size: 1.1rem;" onclick="confirmPayment()" disabled>
+                    <i class="fas fa-check"></i> Tôi đã hiểu thông tin thanh toán
+                </button>
+                <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+                    Vui lòng xem thông tin thanh toán để tiếp tục
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Next Steps -->
+<section class="next-steps" style="margin-top: 2rem;">
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-route"></i> Các bước tiếp theo
+            </h3>
+        </div>
+        
+        <div class="grid grid-cols-4">
+            <div style="text-align: center; padding: 1.5rem;">
+                <div style="background: var(--gradient-info); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-clock" style="font-size: 1.5rem; color: white;"></i>
+                </div>
+                <h4 style="margin-bottom: 0.5rem;">Xử lý đơn hàng</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Chúng tôi sẽ xác nhận đơn hàng trong vòng 24h</p>
+            </div>
+            
+            <div style="text-align: center; padding: 1.5rem;">
+                <div style="background: var(--gradient-warning); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-box" style="font-size: 1.5rem; color: white;"></i>
+                </div>
+                <h4 style="margin-bottom: 0.5rem;">Đóng gói</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Sản phẩm được đóng gói cẩn thận</p>
+            </div>
+            
+            <div style="text-align: center; padding: 1.5rem;">
+                <div style="background: var(--gradient-success); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-shipping-fast" style="font-size: 1.5rem; color: white;"></i>
+                </div>
+                <h4 style="margin-bottom: 0.5rem;">Giao hàng</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Giao hàng trong 2-3 ngày làm việc</p>
+            </div>
+            
+            <div style="text-align: center; padding: 1.5rem;">
+                <div style="background: var(--gradient-accent); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-check-double" style="font-size: 1.5rem; color: white;"></i>
+                </div>
+                <h4 style="margin-bottom: 0.5rem;">Hoàn thành</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Nhận hàng và kiểm tra sản phẩm</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Support -->
+<section class="contact-support" style="margin-top: 2rem;">
+    <div class="card fade-in" style="background: var(--gradient-info); color: white; border: none;">
+        <div style="text-align: center;">
+            <h3 style="margin-bottom: 1rem;">
+                <i class="fas fa-headset"></i> Cần hỗ trợ?
+            </h3>
+            <p style="margin-bottom: 2rem; opacity: 0.9;">
+                Nếu bạn có bất kỳ câu hỏi nào về đơn hàng, đừng ngần ngại liên hệ với chúng tôi.
+            </p>
+            
+            <div class="grid grid-cols-3">
+                <div>
+                    <i class="fas fa-phone" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                    <h4 style="margin-bottom: 0.5rem;">Hotline</h4>
+                    <p style="opacity: 0.9;">1900-1234</p>
+                </div>
+                
+                <div>
+                    <i class="fas fa-envelope" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                    <h4 style="margin-bottom: 0.5rem;">Email</h4>
+                    <p style="opacity: 0.9;">support@cuahang.vn</p>
+                </div>
+                
+                <div>
+                    <i class="fas fa-comments" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                    <h4 style="margin-bottom: 0.5rem;">Live Chat</h4>
+                    <p style="opacity: 0.9;">8:00 - 22:00 mỗi ngày</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Action Buttons -->
+<section class="action-buttons" style="margin-top: 2rem;">
+    <div class="card fade-in">
+        <div style="text-align: center;">
+            <h3 style="margin-bottom: 2rem; color: var(--text-primary);">
+                Tiếp tục mua sắm
+            </h3>
+            
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="{{ url_for('products') }}" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                    <i class="fas fa-shopping-bag"></i> Mua thêm sản phẩm
+                </a>
+                <a href="{{ url_for('index') }}" class="btn btn-outline" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                    <i class="fas fa-home"></i> Về trang chủ
+                </a>
+                <a href="{{ url_for('customer_home') }}" class="btn btn-secondary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                    <i class="fas fa-user"></i> Theo dõi đơn hàng
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set QR code image dynamically using VietQR API
+    const qrCodeImage = document.getElementById('qr-code-image');
+    if (qrCodeImage) {
+        const orderId = "{{ order.id }}";
+        const customerPhone = "{{ order.customer_phone }}";
+        const amount = Math.round(parseFloat("{{ order.total_amount }}"));
+        
+        // Formulate addInfo according to user request (e.g. DH123 chuyen tien)
+        const addInfo = `DH${orderId} chuyen tien`;
+        const encodedAddInfo = encodeURIComponent(addInfo);
+        
+        // Bank details matching the display details above
+        const bankId = "VCB"; // Vietcombank
+        const accountNo = "1234567890";
+        const accountName = encodeURIComponent("CO BONG CAT LAI ABC");
+        
+        // Compact template: qr_only, compact, compact2, print
+        const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact.png?amount=${amount}&addInfo=${encodedAddInfo}&accountName=${accountName}`;
+        
+        // Inject image element inside the container
+        qrCodeImage.style.background = 'none'; // clear background placeholder
+        qrCodeImage.style.display = 'flex';
+        qrCodeImage.style.alignItems = 'center';
+        qrCodeImage.style.justifyContent = 'center';
+        qrCodeImage.innerHTML = `<img src="${qrUrl}" alt="Mã QR Thanh Toán" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
+    }
+    
+    // Add animation on scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    const fadeElements = document.querySelectorAll('.fade-in');
+    fadeElements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        
+        setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, 100 * (index + 1));
+    });
+});
+
+// Payment selection functionality
+let selectedPayment = null;
+
+function selectPayment(method) {
+    // Remove previous selection
+    document.querySelectorAll('.payment-option').forEach(option => {
+        option.style.borderColor = 'var(--border-color)';
+        option.style.background = 'transparent';
+    });
+    
+    // Add selection to clicked option
+    const selectedOption = document.getElementById(method + '-option');
+    selectedOption.style.borderColor = 'var(--primary-color)';
+    selectedOption.style.background = 'var(--bg-secondary)';
+    
+    // Show/hide QR section
+    const qrSection = document.getElementById('qr-section');
+    if (method === 'transfer') {
+        qrSection.style.display = 'block';
+        // Add animation
+        qrSection.style.opacity = '0';
+        qrSection.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            qrSection.style.transition = 'all 0.5s ease';
+            qrSection.style.opacity = '1';
+            qrSection.style.transform = 'translateY(0)';
+        }, 100);
+    } else {
+        qrSection.style.display = 'none';
+    }
+    
+    // Enable confirm button
+    selectedPayment = method;
+    const confirmBtn = document.getElementById('confirm-payment-btn');
+    confirmBtn.disabled = false;
+    confirmBtn.style.background = 'var(--gradient-primary)';
+    
+    // Update button text
+    if (method === 'cash') {
+        confirmBtn.innerHTML = '<i class="fas fa-money-bill-wave"></i> Tôi đã hiểu thông tin thanh toán tiền mặt';
+    } else {
+        confirmBtn.innerHTML = '<i class="fas fa-qrcode"></i> Tôi đã hiểu thông tin chuyển khoản';
+    }
+}
+
+function confirmPayment() {
+    if (!selectedPayment) {
+        alert('Vui lòng xem thông tin thanh toán');
+        return;
+    }
+    
+    // Show loading state
+    const confirmBtn = document.getElementById('confirm-payment-btn');
+    const originalText = confirmBtn.innerHTML;
+    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+    confirmBtn.disabled = true;
+    
+    // Simulate processing (no API call)
+    setTimeout(() => {
+        // Show success message
+        confirmBtn.innerHTML = '<i class="fas fa-check"></i> Đã hiểu thông tin!';
+        confirmBtn.style.background = 'var(--gradient-success)';
+        
+        // Show success notification
+        showNotification('Cảm ơn bạn đã xem thông tin thanh toán!', 'success');
+        
+        // Disable payment options after confirmation
+        document.querySelectorAll('.payment-option').forEach(option => {
+            option.style.pointerEvents = 'none';
+            option.style.opacity = '0.7';
+        });
+        
+        // Update payment method display in order info
+        const paymentMethodDisplay = document.querySelector('p strong:contains("Phương thức thanh toán")');
+        if (paymentMethodDisplay) {
+            const methodText = selectedPayment === 'cash' ? 'Tiền mặt (COD)' : 'Chuyển khoản ngân hàng';
+            paymentMethodDisplay.parentElement.innerHTML = `<strong>Phương thức thanh toán:</strong> <span class="badge badge-info">${methodText}</span>`;
+        }
+        
+        // Scroll to top to show updated order info
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 1000);
+}
+
+function showNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        z-index: 1000;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        max-width: 400px;
+    `;
+    
+    // Set background color based on type
+    if (type === 'success') {
+        notification.style.background = 'var(--gradient-success)';
+    } else if (type === 'error') {
+        notification.style.background = 'var(--gradient-danger)';
+    }
+    
+    notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Remove after 5 seconds
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 5000);
+}
+</script>
+{% endblock %}

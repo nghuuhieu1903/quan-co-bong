@@ -1,0 +1,610 @@
+{% extends "admin_base.html" %}
+
+{% block head %}
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+/* Font Face - Agbalumo */
+@font-face {
+    font-family: 'Agbalumo';
+    src: local('Agbalumo'), 
+         local('Agbalumo-Regular'),
+         url('https://fonts.googleapis.com/css2?family=Agbalumo&display=swap');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Apply Agbalumo font to all elements */
+body, .modal-content, .table, .dropdown-menu {
+    font-family: 'Agbalumo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+/* Custom dropdown styles */
+.dropdown-menu {
+    min-width: 150px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.dropdown-item {
+    color: var(--text-primary);
+    padding: 8px 16px;
+}
+
+.dropdown-item:hover {
+    background-color: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+/* Modal custom styles */
+.modal-content {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.modal-header {
+    border-radius: 12px 12px 0 0;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+/* Quick access chips */
+.quick-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 1rem;
+    border-radius: 20px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.quick-chip:hover {
+    filter: brightness(0.93);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12);
+}
+
+/* Status dots */
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.status-dot.active {
+    background: #4ade80;
+}
+.status-dot.inactive {
+    background: #f87171;
+}
+
+/* Quick Actions Grid layout */
+.quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    width: 100%;
+}
+.quick-actions-grid .quick-chip {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0 !important;
+}
+
+.mobile-only {
+    display: none !important;
+}
+
+@media (max-width: 992px) {
+    .quick-actions-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .hide-mobile {
+        display: none !important;
+    }
+    .mobile-only {
+        display: inline-flex !important;
+    }
+    .mobile-detail-btn {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        padding: 0 !important;
+        font-size: 1rem;
+        background: var(--accent-color);
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    
+    /* Compact Stats Cards on mobile */
+    .stats-overview .grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.75rem !important;
+    }
+    
+    .stats-overview .card {
+        padding: 1rem !important;
+        margin-bottom: 0 !important;
+    }
+    
+    .stats-overview .card div[style*="width: 80px"] {
+        width: 50px !important;
+        height: 50px !important;
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .stats-overview .card div[style*="width: 80px"] i {
+        font-size: 1.25rem !important;
+    }
+    
+    .stats-overview .card h3 {
+        font-size: 0.95rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .stats-overview .card div[style*="font-size: 2.5rem"] {
+        font-size: 1.5rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .stats-overview .card p {
+        font-size: 0.8rem !important;
+        margin-bottom: 0 !important;
+    }
+    
+    /* Header layout centered on mobile */
+    .admin-title {
+        font-size: 1.75rem !important;
+        text-align: center;
+    }
+    .page-header p {
+        text-align: center;
+    }
+    .page-header .container > div {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+    }
+    .page-header div[style*="display: flex; gap: 0.75rem"] {
+        justify-content: center !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .quick-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+    .quick-actions-grid .quick-chip {
+        font-size: 0.8rem;
+        padding: 0.60rem 0.40rem;
+        border-radius: 8px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block title %}Dashboard Admin - Cô Bông Cát Lái{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="page-header" style="background: var(--gradient-primary); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 class="admin-title" style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard Admin - Cô Bông Cát Lái
+                </h1>
+                <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">Chào mừng trở lại, <strong>{{ session.admin_username }}</strong>!</p>
+            </div>
+            <!-- System status pills -->
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                <span style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.4rem 0.9rem; border-radius: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <span class="status-dot active"></span> Database Online
+                </span>
+                <span style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.4rem 0.9rem; border-radius: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <span class="status-dot {% if automation.enabled %}active{% else %}inactive{% endif %}"></span> Tự động hóa {% if automation.enabled %}Bật{% else %}Tắt{% endif %}
+                </span>
+                <span style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.4rem 0.9rem; border-radius: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <span class="status-dot {% if laptop_speaker.enabled %}active{% else %}inactive{% endif %}"></span> Loa {% if laptop_speaker.enabled %}Bật{% else %}Tắt{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Overview -->
+<section class="stats-overview" style="margin-bottom: 2rem;">
+    <div class="grid grid-cols-4">
+        <div class="card fade-in" style="text-align: center; padding: 2rem;">
+            <div style="background: var(--gradient-success); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i class="fas fa-box" style="font-size: 2rem; color: white;"></i>
+            </div>
+            <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Sản phẩm</h3>
+            <div style="font-size: 2.5rem; font-weight: 500; color: var(--accent-color); margin-bottom: 0.5rem;">
+                {{ products|length }}
+            </div>
+            <p style="color: var(--text-secondary);">Tổng số sản phẩm</p>
+        </div>
+        
+        <div class="card fade-in" style="text-align: center; padding: 2rem;">
+            <div style="background: var(--gradient-info); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i class="fas fa-shopping-cart" style="font-size: 2rem; color: white;"></i>
+            </div>
+            <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Đơn hàng</h3>
+            <div style="font-size: 2.5rem; font-weight: 500; color: var(--accent-color); margin-bottom: 0.5rem;">
+                {{ orders|length }}
+            </div>
+            <p style="color: var(--text-secondary);">Tổng đơn hàng</p>
+        </div>
+        
+        <div class="card fade-in" style="text-align: center; padding: 2rem;">
+            <div style="background: var(--gradient-warning); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i class="fas fa-dollar-sign" style="font-size: 2rem; color: white;"></i>
+            </div>
+            <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Doanh thu</h3>
+            <div style="font-size: 2.5rem; font-weight: 500; color: var(--accent-color); margin-bottom: 0.5rem;">
+                {% set total_revenue = orders|selectattr('total_amount')|map(attribute='total_amount')|sum %}
+                {{ "{:,.0f}".format(total_revenue) }}
+            </div>
+            <p style="color: var(--text-secondary);">VNĐ</p>
+        </div>
+        
+        <div class="card fade-in" style="text-align: center; padding: 2rem;">
+            <div style="background: var(--gradient-danger); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i class="fas fa-clock" style="font-size: 2rem; color: white;"></i>
+            </div>
+            <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Đơn mới</h3>
+            <div style="font-size: 2.5rem; font-weight: 500; color: var(--accent-color); margin-bottom: 0.5rem;">
+                {{ orders|selectattr('status', 'equalto', 'pending')|list|length }}
+            </div>
+            <p style="color: var(--text-secondary);">Chờ xử lý</p>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Actions -->
+<section class="quick-actions" style="margin-bottom: 2rem;">
+    <div class="card fade-in" style="padding: 1.25rem 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem;">
+            <i class="fas fa-bolt" style="color: var(--accent-color);"></i>
+            <span style="font-weight: 600; color: var(--text-primary); font-size: 1rem;">Truy cập nhanh</span>
+        </div>
+        <div class="quick-actions-grid">
+            <a href="{{ url_for('add_product') }}" class="quick-chip" style="background: rgba(99,102,241,0.1); color: var(--accent-color); border: 1px solid rgba(99,102,241,0.25);">
+                <i class="fas fa-plus-circle"></i> Thêm sản phẩm
+            </a>
+            <a href="{{ url_for('manage_products') }}" class="quick-chip" style="background: rgba(99,102,241,0.06); color: var(--text-primary); border: 1px solid var(--border-color);">
+                <i class="fas fa-box"></i> Sản phẩm
+            </a>
+            <a href="{{ url_for('admin_rooms') }}" class="quick-chip" style="background: rgba(16,185,129,0.1); color: #059669; border: 1px solid rgba(16,185,129,0.25);">
+                <i class="fas fa-door-open"></i> Phòng trọ
+            </a>
+            <a href="{{ url_for('admin_room_bookings') }}" class="quick-chip" style="background: rgba(239,68,68,0.08); color: #dc2626; border: 1px solid rgba(239,68,68,0.2);">
+                <i class="fas fa-calendar-alt"></i> Lịch đặt
+            </a>
+            <a href="{{ url_for('automation_settings') }}" class="quick-chip" style="background: rgba(245,158,11,0.1); color: #b45309; border: 1px solid rgba(245,158,11,0.25);">
+                <i class="fas fa-cogs"></i> Tự động hóa
+            </a>
+            <a href="{{ url_for('generate_qr') }}" class="quick-chip" style="background: rgba(14,165,233,0.08); color: #0369a1; border: 1px solid rgba(14,165,233,0.2);">
+                <i class="fas fa-qrcode"></i> Tạo QR
+            </a>
+            <a href="{{ url_for('generate_bank_qr') }}" class="quick-chip" style="background: rgba(16,185,129,0.08); color: #059669; border: 1px solid rgba(16,185,129,0.2);">
+                <i class="fas fa-university"></i> Tạo QR Ngân Hàng
+            </a>
+            <a href="{{ url_for('export_orders') }}" class="quick-chip" style="background: rgba(100,116,139,0.08); color: var(--text-secondary); border: 1px solid var(--border-color);">
+                <i class="fas fa-download"></i> Xuất đơn
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Orders -->
+<section class="recent-orders">
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-shopping-bag"></i> Đơn hàng gần đây
+            </h3>
+            <a href="{{ url_for('export_orders') }}" class="btn btn-outline">
+                Xuất đơn hàng <i class="fas fa-download"></i>
+            </a>
+        </div>
+        
+        {% if orders %}
+        <div class="table-responsive">
+            <table class="table" style="min-width: 100% !important; margin-bottom: 0;">
+                <thead>
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Khách hàng</th>
+                        <th>Tổng tiền</th>
+                        <th class="hide-mobile">Trạng thái</th>
+                        <th class="hide-mobile">Ngày đặt</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders[:5] %}
+                    <tr>
+                        <td>
+                            <strong>#{{ order.id }}</strong>
+                        </td>
+                        <td>{{ order.customer_name }}</td>
+                        <td style="color: var(--accent-color); font-weight: 600;">
+                            {{ "{:,.0f}".format(order.total_amount) }} VNĐ
+                        </td>
+                        <td class="hide-mobile">
+                            {% if order.status == 'pending' %}
+                            <span class="badge badge-warning">Chờ xử lý</span>
+                            {% elif order.status == 'processing' %}
+                            <span class="badge badge-info">Đang xử lý</span>
+                            {% elif order.status == 'completed' %}
+                            <span class="badge badge-success">Hoàn thành</span>
+                            {% else %}
+                            <span class="badge badge-danger">Hủy</span>
+                            {% endif %}
+                        </td>
+                        <td class="hide-mobile">{{ order.created_at.strftime('%d/%m/%Y %H:%M') if order.created_at else 'N/A' }}</td>
+                        <td style="text-align: center; vertical-align: middle;">
+                            <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
+                                <button type="button" class="btn btn-sm btn-outline hide-mobile" title="Chi tiết" onclick="showOrderDetail('{{ order.id }}')">
+                                    <i class="fas fa-eye"></i><span style="margin-left: 4px;">Xem/Chỉnh sửa</span>
+                                </button>
+                                <button type="button" class="mobile-detail-btn mobile-only" title="Chi tiết" onclick="showOrderDetail('{{ order.id }}')">
+                                    <i class="fas fa-info-circle"></i>
+                                </button>
+                                {% if order.status == 'pending' or order.status == 'processing' %}
+                                <div class="dropdown hide-mobile" style="display: inline;">
+                                    <button class="btn btn-sm btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-cog"></i> Hành động
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}" style="margin: 0;">
+                                                <input type="hidden" name="status" value="completed">
+                                                <button type="submit" class="dropdown-item" style="color: var(--success-color);">
+                                                    <i class="fas fa-check-circle"></i> Hoàn tất
+                                                </button>
+                                            </form>
+                                        </li>
+                                        <li>
+                                            <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}" style="margin: 0;">
+                                                <input type="hidden" name="status" value="cancelled">
+                                                <button type="submit" class="dropdown-item" style="color: var(--danger-color);">
+                                                    <i class="fas fa-times-circle"></i> Hủy
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+            <i class="fas fa-shopping-cart" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+            <h4>Chưa có đơn hàng nào</h4>
+            <p>Chờ khách hàng đặt hàng nhé!</p>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+
+
+<!-- Order Detail Modal -->
+<div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background: var(--gradient-primary); color: white;">
+                <h5 class="modal-title" id="orderDetailModalLabel">
+                    <i class="fas fa-file-invoice"></i> Chi tiết đơn hàng
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="orderDetailContent">
+                <div style="text-align: center; padding: 2rem;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary-color);"></i>
+                    <p style="margin-top: 1rem;">Đang tải thông tin đơn hàng...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" id="printOrderBtn">
+                    <i class="fas fa-print"></i> In đơn hàng
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Initial Last Order ID: {{ orders[0].id if orders else 0 }}
+// Auto-refresh Dashboard Admin - Cô Bông Cát Lái every 30 seconds
+setInterval(function() {
+    location.reload();
+}, 30000);
+
+// Show order detail modal
+function showOrderDetail(orderId) {
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+    modal.show();
+    
+    // Load order details
+    fetch(`/admin/api/order/${orderId}`)
+        .then(response => response.json())
+        .then(data => {
+            const content = document.getElementById('orderDetailContent');
+            content.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-info-circle"></i> Thông tin đơn hàng</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Mã đơn:</strong></td><td>#${data.id}</td></tr>
+                            <tr><td><strong>Khách hàng:</strong></td><td>${data.customer_name}</td></tr>
+                            <tr><td><strong>Số điện thoại:</strong></td><td>${data.customer_phone}</td></tr>
+                            <tr><td><strong>Ngày đặt:</strong></td><td>${data.created_at}</td></tr>
+                            <tr><td><strong>Trạng thái:</strong></td><td>${data.status_badge}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-calculator"></i> Tổng cộng</h6>
+                        <div style="background: var(--gradient-accent); color: white; padding: 1rem; border-radius: 10px; text-align: center;">
+                            <h3 style="margin: 0;">${data.total_amount}</h3>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <h6><i class="fas fa-shopping-cart"></i> Sản phẩm</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Số lượng</th>
+                                <th>Đơn giá</th>
+                                <th>Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.items.map(item => `
+                                <tr>
+                                    <td>${item.name}</td>
+                                    <td>${item.quantity}</td>
+                                    <td>${item.price}</td>
+                                    <td>${item.subtotal}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            // Add action buttons
+            const updateUrlTemplate = "{{ url_for('update_order_status', order_id=999999) }}".replace("999999", data.id);
+            let actionButtons = '';
+            if (data.status === 'pending' || data.status === 'processing') {
+                actionButtons = `
+                    <div style="display: flex; gap: 0.5rem;">
+                        <form method="POST" action="${updateUrlTemplate}" style="margin: 0;">
+                            <input type="hidden" name="status" value="completed">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check-circle"></i> Duyệt đơn
+                            </button>
+                        </form>
+                        <form method="POST" action="${updateUrlTemplate}" style="margin: 0;">
+                            <input type="hidden" name="status" value="cancelled">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-times-circle"></i> Hủy đơn
+                            </button>
+                        </form>
+                    </div>
+                `;
+            }
+            
+            content.innerHTML += `
+                <hr>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    ${actionButtons}
+                </div>
+            `;
+            
+            // Setup print button
+            document.getElementById('printOrderBtn').onclick = function() {
+                window.print();
+            };
+        })
+        .catch(error => {
+            document.getElementById('orderDetailContent').innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    Không thể tải thông tin đơn hàng: ${error.message}
+                </div>
+            `;
+        });
+}
+
+// Initialize dropdowns
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Bootstrap dropdowns
+    const dropdownTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'));
+    dropdownTriggerList.map(function (dropdownTriggerEl) {
+        return new bootstrap.Dropdown(dropdownTriggerEl);
+    });
+});
+
+// Add animation on scroll
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fadeElements = document.querySelectorAll('.fade-in');
+    fadeElements.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(el);
+    });
+});
+</script>
+{% endblock %}

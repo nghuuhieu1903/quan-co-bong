@@ -1,0 +1,344 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Tạo QR Ngân Hàng - Admin{% endblock %}
+
+{% block head %}
+<style>
+@media print {
+    /* Hide everything on the page */
+    body * {
+        visibility: hidden;
+    }
+    /* Show only the print area and its children */
+    #print-area, #print-area * {
+        visibility: visible;
+    }
+    /* Position the print area perfectly on the printed page */
+    #print-area {
+        position: absolute;
+        left: 50%;
+        top: 45%;
+        transform: translate(-50%, -50%);
+        padding: 0 !important;
+        margin: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        width: 85% !important;
+        max-width: 480px !important;
+    }
+    /* Make the image look crisp and centered */
+    #print-area img {
+        width: 100% !important;
+        height: auto !important;
+        display: block;
+        margin: 0 auto;
+        border-radius: 0 !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="page-header" style="background: var(--gradient-primary); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 class="admin-title" style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+                    <i class="fas fa-university"></i> Tạo QR Ngân Hàng
+                </h1>
+                <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                    Tạo mã QR VietQR chuyển khoản nhanh cho khách hàng
+                </p>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary" style="background: white; color: var(--primary-color); border: none; font-weight: 600;">
+                    <i class="fas fa-arrow-left"></i> Quay lại Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- QR Code Generator -->
+<section class="qr-generator">
+    <div class="grid grid-cols-2" style="gap: 2rem;">
+        <!-- QR Code Form -->
+        <div class="card fade-in" style="padding: 2rem;">
+            <div class="card-header" style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                <h3 style="margin: 0; color: var(--text-primary);">
+                    <i class="fas fa-cog"></i> Cấu hình tài khoản & chuyển khoản
+                </h3>
+            </div>
+            
+            <form method="POST" action="{{ url_for('generate_bank_qr') }}">
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);">
+                        <i class="fas fa-piggy-bank"></i> Chọn Ngân hàng *
+                    </label>
+                    <select name="bank_id" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" required>
+                        <option value="VCB" {% if request.form.get('bank_id') == 'VCB' or not request.form.get('bank_id') %}selected{% endif %}>Vietcombank (VCB)</option>
+                        <option value="MB" {% if request.form.get('bank_id') == 'MB' %}selected{% endif %}>MB Bank (MB)</option>
+                        <option value="TCB" {% if request.form.get('bank_id') == 'TCB' %}selected{% endif %}>Techcombank (TCB)</option>
+                        <option value="BIDV" {% if request.form.get('bank_id') == 'BIDV' %}selected{% endif %}>BIDV</option>
+                        <option value="CTG" {% if request.form.get('bank_id') == 'CTG' %}selected{% endif %}>VietinBank</option>
+                        <option value="ACB" {% if request.form.get('bank_id') == 'ACB' %}selected{% endif %}>ACB</option>
+                        <option value="VPB" {% if request.form.get('bank_id') == 'VPB' %}selected{% endif %}>VPBank</option>
+                        <option value="TPB" {% if request.form.get('bank_id') == 'TPB' %}selected{% endif %}>TPBank</option>
+                        <option value="STB" {% if request.form.get('bank_id') == 'STB' %}selected{% endif %}>Sacombank</option>
+                        <option value="VBA" {% if request.form.get('bank_id') == 'VBA' %}selected{% endif %}>Agribank</option>
+                        <option value="VIB" {% if request.form.get('bank_id') == 'VIB' %}selected{% endif %}>VIB</option>
+                        <option value="MSB" {% if request.form.get('bank_id') == 'MSB' %}selected{% endif %}>MSB</option>
+                        <option value="HDB" {% if request.form.get('bank_id') == 'HDB' %}selected{% endif %}>HDBank</option>
+                        <option value="SHB" {% if request.form.get('bank_id') == 'SHB' %}selected{% endif %}>SHB</option>
+                    </select>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);">
+                        <i class="fas fa-credit-card"></i> Số tài khoản *
+                    </label>
+                    <input type="text" name="account_no" class="form-control" value="{{ request.form.get('account_no', '1234567890') }}" placeholder="Nhập số tài khoản ngân hàng" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);">
+                        <i class="fas fa-user-tie"></i> Tên chủ tài khoản *
+                    </label>
+                    <input type="text" name="account_name" class="form-control" value="{{ request.form.get('account_name', 'CO BONG CAT LAI') }}" placeholder="Ví dụ: NGUYEN VAN A (Viết hoa không dấu)" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);">
+                        <i class="fas fa-money-bill-wave"></i> Số tiền chuyển khoản (VNĐ)
+                    </label>
+                    <input type="number" name="amount" class="form-control" value="{{ request.form.get('amount', '') }}" placeholder="Để trống nếu muốn khách hàng tự điền" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);">
+                        <i class="fas fa-comment-alt"></i> Nội dung chuyển khoản
+                    </label>
+                    <input type="text" name="add_info" class="form-control" value="{{ request.form.get('add_info', 'THANH TOAN DON HANG') }}" placeholder="Ví dụ: TT DON HANG" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);">
+                        <i class="fas fa-image"></i> Giao diện mã QR
+                    </label>
+                    <select name="template" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);">
+                        <option value="qr_only" {% if request.form.get('template') == 'qr_only' %}selected{% endif %}>Chỉ mã QR (QR Only)</option>
+                        <option value="compact" {% if request.form.get('template') == 'compact' %}selected{% endif %}>Gọn gàng (Compact)</option>
+                        <option value="compact2" {% if request.form.get('template') == 'compact2' %}selected{% endif %}>Gọn gàng v2</option>
+                        <option value="print" {% if request.form.get('template') == 'print' or not request.form.get('template') %}selected{% endif %}>Thẻ đặt quầy (Mẫu in đẹp)</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; background: var(--gradient-primary);">
+                    <i class="fas fa-magic"></i> Tạo QR Ngân Hàng
+                </button>
+            </form>
+        </div>
+        
+        <!-- QR Code Display -->
+        <div class="card fade-in" style="padding: 2rem;">
+            <div class="card-header" style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                <h3 style="margin: 0; color: var(--text-primary);">
+                    <i class="fas fa-qrcode"></i> Mã QR Kết Quả
+                </h3>
+            </div>
+            
+            {% if qr_url %}
+            <div style="text-align: center;">
+                <div id="print-area" style="background: white; padding: 1.5rem; border-radius: 12px; display: inline-block; margin-bottom: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid var(--border-color);">
+                    <img src="{{ qr_url }}" alt="Bank QR Code" style="max-width: 100%; max-height: 420px; height: auto; border-radius: 6px;">
+                </div>
+                
+                <div style="background: var(--bg-secondary); padding: 1.25rem; border-radius: 10px; margin-bottom: 1.5rem; text-align: left; border: 1px solid var(--border-color);">
+                    <h4 style="margin: 0 0 0.75rem 0; color: var(--text-primary); font-size: 1rem; font-weight: 600; border-bottom: 1px dashed var(--border-color); padding-bottom: 0.5rem;">
+                        <i class="fas fa-info-circle"></i> Chi tiết giao dịch
+                    </h4>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 0.5rem; font-size: 0.9rem;">
+                        <p style="margin: 0; color: var(--text-secondary);">
+                            <strong style="color: var(--text-primary);">Ngân hàng:</strong> {{ request.form.get('bank_id') }}
+                        </p>
+                        <p style="margin: 0; color: var(--text-secondary);">
+                            <strong style="color: var(--text-primary);">Số tài khoản:</strong> {{ request.form.get('account_no') }}
+                        </p>
+                        <p style="margin: 0; color: var(--text-secondary);">
+                            <strong style="color: var(--text-primary);">Chủ tài khoản:</strong> {{ request.form.get('account_name') }}
+                        </p>
+                        {% if request.form.get('amount') %}
+                        <p style="margin: 0; color: var(--text-secondary);">
+                            <strong style="color: var(--text-primary);">Số tiền:</strong> 
+                            <span style="color: var(--accent-color); font-weight: 600;">
+                                {{ "{:,.0f}".format(request.form.get('amount')|int) }} VNĐ
+                            </span>
+                        </p>
+                        {% endif %}
+                        {% if request.form.get('add_info') %}
+                        <p style="margin: 0; color: var(--text-secondary);">
+                            <strong style="color: var(--text-primary);">Nội dung chuyển khoản:</strong> {{ request.form.get('add_info') }}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <a href="{{ qr_url }}" target="_blank" class="btn btn-outline" style="border-radius: 8px; font-weight: 600; text-decoration: none;">
+                        <i class="fas fa-external-link-alt"></i> Mở ảnh gốc
+                    </a>
+                    <button onclick="printQR('{{ qr_url }}')" class="btn btn-secondary" style="border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-print"></i> In mã QR
+                    </button>
+                </div>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 4rem 2rem; color: var(--text-muted);">
+                <i class="fas fa-university" style="font-size: 4rem; margin-bottom: 1.5rem; color: var(--border-color);"></i>
+                <h4 style="margin-bottom: 0.75rem; color: var(--text-primary);">Chưa cấu hình thông tin ngân hàng</h4>
+                <p style="margin: 0; max-width: 320px; margin: 0 auto; line-height: 1.5;">Vui lòng điền thông tin tài khoản ở bên trái và bấm nút "Tạo QR Ngân Hàng" để tạo mã thanh toán.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Standard Presets (Helpful shortcuts) -->
+<section class="qr-presets" style="margin-top: 2rem;">
+    <div class="card fade-in" style="padding: 2rem;">
+        <div class="card-header" style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+            <h3 style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-star"></i> Mẫu thiết lập nhanh của bạn
+            </h3>
+        </div>
+        
+        <div class="grid grid-cols-3" style="gap: 1.5rem;">
+            <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; text-align: center; display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+                <div>
+                    <div style="background: rgba(99,102,241,0.1); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                        <i class="fas fa-user-circle" style="font-size: 1.5rem; color: var(--primary-color);"></i>
+                    </div>
+                    <h4 style="margin: 0 0 0.5rem 0; color: var(--text-primary);">Tài khoản mặc định</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 1rem 0; line-height: 1.4;">Vietcombank - Cô Bông Cát Lái<br>STK: 1234567890</p>
+                </div>
+                <form method="POST" action="{{ url_for('generate_bank_qr') }}">
+                    <input type="hidden" name="bank_id" value="VCB">
+                    <input type="hidden" name="account_no" value="1234567890">
+                    <input type="hidden" name="account_name" value="CO BONG CAT LAI">
+                    <input type="hidden" name="amount" value="">
+                    <input type="hidden" name="add_info" value="CHUYEN KHOAN CUA HANG">
+                    <input type="hidden" name="template" value="print">
+                    <button type="submit" class="btn btn-sm btn-primary" style="width: 100%; border-radius: 6px; padding: 0.5rem; font-weight: 600;">Sử dụng mẫu này</button>
+                </form>
+            </div>
+            
+            <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; text-align: center; display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+                <div>
+                    <div style="background: rgba(16,185,129,0.1); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                        <i class="fas fa-qrcode" style="font-size: 1.5rem; color: #10b981;"></i>
+                    </div>
+                    <h4 style="margin: 0 0 0.5rem 0; color: var(--text-primary);">Chỉ mã QR chuyển khoản</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 1rem 0; line-height: 1.4;">Mẫu quét nhanh, không hiển thị tên chủ thẻ bên ngoài ảnh QR</p>
+                </div>
+                <form method="POST" action="{{ url_for('generate_bank_qr') }}">
+                    <input type="hidden" name="bank_id" value="VCB">
+                    <input type="hidden" name="account_no" value="1234567890">
+                    <input type="hidden" name="account_name" value="CO BONG CAT LAI">
+                    <input type="hidden" name="amount" value="">
+                    <input type="hidden" name="add_info" value="CHUYEN KHOAN CUA HANG">
+                    <input type="hidden" name="template" value="qr_only">
+                    <button type="submit" class="btn btn-sm btn-primary" style="width: 100%; border-radius: 6px; padding: 0.5rem; font-weight: 600;">Sử dụng mẫu này</button>
+                </form>
+            </div>
+
+            <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; text-align: center; display: flex; flex-direction: column; justify-content: space-between; height: 100%;">
+                <div>
+                    <div style="background: rgba(245,158,11,0.1); width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                        <i class="fas fa-id-card" style="font-size: 1.5rem; color: #f59e0b;"></i>
+                    </div>
+                    <h4 style="margin: 0 0 0.5rem 0; color: var(--text-primary);">Techcombank Compact</h4>
+                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 1rem 0; line-height: 1.4;">Techcombank - Tài khoản cửa hàng<br>STK: 1234567890</p>
+                </div>
+                <form method="POST" action="{{ url_for('generate_bank_qr') }}">
+                    <input type="hidden" name="bank_id" value="TCB">
+                    <input type="hidden" name="account_no" value="1234567890">
+                    <input type="hidden" name="account_name" value="CO BONG CAT LAI">
+                    <input type="hidden" name="amount" value="">
+                    <input type="hidden" name="add_info" value="TT TIEN HANG">
+                    <input type="hidden" name="template" value="compact">
+                    <button type="submit" class="btn btn-sm btn-primary" style="width: 100%; border-radius: 6px; padding: 0.5rem; font-weight: 600;">Sử dụng mẫu này</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function printQR(url) {
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+        <head>
+            <title>In mã QR</title>
+            <style>
+                body {
+                    margin: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    background-color: white;
+                }
+                img {
+                    max-width: 95vw;
+                    max-height: 95vh;
+                    object-fit: contain;
+                }
+                @page {
+                    size: auto;
+                    margin: 0;
+                }
+            </style>
+        </head>
+        <body>
+            <img src="${url}" onload="setTimeout(function() { window.print(); window.close(); }, 300);">
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Add animation on scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    const fadeElements = document.querySelectorAll('.fade-in');
+    fadeElements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        
+        setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, 100 * (index + 1));
+    });
+});
+</script>
+{% endblock %}

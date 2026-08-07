@@ -1,0 +1,599 @@
+{% extends "modern_base.html" %}
+
+{% block head %}
+<style>
+/* Font Face - Agbalumo */
+@font-face {
+    font-family: 'Agbalumo';
+    src: local('Agbalumo'), 
+         local('Agbalumo-Regular'),
+         url('https://fonts.googleapis.com/css2?family=Agbalumo&display=swap');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Apply Agbalumo font to cart page */
+.page-header h1, .cart-section .btn {
+    font-family: 'Agbalumo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+/* Enhanced responsive design for cart page */
+.cart-items-desktop {
+    display: block;
+}
+
+.cart-items-mobile {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .cart-items-desktop {
+        display: none;
+    }
+    
+    .cart-items-mobile {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .mobile-cart-item-card {
+        background: var(--bg-card, white);
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 16px;
+        padding: 1.25rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .mobile-cart-item-card:active {
+        transform: scale(0.99);
+    }
+    
+    .mobile-item-header {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .mobile-item-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 1px solid var(--border-color, #e2e8f0);
+    }
+    
+    .mobile-item-details {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .mobile-item-name {
+        margin: 0 0 0.35rem 0;
+        color: var(--text-primary);
+        font-size: 1.05rem;
+        font-weight: 600;
+        line-height: 1.3;
+    }
+    
+    .mobile-item-desc {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        line-height: 1.4;
+        display: -webkit-box;
+        line-clamp: 2;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    
+    .mobile-item-delete-btn {
+        background: rgba(239, 68, 68, 0.06);
+        border: 1px solid rgba(239, 68, 68, 0.15);
+        color: #ef4444;
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .mobile-item-delete-btn:active {
+        background: rgba(239, 68, 68, 0.15);
+    }
+    
+    .mobile-item-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 0.85rem;
+        border-top: 1px dashed var(--border-color, #e2e8f0);
+    }
+    
+    .mobile-qty-form {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+    
+    .mobile-qty-btn {
+        border: 1px solid var(--border-color, #e2e8f0);
+        background: var(--bg-body, #f8fafc);
+        color: var(--text-primary);
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.15s ease;
+    }
+    
+    .mobile-qty-btn:active {
+        background: var(--border-color, #e2e8f0);
+    }
+    
+    .mobile-qty-input {
+        width: 44px;
+        height: 34px;
+        text-align: center;
+        border: 1px solid var(--border-color, #e2e8f0);
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        background: var(--bg-body, #f8fafc);
+        padding: 0;
+    }
+    
+    .mobile-price-info {
+        text-align: right;
+    }
+    
+    .mobile-unit-price {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.15rem;
+    }
+    
+    .mobile-subtotal {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: var(--accent-color);
+    }
+
+    .page-header {
+        padding: 2rem 0 !important;
+        margin: -1rem -1rem 1rem -1rem !important;
+    }
+    
+    .page-header .container {
+        padding: 0 1rem !important;
+    }
+    
+    .page-header .container > div {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem !important;
+        text-align: center;
+    }
+    
+    .page-header p {
+        font-size: 1rem !important;
+        text-align: center;
+    }
+    
+    .page-header .btn {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .cart-actions {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    
+    .cart-actions .btn {
+        width: 100%;
+        min-height: 40px;
+        font-size: 0.85rem;
+        padding: 8px 12px;
+    }
+    
+    .cart-summary {
+        padding: 1.5rem !important;
+    }
+    
+    .cart-summary .grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    .cart-summary .btn {
+        width: 100%;
+        min-height: 44px;
+        font-size: 16px;
+        padding: 12px 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-header h1 {
+        font-size: 1.5rem !important;
+    }
+    
+    .page-header p {
+        font-size: 0.9rem !important;
+    }
+    
+    .cart-summary {
+        padding: 1rem !important;
+    }
+    
+    .cart-summary h4 {
+        font-size: 1rem !important;
+    }
+    
+    .cart-summary .form-group {
+        margin-bottom: 1rem !important;
+    }
+    
+    .cart-summary .form-control {
+        min-height: 44px;
+        font-size: 16px;
+        padding: 12px;
+    }
+    
+    .cart-summary .btn-primary {
+        font-size: 16px;
+        padding: 12px 20px;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (max-width: 768px) {
+    .cart-actions .btn {
+        transition: all 0.2s ease;
+    }
+    
+    .cart-actions .btn:active {
+        transform: scale(0.95);
+    }
+    
+    .cart-summary .btn {
+        transition: all 0.2s ease;
+    }
+    
+    .cart-summary .btn:active {
+        transform: scale(0.95);
+    }
+}
+
+/* Better empty cart on mobile */
+@media (max-width: 768px) {
+    .empty-cart {
+        padding: 2rem 1rem !important;
+    }
+    
+    .empty-cart i {
+        font-size: 3rem !important;
+    }
+    
+    .empty-cart h3 {
+        font-size: 1.25rem !important;
+    }
+    
+    .empty-cart p {
+        font-size: 0.9rem !important;
+    }
+    
+    .empty-cart .btn {
+        width: 100%;
+        min-height: 44px;
+        font-size: 16px;
+        padding: 12px 20px;
+    }
+}
+
+.cart-summary-card {
+    grid-column: 3;
+}
+@media (max-width: 768px) {
+    .cart-summary-card {
+        grid-column: 1 / span 1 !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block title %}Giỏ hàng - Cô Bông Cát Lái{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="page-header" style="background: var(--gradient-accent); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+                    <i class="fas fa-shopping-cart"></i> Giỏ hàng của bạn
+                </h1>
+                <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                    {% if cart_items %}
+                    {{ cart_items|length }} sản phẩm trong giỏ hàng
+                    {% else %}
+                    Giỏ hàng trống
+                    {% endif %}
+                </p>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <a href="{{ url_for('products') }}" class="btn btn-primary" style="background: white; color: var(--accent-color);">
+                    <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if cart_items %}
+<!-- Cart Items -->
+<section class="cart-items">
+    <!-- Desktop Table View -->
+    <div class="card fade-in cart-items-desktop">
+        <div class="card-header">
+            <h3 style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-list"></i> Sản phẩm trong 
+                {% if cart_items %}
+                <span class="badge badge-info">{{ cart_items|length }} sản phẩm</span>
+                {% else %}
+                <span class="badge badge-secondary">0 sản phẩm</span>
+                {% endif %}
+            </h3>
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Hình ảnh</th>
+                        <th>Sản phẩm</th>
+                        <th style="width: 120px;">Đơn giá</th>
+                        <th style="width: 150px;">Số lượng</th>
+                        <th style="width: 120px;">Thành tiền</th>
+                        <th style="width: 80px;">Xóa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart_items %}
+                    <tr>
+                        <td>
+                            <img src="{{ item.product.image_url }}" 
+                                 alt="{{ item.product.name }}" 
+                                  style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                        </td>
+                        <td>
+                            <h4 style="margin: 0 0 0.5rem 0; color: var(--text-primary);">{{ item.product.name }}</h4>
+                            <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">
+                                {{ item.product.description[:100] }}{% if item.product.description|length > 100 %}...{% endif %}
+                            </p>
+                        </td>
+                        <td style="color: var(--accent-color); font-weight: 600;">
+                            {{ "{:,.0f}".format(item.product.price) }} VNĐ
+                        </td>
+                        <td>
+                            <form method="POST" action="{{ url_for('update_cart', product_id=item.product.id) }}" style="display: flex; align-items: center; gap: 0.5rem;">
+                                <button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline" style="padding: 0.25rem 0.5rem;">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}" 
+                                       class="form-control" style="width: 60px; text-align: center;">
+                                <button type="submit" name="action" value="increase" class="btn btn-sm btn-outline" style="padding: 0.25rem 0.5rem;">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </form>
+                        </td>
+                        <td style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">
+                            {{ "{:,.0f}".format(item.subtotal) }} VNĐ
+                        </td>
+                        <td>
+                            <form method="POST" action="{{ url_for('remove_from_cart', product_id=item.product.id) }}">
+                                <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Mobile Cards View -->
+    <div class="cart-items-mobile fade-in">
+        {% for item in cart_items %}
+        <div class="mobile-cart-item-card">
+            <!-- Mobile Item Header -->
+            <div class="mobile-item-header">
+                <img class="mobile-item-img" src="{{ item.product.image_url }}" alt="{{ item.product.name }}">
+                <div class="mobile-item-details">
+                    <h4 class="mobile-item-name">{{ item.product.name }}</h4>
+                    <p class="mobile-item-desc">{{ item.product.description }}</p>
+                </div>
+                <form method="POST" action="{{ url_for('remove_from_cart', product_id=item.product.id) }}" style="margin: 0;">
+                    <button type="submit" class="mobile-item-delete-btn" title="Xóa">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Mobile Item Footer -->
+            <div class="mobile-item-footer">
+                <form method="POST" action="{{ url_for('update_cart', product_id=item.product.id) }}" class="mobile-qty-form">
+                    <button type="submit" name="action" value="decrease" class="mobile-qty-btn">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.product.stock }}" readonly class="mobile-qty-input">
+                    <button type="submit" name="action" value="increase" class="mobile-qty-btn">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </form>
+                
+                <div class="mobile-price-info">
+                    <div class="mobile-unit-price">Đơn giá: {{ "{:,.0f}".format(item.product.price) }} VNĐ</div>
+                    <div class="mobile-subtotal">{{ "{:,.0f}".format(item.subtotal) }} VNĐ</div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Cart Summary -->
+<section class="cart-summary">
+    <div class="grid grid-cols-3">
+        <div class="card fade-in cart-summary-card">
+            <div class="card-header">
+                <h3 style="margin: 0; color: var(--text-primary);">
+                    <i class="fas fa-calculator"></i> Tóm tắt đơn hàng
+                </h3>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                    <span>Tạm tính:</span>
+                    <span>{{ "{:,.0f}".format(total) }} VNĐ</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                    <span>Phí vận chuyển:</span>
+                    <span>Miễn phí</span>
+                </div>
+                <hr style="border-color: var(--border-color); margin: 1rem 0;">
+                <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 500; color: var(--accent-color);">
+                    <span>Tổng cộng:</span>
+                    <span>{{ "{:,.0f}".format(total) }} VNĐ</span>
+                </div>
+            </div>
+            
+            <form method="POST" action="{{ url_for('process_order') }}">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-user"></i> Tên khách hàng (không bắt buộc)
+                    </label>
+                    <input type="text" name="name" class="form-control" placeholder="Nhập tên của bạn">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-phone"></i> Số điện thoại (không bắt buộc)
+                    </label>
+                    <input type="tel" name="phone" class="form-control" placeholder="Nhập số điện thoại">
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                    <i class="fas fa-credit-card"></i> Đặt hàng
+                </button>
+            </form>
+            
+            <div style="margin-top: 1rem; text-align: center;">
+                <a href="{{ url_for('products') }}" class="btn btn-outline" style="width: 100%;">
+                    <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% else %}
+<!-- Empty Cart -->
+<section class="empty-cart">
+    <div class="card fade-in" style="text-align: center; padding: 4rem;">
+        <div style="background: var(--gradient-secondary); width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
+            <i class="fas fa-shopping-cart" style="font-size: 3rem; color: var(--text-muted);"></i>
+        </div>
+        
+        <h2 style="color: var(--text-primary); margin-bottom: 1rem;">Giỏ hàng trống</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 1.1rem;">
+            Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy khám phá sản phẩm của chúng tôi!
+        </p>
+        
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{{ url_for('products') }}" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                <i class="fas fa-shopping-bag"></i> Khám phá sản phẩm
+            </a>
+            <a href="{{ url_for('index') }}" class="btn btn-outline" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                <i class="fas fa-home"></i> Về trang chủ
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Update cart quantity with animation
+document.querySelectorAll('form[action*="update_cart"]').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        const button = e.submitter || this.querySelector('button[type="submit"]');
+        const originalText = button.innerHTML;
+        
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        button.disabled = true;
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }, 1000);
+    });
+});
+
+// Remove from cart with confirmation
+document.querySelectorAll('form[action*="remove_from_cart"]').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        if (!confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+            e.preventDefault();
+        }
+    });
+});
+
+// Add animation on scroll
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fadeElements = document.querySelectorAll('.fade-in');
+    fadeElements.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(el);
+    });
+});
+</script>
+{% endblock %}

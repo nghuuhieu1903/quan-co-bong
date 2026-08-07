@@ -1,0 +1,93 @@
+{% extends "modern_base.html" %}
+
+{% block title %}Thuê trọ / Đặt phòng - Cô Bông Cát Lái{% endblock %}
+
+{% block content %}
+<!-- Header Banner -->
+<section class="page-header" style="background: var(--gradient-accent); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem; text-align: center;">
+        <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+            <i class="fas fa-house-user"></i> Dịch Vụ Thuê Trọ & Đặt Phòng
+        </h1>
+        <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
+            Không gian phòng hiện đại, yên tĩnh, đầy đủ tiện nghi cho công việc, họp nhóm hoặc thư giãn.
+        </p>
+    </div>
+</section>
+
+<!-- Rooms Grid -->
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 1rem 4rem 1rem;">
+    {% if rooms %}
+        <div class="grid grid-cols-3" style="gap: 2rem;">
+            {% for room in rooms %}
+                <div class="card fade-in" style="display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; padding: 0; border: 1px solid var(--border-color); height: 100%;">
+                    <!-- Room Image -->
+                    <div style="position: relative; height: 200px; width: 100%; overflow: hidden; background: var(--gradient-secondary);">
+                        <img src="{{ room.image_url }}" alt="{{ room.name }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <div style="position: absolute; top: 1rem; right: 1rem; background: var(--accent-color); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600; font-size: 0.9rem;">
+                            {{ "{:,.0f}".format(room.price_per_hour)|replace(',', '.') }}đ / {{ room.price_unit or 'giờ' }}
+                        </div>
+                    </div>
+                    
+                    <!-- Room Info -->
+                    <div style="padding: 1.5rem; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                        <div>
+                            <h3 style="margin-top: 0; margin-bottom: 0.75rem; color: var(--text-primary); font-size: 1.3rem;">{{ room.name }}</h3>
+                            <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.25rem;">
+                                {{ room.description[:120] }}{% if room.description|length > 120 %}...{% endif %}
+                            </p>
+                            
+                            <!-- Capacity and Specs -->
+                            <div style="display: flex; gap: 1.5rem; margin-bottom: 1.25rem; font-size: 0.9rem; color: var(--text-muted);">
+                                <span><i class="fas fa-users" style="color: var(--accent-color); margin-right: 0.4rem;"></i> Sức chứa: <strong>{{ room.capacity }} người</strong></span>
+                                <span><i class="fas fa-check-circle" style="color: var(--success-color); margin-right: 0.4rem;"></i> Trạng thái: <strong>Sẵn sàng</strong></span>
+                            </div>
+                            
+                            <!-- Amenities -->
+                            {% if room.amenities_list %}
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem;">
+                                    {% for amenity in room.amenities_list %}
+                                        <span style="background: var(--bg-body); color: var(--text-secondary); border: 1px solid var(--border-color); padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.8rem;">
+                                            <i class="fas fa-tag" style="font-size: 0.7rem; margin-right: 0.3rem; opacity: 0.7;"></i>{{ amenity }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- CTA Action -->
+                        <div>
+                            <a href="{{ url_for('room_detail', room_id=room.id) }}" class="btn btn-primary" style="width: 100%; text-align: center; padding: 0.75rem 1rem;">
+                                <i class="fas fa-calendar-alt"></i> Xem Chi Tiết & Đặt Phòng
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="card" style="text-align: center; padding: 4rem 2rem;">
+            <div style="background: var(--gradient-secondary); width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i class="fas fa-door-closed" style="font-size: 2.5rem; color: var(--text-muted);"></i>
+            </div>
+            <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Hiện tại chưa có phòng trống</h3>
+            <p style="color: var(--text-secondary);">Vui lòng quay lại sau hoặc liên hệ với chúng tôi để được tư vấn.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fadeElements = document.querySelectorAll('.fade-in');
+    fadeElements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

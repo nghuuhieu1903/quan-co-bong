@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+venv/
+flask_session/
+instance/
+*.db
+cookies.txt
+notification_log.txt
+screenshots/
+libraries/
+admin_dashboard_rendered.html
+db_products.txt
+test.html
+img/

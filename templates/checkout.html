@@ -1,0 +1,529 @@
+{% extends "modern_base.html" %}
+
+{% block head %}
+<style>
+/* Font Face - Agbalumo */
+@font-face {
+    font-family: 'Agbalumo';
+    src: local('Agbalumo'), 
+         local('Agbalumo-Regular'),
+         url('https://fonts.googleapis.com/css2?family=Agbalumo&display=swap');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Apply Agbalumo font to checkout page */
+.page-header h1, .checkout-section .btn {
+    font-family: 'Agbalumo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+/* Enhanced responsive design for checkout page */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 2rem 0 !important;
+        margin: -1rem -1rem 1rem -1rem !important;
+    }
+    
+    .page-header .container {
+        padding: 0 1rem !important;
+    }
+    
+    .page-header .container > div {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem !important;
+        text-align: center;
+    }
+    
+    .page-header p {
+        font-size: 1rem !important;
+        text-align: center;
+    }
+    
+    .page-header .btn {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    /* Checkout layout */
+    .checkout .grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    .checkout .card {
+        padding: 1rem !important;
+    }
+    
+    .checkout .card-header {
+        padding: 1rem !important;
+    }
+    
+    .checkout .card-header h3 {
+        font-size: 1.1rem !important;
+        text-align: center;
+    }
+    
+    /* Form layout */
+    .checkout .grid.grid-cols-2 {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    .checkout .form-group {
+        margin-bottom: 1rem !important;
+    }
+    
+    .checkout .form-label {
+        font-size: 0.9rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .checkout .form-control {
+        min-height: 44px;
+        font-size: 16px;
+        padding: 12px;
+    }
+    
+    .checkout .form-control:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 2px rgba(var(--accent-color), 0.2);
+    }
+    
+    /* Order summary table */
+    .checkout .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .checkout .table {
+        min-width: 600px;
+        font-size: 0.9rem !important;
+    }
+    
+    .checkout .table th,
+    .checkout .table td {
+        padding: 0.5rem !important;
+        font-size: 0.85rem !important;
+    }
+    
+    /* Order summary */
+    .checkout div[style*="text-align: right"] {
+        text-align: center !important;
+    }
+    
+    .checkout div[style*="display: inline-block"] {
+        display: block !important;
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+    
+    .checkout div[style*="font-size: 1.25rem"] {
+        font-size: 1.1rem !important;
+    }
+    
+    /* Submit button */
+    .checkout .btn-primary {
+        width: 100%;
+        min-height: 44px;
+        font-size: 16px;
+        padding: 12px 20px;
+    }
+    
+    .checkout .btn-secondary {
+        width: 100%;
+        min-height: 44px;
+        font-size: 16px;
+        padding: 12px 20px;
+        margin-top: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-header h1 {
+        font-size: 1.5rem !important;
+    }
+    
+    .page-header p {
+        font-size: 0.9rem !important;
+    }
+    
+    .checkout .card {
+        padding: 0.75rem !important;
+    }
+    
+    .checkout .card-header {
+        padding: 0.75rem !important;
+    }
+    
+    .checkout .card-header h3 {
+        font-size: 1rem !important;
+    }
+    
+    .checkout .table {
+        min-width: 500px;
+        font-size: 0.8rem !important;
+    }
+    
+    .checkout .table th,
+    .checkout .table td {
+        padding: 0.4rem !important;
+        font-size: 0.75rem !important;
+    }
+    
+    .checkout .form-label {
+        font-size: 0.85rem !important;
+    }
+    
+    .checkout .form-control {
+        font-size: 16px;
+        padding: 10px;
+    }
+    
+    .checkout div[style*="font-size: 1.25rem"] {
+        font-size: 1rem !important;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (max-width: 768px) {
+    .checkout .btn {
+        transition: all 0.2s ease;
+    }
+    
+    .checkout .btn:active {
+        transform: scale(0.95);
+    }
+    
+    .checkout .form-control {
+        transition: border-color 0.2s ease;
+    }
+    
+    .checkout .form-control:focus {
+        transform: translateY(-1px);
+    }
+}
+
+/* Better empty checkout on mobile */
+@media (max-width: 768px) {
+    .empty-checkout {
+        padding: 2rem 1rem !important;
+    }
+    
+    .empty-checkout i {
+        font-size: 3rem !important;
+    }
+    
+    .empty-checkout h3 {
+        font-size: 1.25rem !important;
+    }
+    
+    .empty-checkout p {
+        font-size: 0.9rem !important;
+    }
+    
+    .empty-checkout .btn {
+        width: 100%;
+        min-height: 44px;
+        font-size: 16px;
+        padding: 12px 20px;
+    }
+}
+
+/* Mobile form validation */
+@media (max-width: 768px) {
+    .checkout .form-group:has(.form-control:invalid) {
+        position: relative;
+    }
+    
+    .checkout .form-control:invalid {
+        border-color: var(--danger-color);
+    }
+    
+    .checkout .form-control:invalid:focus {
+        border-color: var(--danger-color);
+        box-shadow: 0 0 0 2px rgba(var(--danger-color), 0.2);
+    }
+}
+
+/* Better checkbox/radio on mobile */
+@media (max-width: 768px) {
+    .checkout input[type="checkbox"],
+    .checkout input[type="radio"] {
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+    }
+    
+    .checkout label:has(input[type="checkbox"]),
+    .checkout label:has(input[type="radio"]) {
+        display: flex;
+        align-items: center;
+        font-size: 16px;
+        padding: 8px 0;
+        cursor: pointer;
+    }
+}
+
+.checkout-info-card {
+    grid-column: 1 / span 2;
+}
+.checkout-summary-card {
+    grid-column: 3;
+}
+@media (max-width: 768px) {
+    .checkout-info-card,
+    .checkout-summary-card {
+        grid-column: 1 / span 1 !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block title %}Thanh toán - Cô Bông Cát Lái{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="page-header" style="background: var(--gradient-accent); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+                    <i class="fas fa-credit-card"></i> Thanh toán
+                </h1>
+                <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                    Hoàn tất thông tin để đặt hàng
+                </p>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <a href="{{ url_for('cart') }}" class="btn btn-primary" style="background: white; color: var(--accent-color);">
+                    <i class="fas fa-arrow-left"></i> Quay lại giỏ hàng
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if cart_items %}
+<!-- Checkout Form -->
+<section class="checkout">
+    <div class="grid grid-cols-3">
+        <!-- Customer Information -->
+        <div class="card fade-in checkout-info-card">
+            <div class="card-header">
+                <h3 style="margin: 0; color: var(--text-primary);">
+                    <i class="fas fa-user"></i> Thông tin khách hàng
+                </h3>
+            </div>
+            
+            <form method="POST" action="{{ url_for('process_order') }}">
+                <div class="grid grid-cols-2">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-user"></i> Họ và tên (không bắt buộc)
+                        </label>
+                        <input type="text" name="name" class="form-control" placeholder="Nhập họ và tên" 
+                               value="{{ session.get('customer_name', '') }}">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-phone"></i> Số điện thoại (không bắt buộc)
+                        </label>
+                        <input type="tel" name="phone" class="form-control" placeholder="Nhập số điện thoại"
+                               value="{{ session.get('customer_phone', '') }}">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-envelope"></i> Email (không bắt buộc)
+                    </label>
+                    <input type="email" name="email" class="form-control" placeholder="Nhập email để nhận hóa đơn">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-map-marker-alt"></i> Địa chỉ giao hàng (không bắt buộc)
+                    </label>
+                    <textarea name="address" class="form-control" rows="3" placeholder="Nhập địa chỉ giao hàng"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-comment"></i> Ghi chú (không bắt buộc)
+                    </label>
+                    <textarea name="notes" class="form-control" rows="2" placeholder="Ghi chú thêm về đơn hàng"></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                    <i class="fas fa-check-circle"></i> Xác nhận đặt hàng
+                </button>
+            </form>
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="card fade-in checkout-summary-card">
+            <div class="card-header">
+                <h3 style="margin: 0; color: var(--text-primary);">
+                    <i class="fas fa-shopping-cart"></i> Tóm tắt đơn hàng
+                </h3>
+            </div>
+            
+            <div style="margin-bottom: 1.5rem;">
+                <h4 style="color: var(--text-primary); margin-bottom: 1rem;">Sản phẩm ({{ cart_items|length }})</h4>
+                
+                {% for item in cart_items %}
+                {% set product = item.product %}
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--border-color);">
+                    <div style="flex: 1;">
+                        <h5 style="margin: 0 0 0.25rem 0; color: var(--text-primary); font-size: 0.9rem;">{{ product.name }}</h5>
+                        <p style="margin: 0; color: var(--text-secondary); font-size: 0.8rem;">Số lượng: {{ item.quantity }}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="margin: 0; color: var(--accent-color); font-weight: 600;">
+                            {{ "{:,.0f}".format(product.price * item.quantity) }} VNĐ
+                        </p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                    <span>Tạm tính:</span>
+                    <span>{{ "{:,.0f}".format(total) }} VNĐ</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
+                    <span>Phí vận chuyển:</span>
+                    <span>Miễn phí</span>
+                </div>
+                <hr style="border-color: var(--border-color); margin: 1rem 0;">
+                <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 500; color: var(--accent-color);">
+                    <span>Tổng cộng:</span>
+                    <span>{{ "{:,.0f}".format(total) }} VNĐ</span>
+                </div>
+            </div>
+            
+            <div style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-secondary); border-radius: 8px;">
+                <h5 style="margin: 0 0 0.5rem 0; color: var(--text-primary);">
+                    <i class="fas fa-shield-alt"></i> Bảo mật thanh toán
+                </h5>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.8rem;">
+                    Thông tin của bạn được bảo vệ và mã hóa an toàn
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Payment Methods -->
+<section class="payment-methods" style="margin-top: 2rem;">
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-credit-card"></i> Phương thức thanh toán
+            </h3>
+        </div>
+        
+        <div class="grid grid-cols-4">
+            <div class="payment-option" style="text-align: center; padding: 1.5rem; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer;">
+                <i class="fas fa-money-bill-wave" style="font-size: 2rem; color: var(--success-color); margin-bottom: 0.5rem;"></i>
+                <h4 style="margin: 0.5rem 0; color: var(--text-primary);">Tiền mặt</h4>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.8rem;">Thanh toán khi nhận hàng</p>
+            </div>
+            
+            <div class="payment-option" style="text-align: center; padding: 1.5rem; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer;">
+                <i class="fas fa-university" style="font-size: 2rem; color: var(--info-color); margin-bottom: 0.5rem;"></i>
+                <h4 style="margin: 0.5rem 0; color: var(--text-primary);">Chuyển khoản</h4>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.8rem;">Ngân hàng điện tử</p>
+            </div>
+            
+            <div class="payment-option" style="text-align: center; padding: 1.5rem; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer;">
+                <i class="fas fa-mobile-alt" style="font-size: 2rem; color: var(--warning-color); margin-bottom: 0.5rem;"></i>
+                <h4 style="margin: 0.5rem 0; color: var(--text-primary);">Ví điện tử</h4>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.8rem;">Momo, ZaloPay, v.v.</p>
+            </div>
+            
+            <div class="payment-option" style="text-align: center; padding: 1.5rem; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer;">
+                <i class="fas fa-credit-card" style="font-size: 2rem; color: var(--accent-color); margin-bottom: 0.5rem;"></i>
+                <h4 style="margin: 0.5rem 0; color: var(--text-primary);">Thẻ tín dụng</h4>
+                <p style="margin: 0; color: var(--text-secondary); font-size: 0.8rem;">Visa, Mastercard</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% else %}
+<!-- Empty Cart -->
+<section class="empty-cart">
+    <div class="card fade-in" style="text-align: center; padding: 4rem;">
+        <div style="background: var(--gradient-secondary); width: 120px; height: 120px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
+            <i class="fas fa-shopping-cart" style="font-size: 3rem; color: var(--text-muted);"></i>
+        </div>
+        
+        <h2 style="color: var(--text-primary); margin-bottom: 1rem;">Giỏ hàng trống</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 1.1rem;">
+            Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy mua sắm trước khi thanh toán!
+        </p>
+        
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <a href="{{ url_for('products') }}" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                <i class="fas fa-shopping-bag"></i> Mua sắm ngay
+            </a>
+            <a href="{{ url_for('index') }}" class="btn btn-outline" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                <i class="fas fa-home"></i> Về trang chủ
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Payment option selection
+    const paymentOptions = document.querySelectorAll('.payment-option');
+    paymentOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            paymentOptions.forEach(opt => {
+                opt.style.borderColor = 'var(--border-color)';
+                opt.style.background = 'var(--bg-card)';
+            });
+            this.style.borderColor = 'var(--accent-color)';
+            this.style.background = 'var(--bg-secondary)';
+        });
+    });
+    
+    // Add animation on scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    const fadeElements = document.querySelectorAll('.fade-in');
+    fadeElements.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(el);
+    });
+});
+</script>
+{% endblock %}

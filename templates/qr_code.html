@@ -1,0 +1,279 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Tạo mã QR - Admin{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="page-header" style="background: var(--gradient-accent); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 class="admin-title" style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+                    <i class="fas fa-qrcode"></i> Tạo mã QR
+                </h1>
+                <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                    Tạo mã QR cho cửa hàng của bạn
+                </p>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary" style="background: white; color: var(--accent-color);">
+                    <i class="fas fa-arrow-left"></i> Quay lại Dashboard Admin - Cô Bông Cát Lái
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- QR Code Generator -->
+<section class="qr-generator">
+    <div class="grid grid-cols-2">
+        <!-- QR Code Form -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h3 style="margin: 0; color: var(--text-primary);">
+                    <i class="fas fa-cog"></i> Cấu hình mã QR
+                </h3>
+            </div>
+            
+            <form method="POST" action="{{ url_for('generate_qr') }}">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-link"></i> URL cho mã QR *
+                    </label>
+                    <input type="url" name="url" class="form-control" value="{{ request.form.get('url', 'http://localhost:5000') }}" placeholder="https://example.com" required>
+                    <small style="color: var(--text-muted);">URL mà mã QR sẽ trỏ đến</small>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-text-height"></i> Kích thước mã QR
+                    </label>
+                    <select name="size" class="form-control">
+                        <option value="10">Nhỏ (10x10)</option>
+                        <option value="15" selected>Vừa phải (15x15)</option>
+                        <option value="20">Lớn (20x20)</option>
+                        <option value="25">Rất lớn (25x25)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-palette"></i> Màu sắc
+                    </label>
+                    <div class="grid grid-cols-2">
+                        <div>
+                            <label class="form-label" style="font-size: 0.9rem;">Màu nền</label>
+                            <input type="color" name="bg_color" class="form-control" value="#ffffff" style="height: 40px;">
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.9rem;">Màu foreground</label>
+                            <input type="color" name="fg_color" class="form-control" value="#000000" style="height: 40px;">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-border-style"></i> Viền (border)
+                    </label>
+                    <select name="border" class="form-control">
+                        <option value="0">Không có viền</option>
+                        <option value="1" selected>Vừa phải</option>
+                        <option value="2">Rộng</option>
+                        <option value="4">Rất rộng</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                    <i class="fas fa-magic"></i> Tạo mã QR
+                </button>
+            </form>
+        </div>
+        
+        <!-- QR Code Display -->
+        <div class="card fade-in">
+            <div class="card-header">
+                <h3 style="margin: 0; color: var(--text-primary);">
+                    <i class="fas fa-qrcode"></i> Kết quả
+                </h3>
+            </div>
+            
+            {% if qr_code %}
+            <div style="text-align: center;">
+                <div style="background: white; padding: 2rem; border-radius: 8px; display: inline-block; margin-bottom: 1.5rem;">
+                    <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" style="max-width: 100%; height: auto;">
+                </div>
+                
+                <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Thông tin mã QR</h4>
+                    <p style="margin: 0.25rem 0; color: var(--text-secondary); font-size: 0.9rem;">
+                        <strong>URL:</strong> {{ request.form.get('url', 'http://localhost:5000') }}
+                    </p>
+                    <p style="margin: 0.25rem 0; color: var(--text-secondary); font-size: 0.9rem;">
+                        <strong>Kích thước:</strong> {{ request.form.get('size', 15) }}x{{ request.form.get('size', 15) }}
+                    </p>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; justify-content: center;">
+                    <a href="data:image/png;base64,{{ qr_code }}" download="qrcode.png" class="btn btn-primary">
+                        <i class="fas fa-download"></i> Tải về
+                    </a>
+                    <button onclick="window.print()" class="btn btn-secondary">
+                        <i class="fas fa-print"></i> In
+                    </button>
+                </div>
+            </div>
+            {% else %}
+            <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                <i class="fas fa-qrcode" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                <h4 style="margin-bottom: 1rem;">Chưa có mã QR</h4>
+                <p>Điền thông tin và nhấn "Tạo mã QR" để bắt đầu</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Usage Instructions -->
+<section class="usage-instructions" style="margin-top: 2rem;">
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-info-circle"></i> Hướng dẫn sử dụng
+            </h3>
+        </div>
+        
+        <div class="grid grid-cols-3">
+            <div style="text-align: center; padding: 1.5rem;">
+                <div style="background: var(--gradient-info); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-mobile-alt" style="font-size: 1.5rem; color: white;"></i>
+                </div>
+                <h4 style="margin-bottom: 0.5rem;">Quét mã QR</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Sử dụng điện thoại để quét mã QR</p>
+            </div>
+            
+            <div style="text-align: center; padding: 1.5rem;">
+                <div style="background: var(--gradient-success); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-link" style="font-size: 1.5rem; color: white;"></i>
+                </div>
+                <h4 style="margin-bottom: 0.5rem;">Truy cập nhanh</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">Khách hàng sẽ được chuyển đến URL của bạn</p>
+            </div>
+            
+            <div style="text-align: center; padding: 1.5rem;">
+                <div style="background: var(--gradient-warning); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-share-alt" style="font-size: 1.5rem; color: white;"></i>
+                </div>
+                <h4 style="margin-bottom: 0.5rem;">Chia sẻ</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">In và dán mã QR ở nơi khách hàng dễ thấy</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- QR Code Templates -->
+<section class="qr-templates" style="margin-top: 2rem;">
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-bookmark"></i> Mẫu QR nhanh
+            </h3>
+        </div>
+        
+        <div class="grid grid-cols-4">
+            <form method="POST" action="{{ url_for('generate_qr') }}" style="text-align: center;">
+                <input type="hidden" name="url" value="http://localhost:5000">
+                <input type="hidden" name="size" value="15">
+                <input type="hidden" name="bg_color" value="#ffffff">
+                <input type="hidden" name="fg_color" value="#000000">
+                <input type="hidden" name="border" value="1">
+                
+                <div style="background: var(--gradient-primary); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-home" style="font-size: 1.5rem; color: white;"></i>
+                </div>
+                <h4 style="margin-bottom: 0.5rem;">Trang chủ</h4>
+                <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 1rem;">QR cho trang chủ</p>
+                <button type="submit" class="btn btn-sm btn-primary">Tạo</button>
+            </form>
+            
+            <form method="POST" action="{{ url_for('generate_qr') }}" style="text-align: center;">
+                <input type="hidden" name="url" value="http://localhost:5000/products">
+                <input type="hidden" name="size" value="15">
+                <input type="hidden" name="bg_color" value="#ffffff">
+                <input type="hidden" name="fg_color" value="#000000">
+                <input type="hidden" name="border" value="1">
+                
+                <div style="background: var(--gradient-info); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-box" style="font-size: 1.5rem; color: white;"></i>
+                </div>
+                <h4 style="margin-bottom: 0.5rem;">Sản phẩm</h4>
+                <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 1rem;">QR cho trang sản phẩm</p>
+                <button type="submit" class="btn btn-sm btn-primary">Tạo</button>
+            </form>
+            
+            <form method="POST" action="{{ url_for('generate_qr') }}" style="text-align: center;">
+                <input type="hidden" name="url" value="http://localhost:5000/login">
+                <input type="hidden" name="size" value="15">
+                <input type="hidden" name="bg_color" value="#ffffff">
+                <input type="hidden" name="fg_color" value="#000000">
+                <input type="hidden" name="border" value="1">
+                
+                <div style="background: var(--gradient-success); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-user" style="font-size: 1.5rem; color: white;"></i>
+                </div>
+                <h4 style="margin-bottom: 0.5rem;">Đăng nhập</h4>
+                <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 1rem;">QR cho trang đăng nhập</p>
+                <button type="submit" class="btn btn-sm btn-primary">Tạo</button>
+            </form>
+            
+            <form method="POST" action="{{ url_for('generate_qr') }}" style="text-align: center;">
+                <input type="hidden" name="url" value="http://localhost:5000/cart">
+                <input type="hidden" name="size" value="15">
+                <input type="hidden" name="bg_color" value="#ffffff">
+                <input type="hidden" name="fg_color" value="#000000">
+                <input type="hidden" name="border" value="1">
+                
+                <div style="background: var(--gradient-warning); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fas fa-shopping-cart" style="font-size: 1.5rem; color: white;"></i>
+                </div>
+                <h4 style="margin-bottom: 0.5rem;">Giỏ hàng</h4>
+                <p style="color: var(--text-secondary); font-size: 0.8rem; margin-bottom: 1rem;">QR cho trang giỏ hàng</p>
+                <button type="submit" class="btn btn-sm btn-primary">Tạo</button>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add animation on scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    const fadeElements = document.querySelectorAll('.fade-in');
+    fadeElements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        
+        setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, 100 * (index + 1));
+    });
+});
+</script>
+{% endblock %}

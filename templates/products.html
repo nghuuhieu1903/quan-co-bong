@@ -1,0 +1,610 @@
+{% extends "modern_base.html" %}
+
+{% block head %}
+<style>
+/* Font Face - Agbalumo */
+@font-face {
+    font-family: 'Agbalumo';
+    src: local('Agbalumo'), 
+         local('Agbalumo-Regular'),
+         url('https://fonts.googleapis.com/css2?family=Agbalumo&display=swap');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Apply Agbalumo font to products page */
+.page-header h1, .products-layout h2, .products-layout .btn {
+    font-family: 'Agbalumo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+/* Responsive Button Text classes */
+.btn-text-desktop {
+    display: inline;
+}
+.btn-text-mobile {
+    display: none;
+}
+
+/* Filter Backdrop Overlay */
+#filter-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 1040;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+#filter-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Enhanced responsive layout for products page */
+@media (max-width: 768px) {
+    .products-layout {
+        flex-direction: column !important;
+        gap: 1rem !important;
+        padding: 0 1rem !important;
+    }
+    
+    /* Aside Drawer style on Mobile */
+    .products-layout aside {
+        position: fixed !important;
+        top: 0 !important;
+        right: -320px !important;
+        width: 300px !important;
+        height: 100vh !important;
+        z-index: 1050 !important;
+        background: var(--bg-card) !important;
+        transition: right 0.3s ease !important;
+        overflow-y: auto !important;
+        margin: 0 !important;
+        padding: 1.5rem !important;
+        box-shadow: -4px 0 20px rgba(0,0,0,0.2) !important;
+    }
+    
+    .products-layout aside.active {
+        right: 0 !important;
+    }
+    
+    .products-layout aside .card {
+        position: static !important;
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    .products-layout aside .card-header {
+        border-bottom: 1px solid var(--border-color) !important;
+        margin-bottom: 1rem !important;
+        padding: 0 0 1rem 0 !important;
+    }
+    
+    .mobile-filter-bar {
+        display: flex !important;
+    }
+    
+    .close-filter-btn {
+        display: block !important;
+    }
+}
+
+@media (max-width: 768px) {
+    /* 2-column Compact Products Grid on mobile */
+    .products-layout main .grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.75rem !important;
+    }
+    
+    .product-card {
+        padding: 0 !important;
+        border-radius: 8px !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    
+    .product-image {
+        height: 130px !important;
+    }
+    
+    .product-info {
+        padding: 0.75rem !important;
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    
+    .product-title {
+        font-size: 0.85rem !important;
+        margin-bottom: 0.25rem !important;
+        line-height: 1.3 !important;
+        height: 2.6em !important;
+        overflow: hidden !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+    }
+    
+    .product-info p {
+        display: none !important; /* Hide description for compact layout */
+    }
+    
+    .product-price {
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .quantity-selector {
+        display: none !important; /* Hide quantity selector to save space */
+    }
+    
+    .product-actions {
+        margin-top: auto;
+    }
+    
+    .product-actions .btn {
+        padding: 8px 4px !important;
+        font-size: 0.75rem !important;
+        min-height: 32px !important;
+    }
+    
+    .btn-text-desktop {
+        display: none;
+    }
+    
+    .btn-text-mobile {
+        display: inline;
+    }
+    
+    .page-header {
+        padding: 2rem 0 !important;
+        margin: -1rem -1rem 1rem -1rem !important;
+    }
+    
+    .page-header .container {
+        padding: 0 1rem !important;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem !important;
+        text-align: center;
+    }
+    
+    .page-header .container > div {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .page-header .btn {
+        width: 100%;
+        max-width: 300px;
+    }
+}
+
+/* Touch-friendly filter form */
+@media (max-width: 768px) {
+    .products-layout aside .form-group {
+        margin-bottom: 1rem !important;
+    }
+    
+    .products-layout aside .form-group label {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .products-layout aside .form-control {
+        min-height: 44px;
+        font-size: 16px;
+        padding: 12px;
+    }
+    
+    .products-layout aside .btn {
+        min-height: 44px;
+        font-size: 16px;
+        padding: 12px 20px;
+        width: 100%;
+    }
+    
+    .products-layout aside div[style*="flex-direction: column"] {
+        gap: 0.75rem !important;
+        margin-top: 1rem !important;
+    }
+    
+    .products-layout aside .btn-primary {
+        background: var(--gradient-primary);
+        border: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .products-layout aside .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .products-layout aside .btn-secondary {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .products-layout aside .btn-secondary:hover {
+        background: var(--bg-tertiary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+}
+
+/* Better product cards on mobile */
+@media (max-width: 768px) {
+    .product-card {
+        transition: transform 0.2s ease;
+    }
+    
+    .product-card:active {
+        transform: scale(0.98);
+    }
+    
+    .product-card .btn {
+        transition: all 0.2s ease;
+    }
+    
+    .product-card .btn:active {
+        transform: scale(0.95);
+    }
+}
+
+/* Sticky sidebar smooth scroll */
+.products-layout aside .card {
+    transition: transform 0.3s ease;
+}
+
+.products-layout aside .card:hover {
+    transform: translateY(-2px);
+}
+
+/* Filter buttons styling for all screen sizes */
+.products-layout aside div[style*="flex-direction: column"] {
+    gap: 0.75rem !important;
+    margin-top: 1rem !important;
+}
+
+.products-layout aside .btn-primary {
+    width: 100%;
+    min-height: 44px;
+    font-size: 16px;
+    padding: 12px 20px;
+    background: var(--gradient-primary);
+    border: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.products-layout aside .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.products-layout aside .btn-secondary {
+    width: 100%;
+    min-height: 44px;
+    font-size: 16px;
+    padding: 12px 20px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.products-layout aside .btn-secondary:hover {
+    background: var(--bg-tertiary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Mobile-first improvements */
+@media (max-width: 768px) {
+    .pagination .card {
+        padding: 1rem !important;
+    }
+    
+    .pagination p {
+        font-size: 0.9rem !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block title %}Sản phẩm - Cô Bông Cát Lái{% endblock %}
+
+{% block content %}
+<!-- Filter Drawer Overlay -->
+<div id="filter-overlay" onclick="toggleFilter()"></div>
+<!-- Header Section -->
+<section class="page-header" style="background: var(--gradient-accent); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+                    <i class="fas fa-box"></i> Tất cả sản phẩm
+                </h1>
+                <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                    Khám phá {{ products|length }} sản phẩm công nghệ chất lượng cao
+                </p>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <a href="{{ url_for('cart') }}" class="btn btn-primary" style="background: white; color: var(--accent-color);">
+                    <i class="fas fa-shopping-cart"></i> Giỏ hàng
+                    {% if session.get('cart', []) %}
+                        <span class="badge" style="background: var(--danger-color); color: white; margin-left: 8px;">{{ session.get('cart', [])|length }}</span>
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Main Content Layout -->
+<div class="products-layout" style="display: flex; gap: 2rem; max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+    
+    <!-- Left Sidebar - Filters (Sticky) -->
+    <aside style="width: 300px; flex-shrink: 0;">
+        <div class="card" style="position: sticky; top: 2rem;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: var(--text-primary);">
+                    <i class="fas fa-filter"></i> Bộ lọc tìm kiếm
+                </h3>
+                <button type="button" class="close-filter-btn" onclick="toggleFilter()" style="display: none; background: none; border: none; font-size: 1.25rem; color: var(--text-secondary); cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form method="GET" action="{{ url_for('products') }}">
+                <div style="padding: 1.5rem;">
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label class="form-label">Tìm kiếm sản phẩm</label>
+                        <div style="position: relative;">
+                            <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);"></i>
+                            <input type="text" name="search" value="{{ request.args.get('search', '') }}" 
+                                   class="form-control" style="padding-left: 40px;" placeholder="Nhập tên sản phẩm...">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label class="form-label">Khoảng giá</label>
+                        <select name="price_range" class="form-control">
+                            <option value="">Tất cả giá</option>
+                            <option value="0-1000000" {% if request.args.get('price_range') == '0-1000000' %}selected{% endif %}>Dưới 1 triệu</option>
+                            <option value="1000000-5000000" {% if request.args.get('price_range') == '1000000-5000000' %}selected{% endif %}>1-5 triệu</option>
+                            <option value="5000000-10000000" {% if request.args.get('price_range') == '5000000-10000000' %}selected{% endif %}>5-10 triệu</option>
+                            <option value="10000000-" {% if request.args.get('price_range') == '10000000-' %}selected{% endif %}>Trên 10 triệu</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label class="form-label">Sắp xếp theo</label>
+                        <select name="sort" class="form-control">
+                            <option value="name" {% if request.args.get('sort') == 'name' %}selected{% endif %}>Tên A-Z</option>
+                            <option value="price_low" {% if request.args.get('sort') == 'price_low' %}selected{% endif %}>Giá thấp đến cao</option>
+                            <option value="price_high" {% if request.args.get('sort') == 'price_high' %}selected{% endif %}>Giá cao đến thấp</option>
+                            <option value="newest" {% if request.args.get('sort') == 'newest' %}selected{% endif %}>Mới nhất</option>
+                        </select>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem;">
+                        <button type="submit" class="btn btn-primary" style="width: 100%; min-height: 44px; font-size: 16px; padding: 12px 20px;">
+                            <i class="fas fa-search"></i> Tìm kiếm
+                        </button>
+                        <a href="{{ url_for('products') }}" class="btn btn-secondary" style="width: 100%; min-height: 44px; font-size: 16px; padding: 12px 20px; text-align: center;">
+                            <i class="fas fa-redo"></i> Đặt lại
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </aside>
+    
+    <!-- Main Content - Products -->
+    <main style="flex: 1; min-width: 300px;">
+        <!-- Mobile Filter Toggle Button -->
+        <div class="mobile-filter-bar" style="display: none; margin-bottom: 1.25rem; justify-content: space-between; align-items: center;">
+            <span style="color: var(--text-secondary); font-size: 0.9rem;">
+                Hiển thị {{ products|length }} sản phẩm
+            </span>
+            <button type="button" class="btn btn-primary" onclick="toggleFilter()" style="padding: 8px 16px; font-size: 0.85rem; border-radius: 6px; min-height: auto;">
+                <i class="fas fa-filter"></i> Bộ lọc
+            </button>
+        </div>
+
+        <!-- Products Grid -->
+        <section class="products-grid">
+            {% if products %}
+            <div class="grid grid-cols-2">
+                {% for product in products %}
+                <div class="product-card fade-in">
+                    <a href="{{ url_for('product_detail_route', product_id=product.id) }}">
+                    <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image">
+                    </a>
+                    
+                    <div class="product-info">
+                        <a href="{{ url_for('product_detail_route', product_id=product.id) }}" style="text-decoration: none; color: inherit;">
+                            <h3 class="product-title">{{ product.name }}</h3>
+                        </a>
+                        <p style="color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5; font-size: 0.9rem;">
+                            {{ product.description[:120] }}{% if product.description|length > 120 %}...{% endif %}
+                        </p>
+                        
+                        <div style="display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 1rem;">
+    
+    <div class="product-price" style="margin-bottom: 5px;">
+        {{ "{:,.0f}".format(product.price) }} VNĐ
+    </div>
+
+    <div>
+        {% if product.stock > 0 %}
+            <span class="badge badge-success stock-badge">Còn hàng</span>
+        {% else %}
+            <span class="badge badge-danger stock-badge">Hết hàng</span>
+        {% endif %}
+    </div>
+</div>
+                        
+                        <div class="product-actions">
+                            {% if product.stock > 0 %}
+                            <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
+                                <input type="hidden" name="next" class="next-redirect" value="">
+                                <div class="quantity-selector" style="margin-bottom: 0.5rem;">
+                                    <div class="quantity-controls">
+                                        <button type="button" class="quantity-btn" onclick="decreaseQuantity(this)">−</button>
+                                        <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="quantity-input" placeholder="SL">
+                                        <button type="button" class="quantity-btn" onclick="increaseQuantity(this)">+</button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem; width: 100%;">
+                                    <button type="submit" onclick="this.form.querySelector('.next-redirect').value='';" class="btn btn-outline" style="flex: 1; font-size: 0.85rem; padding: 10px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;">
+                                        <i class="fas fa-cart-plus"></i> <span class="btn-text-desktop">Thêm giỏ</span><span class="btn-text-mobile">Thêm</span>
+                                    </button>
+                                    <button type="submit" onclick="this.form.querySelector('.next-redirect').value=this.dataset.redirect;" data-redirect="{{ url_for('checkout') }}" class="btn btn-primary" style="flex: 1; font-size: 0.85rem; padding: 10px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;">
+                                        <i class="fas fa-bolt"></i> <span class="btn-text-desktop">Mua ngay</span><span class="btn-text-mobile">Mua</span>
+                                    </button>
+                                </div>
+                            </form>
+                            {% else %}
+                            <button class="btn btn-secondary" style="width: 100%; font-size: 0.9rem; padding: 10px 16px;" disabled>
+                                <i class="fas fa-times-circle"></i> Hết hàng
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card" style="text-align: center; padding: 4rem;">
+                <i class="fas fa-search" style="font-size: 4rem; color: var(--text-muted); margin-bottom: 1.5rem;"></i>
+                <h3 style="color: var(--text-primary); margin-bottom: 1rem;">Không tìm thấy sản phẩm</h3>
+                <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                    Không có sản phẩm nào phù hợp với tiêu chí tìm kiếm của bạn.
+                </p>
+                <a href="{{ url_for('products') }}" class="btn btn-primary">
+                    <i class="fas fa-redo"></i> Xem tất cả sản phẩm
+                </a>
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- Pagination (if needed) -->
+        {% if products|length > 0 and (total_products is not defined or products|length < total_products) %}
+        <section class="pagination" style="margin-top: 3rem;">
+            <div class="card" style="text-align: center; padding: 1.5rem;">
+                <p style="color: var(--text-secondary); margin-bottom: 0;">
+                    Hiển thị {{ products|length }} sản phẩm
+                </p>
+            </div>
+        </section>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Add to cart animation
+document.querySelectorAll('form[action*="add_to_cart"]').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        const button = this.querySelector('button[type="submit"]');
+        const originalText = button.innerHTML;
+        
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang thêm...';
+        button.disabled = true;
+        
+        setTimeout(() => {
+            button.innerHTML = '<i class="fas fa-check"></i> Đã thêm!';
+            button.style.background = 'var(--gradient-success)';
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+                button.style.background = '';
+            }, 1500);
+        }, 1000);
+    });
+});
+
+// Filter form enhancement
+document.querySelectorAll('select, input').forEach(element => {
+    element.addEventListener('change', function() {
+        this.style.borderColor = 'var(--accent-color)';
+    });
+});
+
+// Add animation on scroll
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fadeElements = document.querySelectorAll('.fade-in');
+    fadeElements.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(el);
+    });
+});
+
+// Quantity selector functions
+function increaseQuantity(button) {
+    const input = button.parentElement.querySelector('.quantity-input');
+    const max = parseInt(input.getAttribute('max'));
+    let value = parseInt(input.value) || 1;
+    
+    if (value < max) {
+        input.value = value + 1;
+    }
+}
+
+function decreaseQuantity(button) {
+    const input = button.parentElement.querySelector('.quantity-input');
+    const min = parseInt(input.getAttribute('min'));
+    let value = parseInt(input.value) || 1;
+    
+    if (value > min) {
+        input.value = value - 1;
+    }
+}
+
+// Toggle filter drawer
+function toggleFilter() {
+    const aside = document.querySelector('.products-layout aside');
+    const overlay = document.getElementById('filter-overlay');
+    aside.classList.toggle('active');
+    overlay.classList.toggle('active');
+}
+</script>
+{% endblock %}

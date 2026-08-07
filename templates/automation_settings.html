@@ -1,0 +1,365 @@
+{% extends "admin_base.html" %}
+
+{% block head %}
+<style>
+/* Responsive layout for automation settings */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 2rem 0 !important;
+        margin: -1rem -1rem 1rem -1rem !important;
+    }
+    
+    .page-header .container {
+        padding: 0 1rem !important;
+    }
+    
+    .page-header .container > div {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem !important;
+        text-align: center;
+    }
+    
+    .page-header .btn {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .status-overview .grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    .status-overview .card {
+        padding: 1rem !important;
+    }
+    
+    .status-overview .card div[style*="width: 80px"] {
+        width: 50px !important;
+        height: 50px !important;
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .status-overview .card div[style*="width: 80px"] i {
+        font-size: 1.25rem !important;
+    }
+    
+    .status-overview .card h3 {
+        font-size: 0.95rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .status-overview .card form button {
+        font-size: 0.85rem !important;
+        padding: 8px !important;
+    }
+    
+    .engine-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    .engine-option {
+        padding: 1rem !important;
+    }
+    
+    .engine-option i {
+        font-size: 2rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block title %}Cài đặt Tự động hóa - Admin{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="page-header" style="background: var(--gradient-accent); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 class="admin-title" style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+                    <i class="fas fa-cogs"></i> Cài đặt Tự động hóa
+                </h1>
+                <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                    Quản lý thông báo và cài đặt giọng nói thông minh
+                </p>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary" style="background: white; color: var(--accent-color);">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard Admin - Cô Bông Cát Lái
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Status Overview -->
+<section class="status-overview" style="margin-bottom: 2rem;">
+    <div class="grid grid-cols-3">
+        <div class="card fade-in" style="text-align: center; padding: 2rem;">
+            <div style="background: var(--gradient-success); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i class="fas fa-robot" style="font-size: 2rem; color: white;"></i>
+            </div>
+            <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Tự động hóa</h3>
+            <div style="margin-bottom: 1rem;">
+                {% if automation.enabled %}
+                <span class="badge badge-success">Đã bật</span>
+                {% else %}
+                <span class="badge badge-danger">Đã tắt</span>
+                {% endif %}
+            </div>
+            <form method="POST" action="{{ url_for('automation_toggle') }}">
+                <button type="submit" class="btn {% if automation.enabled %}btn-warning{% else %}btn-success{% endif %}" style="width: 100%;">
+                    <i class="fas fa-power-off"></i> {% if automation.enabled %}Tắt{% else %}Bật{% endif %}
+                </button>
+            </form>
+        </div>
+        
+        <div class="card fade-in" style="text-align: center; padding: 2rem;">
+            <div style="background: var(--gradient-info); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i class="fas fa-volume-up" style="font-size: 2rem; color: white;"></i>
+            </div>
+            <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Loa Laptop</h3>
+            <div style="margin-bottom: 1rem;">
+                {% if laptop_speaker.enabled %}
+                <span class="badge badge-success">Đã bật</span>
+                {% else %}
+                <span class="badge badge-danger">Đã tắt</span>
+                {% endif %}
+            </div>
+            <form method="POST" action="{{ url_for('speaker_toggle') }}">
+                <button type="submit" class="btn {% if laptop_speaker.enabled %}btn-warning{% else %}btn-success{% endif %}" style="width: 100%;">
+                    <i class="fas fa-volume-up"></i> {% if laptop_speaker.enabled %}Tắt{% else %}Bật{% endif %}
+                </button>
+            </form>
+        </div>
+        
+        <div class="card fade-in" style="text-align: center; padding: 2rem;">
+            <div style="background: var(--gradient-warning); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i class="fas fa-microphone" style="font-size: 2rem; color: white;"></i>
+            </div>
+            <h3 style="margin-bottom: 0.5rem; color: var(--text-primary);">Engine TTS</h3>
+            <div style="margin-bottom: 1rem;">
+                {% if laptop_speaker.use_gtts %}
+                <span class="badge badge-info">gTTS</span>
+                {% else %}
+                <span class="badge badge-secondary">pyttsx3</span>
+                {% endif %}
+            </div>
+            <form method="POST" action="{{ url_for('toggle_tts_engine') }}">
+                <button type="submit" class="btn btn-outline" style="width: 100%;">
+                    <i class="fas fa-exchange-alt"></i> Chuyển đổi
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- TTS Engine Selection -->
+<section class="tts-engine">
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-microphone-alt"></i> Engine Text-to-Speech
+            </h3>
+        </div>
+        
+        <div class="engine-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+            {% if laptop_speaker.use_gtts %}
+            <div class="engine-option active" 
+                 style="padding: 2rem; border: 2px solid var(--accent-color); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s ease;">
+                <i class="fas fa-globe" style="font-size: 3rem; color: var(--accent-color); margin-bottom: 1rem;"></i>
+            {% else %}
+            <div class="engine-option" 
+                 style="padding: 2rem; border: 2px solid var(--border-color); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s ease;">
+                <i class="fas fa-globe" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+            {% endif %}
+                <h4 style="margin-bottom: 0.5rem;">gTTS (Google TTS)</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                    Chất lượng tiếng Việt tốt hơn, cần internet
+                </p>
+                <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                    <span class="badge badge-success">Chất lượng cao</span>
+                    <span class="badge badge-info">Tiếng Việt chuẩn</span>
+                </div>
+            </div>
+            
+            {% if not laptop_speaker.use_gtts %}
+            <div class="engine-option active" 
+                 style="padding: 2rem; border: 2px solid var(--accent-color); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s ease;">
+                <i class="fas fa-desktop" style="font-size: 3rem; color: var(--accent-color); margin-bottom: 1rem;"></i>
+            {% else %}
+            <div class="engine-option" 
+                 style="padding: 2rem; border: 2px solid var(--border-color); border-radius: 12px; text-align: center; cursor: pointer; transition: all 0.3s ease;">
+                <i class="fas fa-desktop" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem;"></i>
+            {% endif %}
+                <h4 style="margin-bottom: 0.5rem;">pyttsx3 (Windows TTS)</h4>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+                    Offline, sử dụng voice có sẵn trong Windows
+                </p>
+                <div style="display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap;">
+                    <span class="badge badge-warning">Offline</span>
+                    <span class="badge badge-secondary">Nhanh</span>
+                </div>
+            </div>
+        </div>
+        
+        <form method="POST" action="{{ url_for('toggle_tts_engine') }}">
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <i class="fas fa-sync-alt"></i> Chuyển đổi Engine
+            </button>
+        </form>
+    </div>
+</section>
+
+<!-- Voice Settings -->
+{% if laptop_speaker.use_gtts %}
+<section class="voice-settings" style="opacity: 0.6; pointer-events: none;">
+{% else %}
+<section class="voice-settings">
+{% endif %}
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-sliders-h"></i> Cài đặt Giọng nói
+            </h3>
+            {% if laptop_speaker.use_gtts %}
+            <span class="badge badge-warning">Chỉ áp dụng với pyttsx3</span>
+            {% endif %}
+        </div>
+        
+        {% if laptop_speaker.use_gtts %}
+        <div class="alert alert-info" style="margin-bottom: 2rem;">
+            <i class="fas fa-info-circle"></i>
+            gTTS tự động sử dụng giọng tiếng Việt tốt nhất. Không cần cài đặt thêm.
+        </div>
+        {% endif %}
+        
+        <form method="POST" action="{{ url_for('speaker_voice_settings') }}">
+            <div class="grid grid-cols-2">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-tachometer-alt"></i> Tốc độ giọng nói
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">({{ laptop_speaker.voice_rate }})</span>
+                    </label>
+                    <input type="range" id="voice_rate" name="voice_rate" min="50" max="300" value="{{ laptop_speaker.voice_rate }}" class="form-control">
+                    <div style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">
+                        <span>Chậm</span>
+                        <span>Nhanh</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-volume-up"></i> Âm lượng
+                        <span style="color: var(--text-muted); font-size: 0.9rem;">({{ "%.1f"|format(laptop_speaker.voice_volume) }})</span>
+                    </label>
+                    <input type="range" id="voice_volume" name="voice_volume" min="0" max="1" step="0.1" value="{{ laptop_speaker.voice_volume }}" class="form-control">
+                    <div style="display: flex; justify-content: space-between; color: var(--text-muted); font-size: 0.8rem; margin-top: 0.5rem;">
+                        <span>Im lặng</span>
+                        <span>To nhất</span>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                <i class="fas fa-save"></i> Lưu cài đặt giọng nói
+            </button>
+        </form>
+    </div>
+</section>
+
+<!-- Test Section -->
+<section class="test-section">
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-vial"></i> Kiểm tra Hệ thống
+            </h3>
+        </div>
+        
+        <div class="grid grid-cols-2">
+            <form method="POST" action="{{ url_for('speaker_test') }}">
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-volume-up"></i> Kiểm tra loa laptop
+                </button>
+            </form>
+            
+            <form method="POST" action="{{ url_for('test_notification') }}">
+                <button type="submit" class="btn btn-secondary" style="width: 100%;">
+                    <i class="fas fa-bell"></i> Kiểm tra thông báo
+                </button>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- Emergency Stop -->
+<section class="emergency-stop">
+    <div class="card fade-in" style="background: var(--gradient-danger); border: none;">
+        <div class="card-header" style="border-bottom-color: rgba(255,255,255,0.2);">
+            <h3 style="margin: 0; color: white;">
+                <i class="fas fa-exclamation-triangle"></i> Dừng Khẩn cấp
+            </h3>
+        </div>
+        
+        <p style="color: rgba(255,255,255,0.9); margin-bottom: 1.5rem;">
+            Dừng tất cả các hoạt động tự động hóa ngay lập tức. Chỉ sử dụng trong trường hợp khẩn cấp.
+        </p>
+        
+        <form method="POST" action="{{ url_for('emergency_stop') }}">
+            <button type="submit" class="btn btn-danger" style="background: white; color: var(--danger-color); width: 100%;">
+                <i class="fas fa-stop-circle"></i> Dừng khẩn cấp tất cả
+            </button>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Update range input values in real-time
+document.getElementById('voice_rate').addEventListener('input', function() {
+    const label = this.previousElementSibling;
+    const span = label.querySelector('span');
+    span.textContent = `(${this.value})`;
+});
+
+document.getElementById('voice_volume').addEventListener('input', function() {
+    const label = this.previousElementSibling;
+    const span = label.querySelector('span');
+    span.textContent = `(${parseFloat(this.value).toFixed(1)})`;
+});
+
+// Add animation on scroll
+const observerOptions = {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+        }
+    });
+}, observerOptions);
+
+document.addEventListener('DOMContentLoaded', function() {
+    const fadeElements = document.querySelectorAll('.fade-in');
+    fadeElements.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(el);
+    });
+});
+</script>
+{% endblock %}

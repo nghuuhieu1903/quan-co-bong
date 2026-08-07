@@ -1,0 +1,224 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Thêm sản phẩm - Admin{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="page-header" style="background: var(--gradient-primary); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 class="admin-title" style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+                    <i class="fas fa-plus-circle"></i> Thêm sản phẩm mới
+                </h1>
+                <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                    Thêm sản phẩm mới vào cửa hàng
+                </p>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary" style="background: white; color: var(--accent-color);">
+                    <i class="fas fa-arrow-left"></i> Quay lại Dashboard Admin - Cô Bông Cát Lái
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Add Product Form -->
+<section class="add-product">
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-box"></i> Thông tin sản phẩm
+            </h3>
+        </div>
+        
+        <form method="POST" enctype="multipart/form-data">
+            <div class="grid grid-cols-2">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-tag"></i> Tên sản phẩm *
+                    </label>
+                    <input type="text" name="name" class="form-control" placeholder="Nhập tên sản phẩm" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-list"></i> Danh mục *
+                    </label>
+                    <select name="category" class="form-control" required>
+                        <option value="">Chọn danh mục</option>
+                        <option value="coffee">Cà phê</option>
+                        <option value="tea">Trà</option>
+                        <option value="juice">Sinh tố / Nước ép</option>
+                        <option value="cake">Bánh ngọt</option>
+                        <option value="other">Khác</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-align-left"></i> Mô tả sản phẩm *
+                </label>
+                <textarea name="description" class="form-control" rows="4" placeholder="Nhập mô tả chi tiết về sản phẩm" required></textarea>
+            </div>
+            
+            <div class="grid grid-cols-2">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-dollar-sign"></i> Giá bán (VNĐ) *
+                    </label>
+                    <input type="number" name="price" class="form-control" placeholder="0" min="0" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-cubes"></i> Số lượng tồn kho *
+                    </label>
+                    <input type="number" name="stock" class="form-control" placeholder="0" min="0" required>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-2">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-image"></i> Ảnh bìa chính
+                    </label>
+                    <input type="file" name="image" class="form-control" accept="image/*">
+                    <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">
+                        <i class="fas fa-info-circle"></i> Tỷ lệ chuẩn: <strong>Hình vuông (1:1)</strong>, kích thước khuyên dùng <strong>800x800px</strong> (JPG, PNG, WEBP, tối đa 2MB).
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-images"></i> Các ảnh chi tiết phụ
+                    </label>
+                    <input type="file" name="images" class="form-control" accept="image/*" multiple>
+                    <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">
+                        <i class="fas fa-info-circle"></i> Tỷ lệ chuẩn: <strong>Hình vuông (1:1)</strong>, kích thước khuyên dùng <strong>800x800px</strong> (Có thể chọn nhiều ảnh, tối đa 2MB/ảnh).
+                    </small>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">
+                    <i class="fas fa-save"></i> Thêm sản phẩm
+                </button>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary" style="flex: 1; text-align: center;">
+                    <i class="fas fa-times"></i> Hủy
+                </a>
+            </div>
+        </form>
+    </div>
+</section>
+
+<!-- Product Preview -->
+<section class="product-preview" style="margin-top: 2rem;">
+    <div class="card fade-in">
+        <div class="card-header">
+            <h3 style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-eye"></i> Xem trước
+            </h3>
+        </div>
+        
+        <div id="preview-content" style="display: none;">
+            <div class="product-card" style="max-width: 300px; margin: 0 auto;">
+                <div id="preview-image" class="product-image" style="background: var(--gradient-secondary); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-image" style="font-size: 3rem; color: var(--text-muted);"></i>
+                </div>
+                <div class="product-info">
+                    <h4 id="preview-name" class="product-title">Tên sản phẩm</h4>
+                    <p id="preview-description" style="color: var(--text-secondary); margin-bottom: 1rem;">Mô tả sản phẩm</p>
+                    <div id="preview-price" class="product-price">0 VNĐ</div>
+                    <div id="preview-stock" style="margin-top: 0.5rem;">
+                        <span class="badge badge-success">Còn hàng</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="preview-placeholder" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+            <i class="fas fa-eye" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+            <p>Nhập thông tin sản phẩm để xem trước</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form elements
+    const nameInput = document.querySelector('input[name="name"]');
+    const descriptionInput = document.querySelector('textarea[name="description"]');
+    const priceInput = document.querySelector('input[name="price"]');
+    const stockInput = document.querySelector('input[name="stock"]');
+    const imageInput = document.querySelector('input[name="image"]');
+    
+    // Preview elements
+    const previewContent = document.getElementById('preview-content');
+    const previewPlaceholder = document.getElementById('preview-placeholder');
+    const previewName = document.getElementById('preview-name');
+    const previewDescription = document.getElementById('preview-description');
+    const previewPrice = document.getElementById('preview-price');
+    const previewStock = document.getElementById('preview-stock');
+    const previewImage = document.getElementById('preview-image');
+    
+    function updatePreview() {
+        const hasContent = nameInput.value || descriptionInput.value || priceInput.value;
+        
+        if (hasContent) {
+            previewContent.style.display = 'block';
+            previewPlaceholder.style.display = 'none';
+            
+            previewName.textContent = nameInput.value || 'Tên sản phẩm';
+            previewDescription.textContent = descriptionInput.value || 'Mô tả sản phẩm';
+            previewPrice.textContent = priceInput.value ? `${parseInt(priceInput.value).toLocaleString()} VNĐ` : '0 VNĐ';
+            
+            const stock = parseInt(stockInput.value) || 0;
+            if (stock > 0) {
+                previewStock.innerHTML = '<span class="badge badge-success">Còn hàng</span>';
+            } else {
+                previewStock.innerHTML = '<span class="badge badge-danger">Hết hàng</span>';
+            }
+        } else {
+            previewContent.style.display = 'none';
+            previewPlaceholder.style.display = 'block';
+        }
+    }
+    
+    function handleImagePreview(e) {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.innerHTML = `<img src="${e.target.result}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">`;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+    
+    // Event listeners
+    nameInput.addEventListener('input', updatePreview);
+    descriptionInput.addEventListener('input', updatePreview);
+    priceInput.addEventListener('input', updatePreview);
+    stockInput.addEventListener('input', updatePreview);
+    imageInput.addEventListener('change', handleImagePreview);
+    
+    // Animation
+    const fadeElements = document.querySelectorAll('.fade-in');
+    fadeElements.forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        
+        setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, 100);
+    });
+});
+</script>
+{% endblock %}

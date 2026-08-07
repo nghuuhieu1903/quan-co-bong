@@ -1,0 +1,104 @@
+{% extends "modern_base.html" %}
+
+{% block title %}Đăng nhập - Cô Bông Cát Lái{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 200px); margin: -2rem;">
+    <div class="grid grid-cols-2" style="max-width: 1000px; width: 100%; margin: 2rem; gap: 2rem;">
+        <!-- Login Form -->
+        <div class="card fade-in">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="background: var(--gradient-primary); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                    <i class="fas fa-user" style="font-size: 2rem; color: white;"></i>
+                </div>
+                <h2 style="margin: 0; color: var(--text-primary); font-size: 1.8rem;">Đăng nhập</h2>
+                <p style="color: var(--text-secondary); margin-top: 0.5rem;">Chào mừng trở lại!</p>
+            </div>
+            
+            <form method="POST" action="{{ url_for('customer_authenticate') }}">
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-user"></i> Tên đăng nhập
+                    </label>
+                    <input type="text" name="username" class="form-control" placeholder="Nhập tên đăng nhập" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-lock"></i> Mật khẩu
+                    </label>
+                    <input type="password" name="password" class="form-control" placeholder="Nhập mật khẩu" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                    <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                </button>
+            </form>
+            
+            <div style="margin-top: 1.5rem; text-align: center;">
+                <p style="color: var(--text-secondary); margin-bottom: 1rem;">Chưa có tài khoản?</p>
+                <a href="{{ url_for('customer_register') }}" class="btn btn-outline" style="width: 100%;">
+                    <i class="fas fa-user-plus"></i> Đăng ký ngay
+                </a>
+            </div>
+        </div>
+        
+        <!-- Features -->
+        <div class="card fade-in" style="background: var(--gradient-accent); color: white; border: none;">
+            <div style="text-align: center;">
+                <h3 style="margin-bottom: 2rem; font-size: 1.5rem;">Tại sao chọn chúng tôi?</h3>
+                
+                <div style="text-align: left; margin-bottom: 2rem;">
+                    <div style="margin-bottom: 1.5rem;">
+                        <i class="fas fa-shipping-fast" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                        <h4 style="margin-bottom: 0.5rem;">Giao hàng nhanh</h4>
+                        <p style="opacity: 0.9; font-size: 0.9rem;">Giao hàng trong 24h nội thành</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                        <i class="fas fa-shield-alt" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                        <h4 style="margin-bottom: 0.5rem;">Bảo hành chính hãng</h4>
+                        <p style="opacity: 0.9; font-size: 0.9rem;">Tất cả sản phẩm đều được bảo hành</p>
+                    </div>
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                        <i class="fas fa-headset" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                        <h4 style="margin-bottom: 0.5rem;">Hỗ trợ 24/7</h4>
+                        <p style="opacity: 0.9; font-size: 0.9rem;">Đội ngũ hỗ trợ chuyên nghiệp</p>
+                    </div>
+                    
+                    <div>
+                        <i class="fas fa-undo" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                        <h4 style="margin-bottom: 0.5rem;">Đổi trả dễ dàng</h4>
+                        <p style="opacity: 0.9; font-size: 0.9rem;">Chính sách đổi trả linh hoạt</p>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px;">
+                    <p style="margin: 0; font-size: 0.9rem;">
+                        <strong>Mẹo:</strong> Đăng nhập để theo dõi đơn hàng và nhận ưu đãi đặc biệt!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fadeElements = document.querySelectorAll('.fade-in');
+    fadeElements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        
+        setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, 100 * (index + 1));
+    });
+});
+</script>
+{% endblock %}

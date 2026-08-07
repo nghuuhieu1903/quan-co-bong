@@ -1,0 +1,186 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Thêm phòng trọ mới - Cô Bông Cát Lái{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; margin: 0 auto; padding: 2rem 1rem 0 1rem;">
+    <a href="{{ url_for('admin_rooms') }}" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.5rem; border: none; padding: 0.5rem 0;">
+        <i class="fas fa-arrow-left"></i> Quay lại danh sách phòng
+    </a>
+</div>
+
+<div class="container" style="max-width: 800px; margin: 0 auto; padding: 1rem 1rem 4rem 1rem;">
+    <div class="card fade-in" style="border: 1px solid var(--border-color); padding: 2.5rem;">
+        <div class="card-header" style="margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+            <h2 style="margin: 0; color: var(--text-primary); font-size: 1.8rem; font-weight: 500;">
+                <i class="fas fa-plus-circle" style="color: var(--accent-color); margin-right: 0.5rem;"></i> Thêm phòng trọ mới
+            </h2>
+        </div>
+        
+        <form method="POST" action="{{ url_for('admin_add_room') }}" enctype="multipart/form-data">
+            <!-- Name -->
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label class="form-label" for="name" style="font-weight: 600;">Tên phòng *</label>
+                <input type="text" id="name" name="name" class="form-control" placeholder="Ví dụ: Phòng VIP 1, Phòng Standard 2" required>
+            </div>
+            
+            <div class="grid grid-cols-3" style="gap: 1.5rem; margin-bottom: 1.5rem;">
+                <!-- Price -->
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" for="price_per_hour" style="font-weight: 600;">Giá thuê (VNĐ) *</label>
+                    <input type="number" id="price_per_hour" name="price_per_hour" class="form-control" placeholder="Ví dụ: 150000" min="0" required>
+                </div>
+
+                <!-- Price Unit -->
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" for="price_unit" style="font-weight: 600;">Đơn vị tính *</label>
+                    <select id="price_unit" name="price_unit" class="form-control" style="padding: 0.5rem; height: auto;" required>
+                        <option value="giờ" selected>Theo giờ</option>
+                        <option value="tháng">Theo tháng</option>
+                        <option value="năm">Theo năm</option>
+                    </select>
+                </div>
+                
+                <!-- Capacity -->
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" for="capacity" style="font-weight: 600;">Sức chứa tối đa *</label>
+                    <input type="number" id="capacity" name="capacity" class="form-control" placeholder="Ví dụ: 4" min="1" required>
+                </div>
+            </div>
+            
+            <!-- Description -->
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label class="form-label" for="description" style="font-weight: 600;">Mô tả phòng *</label>
+                <textarea id="description" name="description" class="form-control" rows="5" placeholder="Nhập mô tả chi tiết về diện tích, tiện ích, view phòng..." required></textarea>
+            </div>
+            
+            <!-- Amenities -->
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label class="form-label" for="amenities" style="font-weight: 600;">Tiện nghi đi kèm</label>
+                <input type="text" id="amenities" name="amenities" class="form-control" placeholder="Cách nhau bằng dấu phẩy. Ví dụ: WiFi, Điều hòa, TV, Máy pha cà phê">
+                <small style="display: block; color: var(--text-muted); margin-top: 0.4rem; font-size: 0.85rem;">
+                    <i class="fas fa-info-circle"></i> Nhập các tiện ích cách nhau bởi dấu phẩy (`,`) để hệ thống tự động phân tách thành các tag.
+                </small>
+            </div>
+
+            <!-- Image Upload Fields -->
+            <div class="grid grid-cols-2" style="gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" style="font-weight: 600;">
+                        <i class="fas fa-image"></i> Ảnh bìa chính
+                    </label>
+                    <input type="file" name="image" class="form-control" accept="image/*">
+                    <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">
+                        <i class="fas fa-info-circle"></i> Tỷ lệ chuẩn: <strong>Nằm ngang (4:3 hoặc 16:9)</strong>, kích thước khuyên dùng <strong>1200x900px</strong> hoặc <strong>1920x1080px</strong> (JPG, PNG, WEBP, tối đa 3MB).
+                    </small>
+                </div>
+                
+                <div class="form-group" style="margin: 0;">
+                    <label class="form-label" style="font-weight: 600;">
+                        <i class="fas fa-images"></i> Ảnh chi tiết khác
+                    </label>
+                    <input type="file" name="images" class="form-control" accept="image/*" multiple>
+                    <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">
+                        <i class="fas fa-info-circle"></i> Tỷ lệ chuẩn: <strong>Nằm ngang (4:3 hoặc 16:9)</strong>, kích thước khuyên dùng <strong>1200x900px</strong> (Có thể chọn nhiều ảnh, tối đa 3MB/ảnh).
+                    </small>
+                </div>
+            </div>
+            
+            <!-- Basic Costs Additions (Dynamic) -->
+            <div style="border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; background: var(--bg-body);">
+                <h4 style="margin-top: 0; margin-bottom: 1.25rem; color: var(--text-primary); font-size: 1.1rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+                    <span><i class="fas fa-receipt" style="color: var(--accent-color); margin-right: 0.5rem;"></i>Chi phí cơ bản bổ sung (Hiển thị chi tiết trọ)</span>
+                    <button type="button" onclick="addCostRow()" style="font-size: 0.85rem; padding: 0.4rem 0.8rem; background: var(--accent-color); color: white; border: none; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9';" onmouseout="this.style.opacity='1';">
+                        <i class="fas fa-plus"></i> Thêm chi phí
+                    </button>
+                </h4>
+                
+                <div id="costs-container" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <!-- Cost rows will be added dynamically by JS -->
+                </div>
+            </div>
+            
+            <!-- Availability Checkbox -->
+            <div class="form-group" style="margin-bottom: 2.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                <input type="checkbox" id="available" name="available" style="width: 20px; height: 20px; cursor: pointer;" checked>
+                <label for="available" style="font-weight: 600; cursor: pointer; color: var(--text-primary);">
+                    Cho phép thuê ngay (Sẵn sàng)
+                </label>
+            </div>
+            
+            <!-- Actions -->
+            <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                <a href="{{ url_for('admin_rooms') }}" class="btn btn-outline" style="width: auto; padding: 0.75rem 2rem;">
+                    Hủy bỏ
+                </a>
+                <button type="submit" class="btn btn-primary" style="width: auto; padding: 0.75rem 2.5rem;">
+                    <i class="fas fa-save"></i> Lưu phòng trọ
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function addCostRow(name = '', value = '', icon = 'bolt') {
+    const container = document.getElementById('costs-container');
+    const rowId = 'cost-row-' + Date.now() + Math.random().toString(36).substr(2, 5);
+    
+    const html = `
+        <div id="${rowId}" style="display: flex; gap: 1rem; align-items: center; background: var(--bg-body); padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color);">
+            <div style="flex: 2;">
+                <input type="text" name="cost_names[]" class="form-control" placeholder="Tên chi phí (Điện, Nước, Wifi...)" value="${name}" required style="margin: 0;">
+            </div>
+            <div style="flex: 2;">
+                <input type="text" name="cost_values[]" class="form-control" placeholder="Đơn giá (3.6k/kWh, 100k/người...)" value="${value}" required style="margin: 0;">
+            </div>
+            <div style="flex: 1.5;">
+                <select name="cost_icons[]" class="form-control" style="margin: 0; padding: 0.5rem; height: auto;">
+                    <option value="bolt" ${icon === 'bolt' ? 'selected' : ''}>⚡ Điện (Bolt)</option>
+                    <option value="droplet" ${icon === 'droplet' ? 'selected' : ''}>💧 Nước (Droplet)</option>
+                    <option value="file-invoice" ${icon === 'file-invoice' ? 'selected' : ''}>📄 Dịch vụ (Invoice)</option>
+                    <option value="money-bill-alt" ${icon === 'money-bill-alt' ? 'selected' : ''}>💵 Tiền / Phí khác (Money)</option>
+                    <option value="wifi" ${icon === 'wifi' ? 'selected' : ''}>📶 Internet / Wifi</option>
+                    <option value="motorcycle" ${icon === 'motorcycle' ? 'selected' : ''}>🏍️ Gửi xe</option>
+                    <option value="trash" ${icon === 'trash' ? 'selected' : ''}>🗑️ Vệ sinh</option>
+                    <option value="shield-alt" ${icon === 'shield-alt' ? 'selected' : ''}>🛡️ An ninh</option>
+                    <option value="key" ${icon === 'key' ? 'selected' : ''}>🔑 Khóa cửa</option>
+                    <option value="concierge-bell" ${icon === 'concierge-bell' ? 'selected' : ''}>🛎️ Khác</option>
+                </select>
+            </div>
+            <div>
+                <button type="button" onclick="removeCostRow('${rowId}')" style="background: var(--danger-color); color: white; border: none; border-radius: 6px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: background 0.2s;" title="Xóa chi phí này">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', html);
+}
+
+function removeCostRow(id) {
+    const row = document.getElementById(id);
+    if (row) {
+        row.remove();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Add default rows
+    addCostRow('Điện', '3.6k/kWh', 'bolt');
+    addCostRow('Nước', '100.000 VNĐ/người', 'droplet');
+    addCostRow('Dịch vụ', '100.000 VNĐ/người', 'file-invoice');
+
+    const fadeElements = document.querySelectorAll('.fade-in');
+    fadeElements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,388 @@
+{% extends "admin_base.html" %}
+
+{% block head %}
+<style>
+/* Enhanced responsive design for manage products page */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 2rem 0 !important;
+        margin: -1rem -1rem 1rem -1rem !important;
+    }
+    
+    .page-header .container {
+        padding: 0 1rem !important;
+    }
+    
+    .page-header .container > div {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem !important;
+        text-align: center;
+    }
+    
+    .page-header .btn {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .products-table {
+        overflow-x: hidden !important;
+    }
+    
+    .products-table table {
+        min-width: 100% !important;
+    }
+    
+    .products-table th,
+    .products-table td {
+        padding: 0.6rem 0.4rem !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .action-buttons {
+        display: block !important;
+    }
+    
+    .action-buttons .btn {
+        width: 100% !important;
+        font-size: 0.8rem !important;
+        padding: 0.4rem !important;
+    }
+    
+    .hide-mobile {
+        display: none !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .page-header h1 {
+        font-size: 1.5rem !important;
+    }
+    
+    .page-header p {
+        font-size: 1rem !important;
+        text-align: center;
+    }
+    
+    .products-table th,
+    .products-table td {
+        padding: 0.5rem 0.25rem !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .product-image-thumb {
+        width: 40px !important;
+        height: 40px !important;
+    }
+}
+
+/* Table styling */
+.products-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.products-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.products-table th {
+    background: var(--gradient-primary);
+    color: white;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.products-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.products-table tr:hover {
+    background: var(--bg-secondary);
+}
+
+.product-image-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid var(--border-color);
+}
+
+.stock-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.stock-in {
+    background: var(--success-color);
+    color: white;
+}
+
+.stock-out {
+    background: var(--danger-color);
+    color: white;
+}
+
+.stock-low {
+    background: var(--warning-color);
+    color: white;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-buttons .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.action-buttons .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Search and filter section */
+.search-filter {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-filter .form-group {
+    margin-bottom: 1rem;
+}
+
+.search-filter .form-control {
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.search-filter .btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.search-filter .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    color: var(--text-muted);
+}
+
+.empty-state h3 {
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+/* Responsive grid for search filters */
+@media (min-width: 768px) {
+    .filter-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 1rem;
+        align-items: end;
+    }
+}
+</style>
+{% endblock %}
+
+{% block title %}Quản lý sản phẩm - Cô Bông Cát Lái{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<section class="page-header" style="background: var(--gradient-primary); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 class="admin-title" style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+                    <i class="fas fa-list"></i> Quản lý sản phẩm
+                </h1>
+                <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                    Quản lý {{ products|length }} sản phẩm trong cửa hàng
+                </p>
+            </div>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <a href="{{ url_for('add_product') }}" class="btn btn-primary" style="background: white; color: var(--accent-color);">
+                    <i class="fas fa-plus"></i> Thêm sản phẩm mới
+                </a>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline" style="border-color: white; color: white;">
+                    <i class="fas fa-arrow-left"></i> Quay lại Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Search and Filter Section -->
+<section class="search-filter">
+    <form method="GET" action="{{ url_for('manage_products') }}">
+        <div class="filter-grid">
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-search"></i> Tìm kiếm sản phẩm
+                </label>
+                <input type="text" name="search" class="form-control" value="{{ request.args.get('search', '') }}" placeholder="Nhập tên sản phẩm...">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-filter"></i> Lọc theo trạng thái
+                </label>
+                <select name="stock_filter" class="form-control">
+                    <option value="">Tất cả sản phẩm</option>
+                    <option value="in_stock" {% if request.args.get('stock_filter') == 'in_stock' %}selected{% endif %}>Còn hàng</option>
+                    <option value="out_of_stock" {% if request.args.get('stock_filter') == 'out_of_stock' %}selected{% endif %}>Hết hàng</option>
+                    <option value="low_stock" {% if request.args.get('stock_filter') == 'low_stock' %}selected{% endif %}>Sắp hết hàng</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Tìm kiếm
+                </button>
+            </div>
+        </div>
+    </form>
+</section>
+
+<!-- Products Table -->
+<section class="products-table">
+    {% if products %}
+    <table>
+        <thead>
+            <tr>
+                <th class="hide-mobile">Hình ảnh</th>
+                <th>Tên sản phẩm</th>
+                <th>Giá</th>
+                <th class="hide-mobile">Tồn kho</th>
+                <th class="hide-mobile">Danh mục</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in products %}
+            <tr>
+                <td class="hide-mobile">
+                    <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image-thumb">
+                </td>
+                <td>
+                    <strong>{{ product.name }}</strong>
+                    {% if product.description %}
+                    <br><small style="color: var(--text-secondary);" class="hide-mobile">{{ product.description[:50] }}{% if product.description|length > 50 %}...{% endif %}</small>
+                    {% endif %}
+                </td>
+                <td>
+                    <strong style="color: var(--accent-color);">{{ "{:,.0f}".format(product.price) }} VNĐ</strong>
+                </td>
+                <td class="hide-mobile">
+                    {% if product.stock > 10 %}
+                        <span class="stock-badge stock-in">{{ product.stock }} (Còn hàng)</span>
+                    {% elif product.stock > 0 %}
+                        <span class="stock-badge stock-low">{{ product.stock }} (Sắp hết)</span>
+                    {% else %}
+                        <span class="stock-badge stock-out">0 (Hết hàng)</span>
+                    {% endif %}
+                </td>
+                <td class="hide-mobile">
+                    <span class="badge" style="background: var(--bg-secondary); color: var(--text-primary);">
+                        {{ product.category or 'Chưa phân loại' }}
+                    </span>
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="{{ url_for('edit_product', product_id=product.id) }}" class="btn btn-primary" style="background: var(--accent-color); color: white;">
+                            <i class="fas fa-edit"></i> Sửa
+                        </a>
+                        <form method="POST" action="{{ url_for('delete_product', product_id=product.id) }}" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')" class="hide-mobile">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Xóa
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-box-open"></i>
+        <h3>Không tìm thấy sản phẩm nào</h3>
+        <p>Thử thay đổi tiêu chí tìm kiếm hoặc thêm sản phẩm mới.</p>
+        <a href="{{ url_for('add_product') }}" class="btn btn-primary" style="margin-top: 1rem;">
+            <i class="fas fa-plus"></i> Thêm sản phẩm mới
+        </a>
+    </div>
+    {% endif %}
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add animation on scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Observe table rows
+    const tableRows = document.querySelectorAll('.products-table tbody tr');
+    tableRows.forEach((row, index) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(20px)';
+        row.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        
+        setTimeout(() => {
+            observer.observe(row);
+        }, 100 * (index + 1));
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,227 @@
+{% extends "admin_base.html" %}
+
+{% block head %}
+<style>
+/* Table styling matching product management style */
+.rooms-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.rooms-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.rooms-table th {
+    background: var(--gradient-accent);
+    color: white !important;
+    padding: 1rem 1.5rem !important;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.rooms-table td {
+    padding: 1rem 1.5rem !important;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.rooms-table tr:hover {
+    background: var(--bg-secondary);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.action-buttons .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.action-buttons .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive layout for admin rooms list */
+@media (max-width: 768px) {
+    .page-header {
+        padding: 2rem 0 !important;
+        margin: -1rem -1rem 1rem -1rem !important;
+    }
+    
+    .page-header .container {
+        padding: 0 1rem !important;
+    }
+    
+    .page-header .container > div {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .page-header h1 {
+        font-size: 2rem !important;
+        text-align: center;
+    }
+    
+    .page-header .btn {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .table-responsive {
+        overflow-x: hidden !important;
+    }
+    
+    .table-responsive table {
+        min-width: 100% !important;
+    }
+    
+    .rooms-table th,
+    .rooms-table td {
+        padding: 0.6rem 0.4rem !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .action-buttons {
+        display: block !important;
+    }
+    
+    .action-buttons .btn {
+        width: 100% !important;
+        font-size: 0.8rem !important;
+        padding: 0.4rem !important;
+    }
+    
+    .hide-mobile {
+        display: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block title %}Quản lý phòng trọ - Cô Bông Cát Lái{% endblock %}
+
+{% block content %}
+<section class="page-header" style="background: var(--gradient-accent); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+                    <i class="fas fa-door-open"></i> Quản lý phòng trọ
+                </h1>
+                <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                    Xem, chỉnh sửa, thêm hoặc xóa các phòng trọ của bạn.
+                </p>
+            </div>
+            <div>
+                <a href="{{ url_for('admin_add_room') }}" class="btn btn-primary" style="background: white; color: var(--accent-color);">
+                    <i class="fas fa-plus"></i> Thêm phòng mới
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 1rem 4rem 1rem;">
+    {% if rooms %}
+        <div class="rooms-table fade-in">
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="hide-mobile">Hình ảnh</th>
+                            <th>Tên phòng</th>
+                            <th>Giá thuê</th>
+                            <th class="hide-mobile">Sức chứa</th>
+                            <th class="hide-mobile">Trạng thái</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for room in rooms %}
+                            <tr>
+                                <td class="hide-mobile">
+                                    <img src="{{ room.image_url }}" alt="{{ room.name }}" style="width: 70px; height: 50px; object-fit: cover; border-radius: 6px; background: var(--gradient-secondary);">
+                                </td>
+                                <td>
+                                    <strong>{{ room.name }}</strong>
+                                </td>
+                                <td>
+                                    <strong style="color: var(--accent-color);">{{ "{:,.0f}".format(room.price_per_hour) }} VNĐ/h</strong>
+                                </td>
+                                <td class="hide-mobile">
+                                    {{ room.capacity }} người
+                                </td>
+                                <td class="hide-mobile">
+                                    {% if room.available %}
+                                        <span class="badge badge-success" style="padding: 0.4rem 0.8rem; border-radius: 12px;">Đang trống</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary" style="padding: 0.4rem 0.8rem; border-radius: 12px;">Đã đóng</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <!-- Toggle Availability -->
+                                        <a href="{{ url_for('admin_toggle_room', room_id=room.id) }}" class="btn btn-outline hide-mobile" title="{% if room.available %}Tắt phòng{% else %}Bật phòng{% endif %}">
+                                            <i class="fas {% if room.available %}fa-eye-slash{% else %}fa-eye{% endif %}"></i> Bật/Tắt
+                                        </a>
+                                        
+                                        <!-- Edit Room -->
+                                        <a href="{{ url_for('admin_edit_room', room_id=room.id) }}" class="btn btn-primary" title="Chỉnh sửa" style="background: var(--accent-color); color: white;">
+                                            <i class="fas fa-edit"></i> Sửa
+                                        </a>
+                                        
+                                        <!-- Delete Room -->
+                                        <form method="POST" action="{{ url_for('admin_delete_room', room_id=room.id) }}" onsubmit="return confirm('Bạn có chắc chắn muốn xóa phòng này?');" class="hide-mobile">
+                                            <button type="submit" class="btn btn-danger" title="Xóa">
+                                                <i class="fas fa-trash"></i> Xóa
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="card" style="text-align: center; padding: 4rem 2rem; border: 1px solid var(--border-color);">
+            <div style="background: var(--gradient-secondary); width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i class="fas fa-door-closed" style="font-size: 2.5rem; color: var(--text-muted);"></i>
+            </div>
+            <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Chưa có phòng nào được tạo</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Bắt đầu quản lý phòng trọ bằng cách tạo phòng đầu tiên.</p>
+            <a href="{{ url_for('admin_add_room') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; width: auto; margin: 0 auto;">
+                <i class="fas fa-plus"></i> Thêm phòng mới
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fadeElements = document.querySelectorAll('.fade-in');
+    fadeElements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}
