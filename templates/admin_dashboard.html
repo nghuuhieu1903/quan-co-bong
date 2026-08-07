@@ -249,6 +249,26 @@ body, .modal-content, .table, .dropdown-menu {
     </div>
 </section>
 
+<!-- Sound Alert Control -->
+<section style="margin-bottom: 2rem;">
+    <div id="soundAlertBar" class="card fade-in" style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding: 1.25rem 1.5rem; border: 2px solid var(--warning-color); background: rgba(255, 193, 7, 0.08);">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <i class="fas fa-volume-up" style="font-size: 1.8rem; color: var(--warning-color);"></i>
+            <div>
+                <div id="soundAlertTitle" style="font-weight: 600; color: var(--text-primary); font-size: 1.05rem;">
+                    Chưa bật thông báo âm thanh
+                </div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                    Bấm nút này 1 lần mỗi khi mở trang &mdash; sau đó sẽ tự đọc to khi có đơn hàng mới.
+                </div>
+            </div>
+        </div>
+        <button type="button" id="enableSoundBtn" class="btn btn-primary" style="padding: 0.75rem 1.5rem; font-size: 1rem; white-space: nowrap;" onclick="enableOrderSoundAlerts()">
+            <i class="fas fa-bell"></i> Bật thông báo âm thanh
+        </button>
+    </div>
+</section>
+
 <!-- Stats Overview -->
 <section class="stats-overview" style="margin-bottom: 2rem;">
     <div class="grid grid-cols-4">
@@ -467,11 +487,136 @@ body, .modal-content, .table, .dropdown-menu {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
-// Initial Last Order ID: {{ orders[0].id if orders else 0 }}
-// Auto-refresh Dashboard Admin - Cô Bông Cát Lái every 30 seconds
-setInterval(function() {
-    location.reload();
-}, 30000);
+// ============ Order sound alerts (đọc to đơn hàng mới) ============
+let lastSeenOrderId = {{ orders[0].id if orders else 0 }};
+let soundAlertsEnabled = false;
+let orderPollTimer = null;
+
+function beep() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const playTone = (delay) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = 880;
+            gain.gain.value = 0.15;
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(ctx.currentTime + delay);
+            osc.stop(ctx.currentTime + delay + 0.18);
+        };
+        playTone(0);
+        playTone(0.25);
+    } catch (e) {
+        console.warn('Không thể phát âm báo:', e);
+    }
+}
+
+function speakVietnamese(text) {
+    if (!('speechSynthesis' in window)) return;
+    const utter = new SpeechSynthesisUtterance(text);
+    utter.lang = 'vi-VN';
+    utter.rate = 0.95;
+    const voices = window.speechSynthesis.getVoices();
+    const viVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('vi'));
+    if (viVoice) utter.voice = viVoice;
+    window.speechSynthesis.speak(utter);
+}
+
+function buildOrderAnnouncement(order) {
+    const itemsText = order.items.map(it => `${it.name} số lượng ${it.quantity}`).join(', ');
+    let text = `Đơn hàng mới! Khách hàng ${order.customer_name}. ${itemsText}.`;
+    if (order.notes && order.notes.trim()) {
+        text += ` Ghi chú: ${order.notes}.`;
+    }
+    return text;
+}
+
+function showOrderToast(order) {
+    const itemsText = order.items.map(it => `${it.name} x${it.quantity}`).join(', ');
+    const toast = document.createElement('div');
+    toast.className = 'order-alert-toast';
+    toast.style.cssText = `
+        position: fixed; top: 1rem; right: 1rem; z-index: 1200;
+        max-width: 380px; width: calc(100% - 2rem);
+        background: white; border-left: 6px solid var(--success-color);
+        border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        padding: 1.25rem; animation: slideInRight 0.4s ease;
+    `;
+    toast.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: start; gap: 0.5rem;">
+            <div>
+                <div style="font-weight: 700; color: var(--success-color); font-size: 1.05rem; margin-bottom: 0.4rem;">
+                    <i class="fas fa-bell"></i> ĐƠN HÀNG MỚI #${order.id}
+                </div>
+                <div style="font-size: 0.95rem; color: var(--text-primary); margin-bottom: 0.25rem;"><strong>${order.customer_name}</strong> — ${order.customer_phone}</div>
+                <div style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.25rem;">${itemsText}</div>
+                ${order.notes ? `<div style="font-size: 0.85rem; color: var(--text-secondary); font-style: italic;">Ghi chú: ${order.notes}</div>` : ''}
+                <div style="font-size: 0.95rem; color: var(--accent-color); font-weight: 600; margin-top: 0.4rem;">${order.total_amount}</div>
+            </div>
+            <button onclick="this.closest('.order-alert-toast').remove()" style="background: none; border: none; font-size: 1.3rem; color: var(--text-secondary); cursor: pointer; line-height: 1;">&times;</button>
+        </div>
+        <button type="button" class="btn btn-sm btn-primary" style="width: 100%; margin-top: 0.75rem;" onclick="showOrderDetail(${order.id}); this.closest('.order-alert-toast').remove();">
+            <i class="fas fa-eye"></i> Xem chi tiết
+        </button>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => { if (toast.parentNode) toast.remove(); }, 25000);
+}
+
+function announceNewOrder(order) {
+    beep();
+    setTimeout(() => speakVietnamese(buildOrderAnnouncement(order)), 500);
+    showOrderToast(order);
+    if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(`Đơn hàng mới #${order.id}`, {
+            body: `${order.customer_name} - ${order.total_amount}`,
+            tag: 'order-' + order.id
+        });
+    }
+}
+
+function pollNewOrders() {
+    fetch(`/admin/api/new_orders?since=${lastSeenOrderId}`)
+        .then(res => res.json())
+        .then(data => {
+            lastSeenOrderId = data.latest_id;
+            data.orders.forEach(order => announceNewOrder(order));
+        })
+        .catch(err => console.warn('Lỗi kiểm tra đơn hàng mới:', err));
+}
+
+function enableOrderSoundAlerts() {
+    // Test tone + test speech: this user tap is what "unlocks" audio on mobile browsers
+    beep();
+    setTimeout(() => speakVietnamese('Đã bật thông báo âm thanh đơn hàng.'), 400);
+
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+
+    soundAlertsEnabled = true;
+    document.getElementById('soundAlertTitle').textContent = '🔊 Đã bật thông báo âm thanh';
+    document.getElementById('soundAlertBar').style.borderColor = 'var(--success-color)';
+    document.getElementById('soundAlertBar').style.background = 'rgba(40, 167, 69, 0.08)';
+    document.getElementById('enableSoundBtn').innerHTML = '<i class="fas fa-check"></i> Đang bật';
+    document.getElementById('enableSoundBtn').classList.remove('btn-primary');
+    document.getElementById('enableSoundBtn').classList.add('btn-success');
+
+    if (!orderPollTimer) {
+        orderPollTimer = setInterval(pollNewOrders, 7000);
+    }
+}
+
+// Add slide-in animation for toasts
+const styleTag = document.createElement('style');
+styleTag.textContent = `
+@keyframes slideInRight {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}`;
+document.head.appendChild(styleTag);
 
 // Show order detail modal
 function showOrderDetail(orderId) {

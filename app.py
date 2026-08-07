@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import qrcode
 import io
 import base64
+import json
 from datetime import datetime
 import os
 import openpyxl
@@ -39,9 +40,7 @@ try:
 except ImportError:
     pygame = None
 
-import io
 import tempfile
-import os
 import re
 from sqlalchemy import text
 import builtins
@@ -501,9 +500,7 @@ class AutomationController:
                 try:
                     # Thử mở cửa sổ thông báo đơn giản với webbrowser
                     import webbrowser
-                    import tempfile
-                    import os
-                    
+
                     # Tạo HTML notification tạm thời
                     html_content = f'''
                     <!DOCTYPE html>
@@ -595,9 +592,7 @@ class AutomationController:
                     print("HTML notification opened in browser")
                     
                     # Xóa file sau 30 giây
-                    import threading
                     def cleanup_temp_file():
-                        import time
                         time.sleep(30)
                         try:
                             os.unlink(temp_file)
@@ -615,8 +610,7 @@ class AutomationController:
                     try:
                         import tkinter as tk
                         from tkinter import messagebox
-                        import threading
-                        
+
                         def show_messagebox():
                             root = tk.Tk()
                             root.withdraw()
@@ -722,6 +716,23 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def save_uploaded_file(file, prefix=''):
+    """Save one uploaded file with a unique timestamped name. Returns the saved filename, or None if no valid file was given."""
+    if not file or file.filename == '' or not allowed_file(file.filename):
+        return None
+    filename = secure_filename(file.filename)
+    timestamp = int(time.time())
+    filename = f"{timestamp}_{prefix}{filename}"
+
+    upload_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
+    os.makedirs(upload_path, exist_ok=True)
+    file.save(os.path.join(upload_path, filename))
+    return filename
+
+def save_uploaded_files(files, prefix='detail_'):
+    """Save multiple uploaded files, returning the list of saved filenames (skips invalid entries)."""
+    return [name for name in (save_uploaded_file(f, prefix=prefix) for f in files) if name]
+
 # Initialize extensions
 db = SQLAlchemy(app)
 Session(app)
@@ -807,7 +818,6 @@ def ensure_room_price_unit_column():
 def populate_default_basic_costs():
     try:
         rooms = Room.query.all()
-        import json
         modified = False
         for r in rooms:
             if not r.basic_costs:
@@ -945,7 +955,6 @@ class Room(db.Model):
     def amenities_list(self):
         """Get amenities as list"""
         if self.amenities:
-            import json
             return json.loads(self.amenities)
         return []
 
@@ -953,7 +962,6 @@ class Room(db.Model):
     def basic_costs_list(self):
         """Get basic costs as list of dicts"""
         if self.basic_costs:
-            import json
             try:
                 return json.loads(self.basic_costs)
             except Exception:
@@ -1230,32 +1238,16 @@ def admin_add_room():
         price_per_hour = float(request.form.get('price_per_hour'))
         capacity = int(request.form.get('capacity'))
         amenities_raw = request.form.get('amenities', '')
-        import json
         amenities_list = [item.strip() for item in amenities_raw.split(',') if item.strip()]
         amenities = json.dumps(amenities_list)
         available = request.form.get('available') == 'on'
-        
-        # Handle optional cover image
-        image_url = None
-        if 'image' in request.files:
-            file = request.files['image']
-            if file and file.filename != '' and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                import time
-                timestamp = int(time.time())
-                filename = f"{timestamp}_{filename}"
-                
-                upload_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
-                os.makedirs(upload_path, exist_ok=True)
-                
-                file_path = os.path.join(upload_path, filename)
-                file.save(file_path)
-                image_url = filename
-        
+
+        image_url = save_uploaded_file(request.files.get('image'))
+
         cost_names = request.form.getlist('cost_names[]')
         cost_values = request.form.getlist('cost_values[]')
         cost_icons = request.form.getlist('cost_icons[]')
-        
+
         costs_list = []
         for n, v, ic in zip(cost_names, cost_values, cost_icons):
             if n.strip() and v.strip():
@@ -1264,9 +1256,8 @@ def admin_add_room():
                     'value': v.strip(),
                     'icon': ic.strip()
                 })
-        import json
         basic_costs = json.dumps(costs_list)
-        
+
         price_unit = request.form.get('price_unit', 'giờ')
         room = Room(  # type: ignore
             name=name,
@@ -1279,31 +1270,15 @@ def admin_add_room():
             image=image_url,
             basic_costs=basic_costs
         )
-        
+
         db.session.add(room)
         db.session.flush()  # Get room.id
-        
-        # Handle multiple detail images
-        if 'images' in request.files:
-            detail_files = request.files.getlist('images')
-            for detail_file in detail_files:
-                if detail_file and detail_file.filename != '' and allowed_file(detail_file.filename):
-                    filename = secure_filename(detail_file.filename)
-                    import time
-                    timestamp = int(time.time())
-                    filename = f"{timestamp}_detail_{filename}"
-                    
-                    upload_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
-                    os.makedirs(upload_path, exist_ok=True)
-                    
-                    file_path = os.path.join(upload_path, filename)
-                    detail_file.save(file_path)
-                    
-                    room_image = RoomImage(room_id=room.id, image=filename)
-                    db.session.add(room_image)
-                    
+
+        for filename in save_uploaded_files(request.files.getlist('images')):
+            db.session.add(RoomImage(room_id=room.id, image=filename))
+
         db.session.commit()
-        
+
         flash('Phòng đã được thêm thành công!', 'success')
         return redirect(url_for('admin_rooms'))
     
@@ -1326,57 +1301,24 @@ def admin_edit_room(room_id):
     room = Room.query.get_or_404(room_id)
     
     if request.method == 'POST':
-        # Handle cover image upload
-        image_url = room.image  # Keep existing image if no new one uploaded
-        if 'image' in request.files:
-            file = request.files['image']
-            if file and file.filename != '' and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                import time
-                timestamp = int(time.time())
-                filename = f"{timestamp}_{filename}"
-                
-                upload_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
-                os.makedirs(upload_path, exist_ok=True)
-                
-                file_path = os.path.join(upload_path, filename)
-                file.save(file_path)
-                image_url = filename
-        
-        # Handle multiple new detail images
-        if 'images' in request.files:
-            detail_files = request.files.getlist('images')
-            for detail_file in detail_files:
-                if detail_file and detail_file.filename != '' and allowed_file(detail_file.filename):
-                    filename = secure_filename(detail_file.filename)
-                    import time
-                    timestamp = int(time.time())
-                    filename = f"{timestamp}_detail_{filename}"
-                    
-                    upload_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
-                    os.makedirs(upload_path, exist_ok=True)
-                    
-                    file_path = os.path.join(upload_path, filename)
-                    detail_file.save(file_path)
-                    
-                    room_image = RoomImage(room_id=room.id, image=filename)
-                    db.session.add(room_image)
-        
+        room.image = save_uploaded_file(request.files.get('image')) or room.image
+
+        for filename in save_uploaded_files(request.files.getlist('images')):
+            db.session.add(RoomImage(room_id=room.id, image=filename))
+
         room.name = request.form.get('name')
         room.description = request.form.get('description')
         room.price_per_hour = float(request.form.get('price_per_hour'))
         room.price_unit = request.form.get('price_unit', 'giờ')
         room.capacity = int(request.form.get('capacity'))
-        room.image = image_url
         amenities_raw = request.form.get('amenities', '')
-        import json
         amenities_list = [item.strip() for item in amenities_raw.split(',') if item.strip()]
         room.amenities = json.dumps(amenities_list)
         room.available = request.form.get('available') == 'on'
         cost_names = request.form.getlist('cost_names[]')
         cost_values = request.form.getlist('cost_values[]')
         cost_icons = request.form.getlist('cost_icons[]')
-        
+
         costs_list = []
         for n, v, ic in zip(cost_names, cost_values, cost_icons):
             if n.strip() and v.strip():
@@ -1385,11 +1327,10 @@ def admin_edit_room(room_id):
                     'value': v.strip(),
                     'icon': ic.strip()
                 })
-        import json
         room.basic_costs = json.dumps(costs_list)
-        
+
         db.session.commit()
-        
+
         flash('Phòng đã được cập nhật thành công!', 'success')
         return redirect(url_for('admin_rooms'))
     
@@ -1401,7 +1342,6 @@ def delete_room_image(image_id):
     img = RoomImage.query.get_or_404(image_id)
     try:
         # Delete file from disk
-        import os
         image_path = os.path.join(app.root_path, 'static', 'images', img.image)
         if os.path.exists(image_path):
             os.remove(image_path)
@@ -1459,45 +1399,14 @@ def add_product():
         stock = int(request.form.get('stock'))
         category = request.form.get('category')
 
-        # Handle optional cover image
-        image_url = None
-        if 'image' in request.files:
-            file = request.files['image']
-            if file and file.filename != '' and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                import time
-                timestamp = int(time.time())
-                filename = f"{timestamp}_{filename}"
-                
-                upload_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
-                os.makedirs(upload_path, exist_ok=True)
-                
-                file_path = os.path.join(upload_path, filename)
-                file.save(file_path)
-                image_url = filename
+        image_url = save_uploaded_file(request.files.get('image'))
 
         product = Product(name=name, description=description, price=price, stock=stock, category=category, image=image_url)  # type: ignore[call-arg]
         db.session.add(product)
         db.session.flush()  # Get product.id before committing
 
-        # Handle multiple detail images
-        if 'images' in request.files:
-            detail_files = request.files.getlist('images')
-            for detail_file in detail_files:
-                if detail_file and detail_file.filename != '' and allowed_file(detail_file.filename):
-                    filename = secure_filename(detail_file.filename)
-                    import time
-                    timestamp = int(time.time())
-                    filename = f"{timestamp}_detail_{filename}"
-                    
-                    upload_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
-                    os.makedirs(upload_path, exist_ok=True)
-                    
-                    file_path = os.path.join(upload_path, filename)
-                    detail_file.save(file_path)
-                    
-                    product_image = ProductImage(product_id=product.id, image=filename)
-                    db.session.add(product_image)
+        for filename in save_uploaded_files(request.files.getlist('images')):
+            db.session.add(ProductImage(product_id=product.id, image=filename))
 
         db.session.commit()
         flash('Sản phẩm đã thêm thành công', 'success')
@@ -1511,50 +1420,18 @@ def edit_product(product_id):
     product = Product.query.get_or_404(product_id)
     
     if request.method == 'POST':
-        # Handle cover image upload
-        image_url = product.image  # Keep existing image if no new one uploaded
-        if 'image' in request.files:
-            file = request.files['image']
-            if file and file.filename != '' and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                import time
-                timestamp = int(time.time())
-                filename = f"{timestamp}_{filename}"
-                
-                upload_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
-                os.makedirs(upload_path, exist_ok=True)
-                
-                file_path = os.path.join(upload_path, filename)
-                file.save(file_path)
-                image_url = filename
-        
-        # Handle multiple new detail images
-        if 'images' in request.files:
-            detail_files = request.files.getlist('images')
-            for detail_file in detail_files:
-                if detail_file and detail_file.filename != '' and allowed_file(detail_file.filename):
-                    filename = secure_filename(detail_file.filename)
-                    import time
-                    timestamp = int(time.time())
-                    filename = f"{timestamp}_detail_{filename}"
-                    
-                    upload_path = os.path.join(app.root_path, app.config['UPLOAD_FOLDER'])
-                    os.makedirs(upload_path, exist_ok=True)
-                    
-                    file_path = os.path.join(upload_path, filename)
-                    detail_file.save(file_path)
-                    
-                    product_image = ProductImage(product_id=product.id, image=filename)
-                    db.session.add(product_image)
-        
+        product.image = save_uploaded_file(request.files.get('image')) or product.image
+
+        for filename in save_uploaded_files(request.files.getlist('images')):
+            db.session.add(ProductImage(product_id=product.id, image=filename))
+
         # Update product details
         product.name = request.form.get('name')
         product.description = request.form.get('description')
         product.price = float(request.form.get('price'))
         product.stock = int(request.form.get('stock'))
         product.category = request.form.get('category')
-        product.image = image_url
-        
+
         db.session.commit()
         flash('Sản phẩm đã cập nhật thành công', 'success')
         return redirect(url_for('manage_products'))
@@ -1569,7 +1446,6 @@ def delete_product(product_id):
     # Delete cover image if exists
     if product.image:
         try:
-            import os
             image_path = os.path.join('static', 'images', product.image)
             if os.path.exists(image_path):
                 os.remove(image_path)
@@ -1579,7 +1455,6 @@ def delete_product(product_id):
     # Delete all detail images from disk
     for img in product.images:
         try:
-            import os
             image_path = os.path.join('static', 'images', img.image)
             if os.path.exists(image_path):
                 os.remove(image_path)
@@ -1599,7 +1474,6 @@ def delete_product_image(image_id):
     img = ProductImage.query.get_or_404(image_id)
     try:
         # Delete file from disk
-        import os
         image_path = os.path.join('static', 'images', img.image)
         if os.path.exists(image_path):
             os.remove(image_path)
@@ -1836,10 +1710,9 @@ def process_order():
     
     # Create notification log
     try:
-        import datetime
         log_entry = f"""
 =====================================
-🔔 ĐƠN HÀNG MỚI - {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+🔔 ĐƠN HÀNG MỚI - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 =====================================
 Mã đơn: #{order.id}
 Khách hàng: {customer_name}
@@ -1906,6 +1779,34 @@ def api_order_detail(order_id):
         'notes': order.notes or '',
         'items': items
     })
+
+@app.route('/admin/api/new_orders')
+@admin_required_api
+def api_new_orders():
+    """Poll endpoint: orders placed after `since` (order id), for browser-side sound alerts"""
+    since = request.args.get('since', 0, type=int)
+    new_orders = Order.query.filter(Order.id > since).order_by(Order.id.asc()).all()
+
+    result = []
+    for order in new_orders:
+        items = []
+        for item in order.items:
+            product = Product.query.get(item.product_id)
+            items.append({
+                'name': product.name if product else 'Sản phẩm đã xóa',
+                'quantity': item.quantity
+            })
+        result.append({
+            'id': order.id,
+            'customer_name': order.customer_name,
+            'customer_phone': order.customer_phone,
+            'items': items,
+            'notes': order.notes or '',
+            'total_amount': "{:,.0f}".format(order.total_amount) + " VNĐ"
+        })
+
+    latest_id = new_orders[-1].id if new_orders else since
+    return jsonify({'orders': result, 'latest_id': latest_id})
 
 @app.route('/order_confirmation/<int:order_id>')
 def order_confirmation(order_id):
@@ -2318,7 +2219,6 @@ with app.app_context():
                 db.session.add(product)
             
             # Add sample rooms
-            import json
             rooms = [
                 Room(
                     name='Phòng VIP 1',
