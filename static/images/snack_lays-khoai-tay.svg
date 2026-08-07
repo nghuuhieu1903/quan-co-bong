@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="800" height="800">
+  <defs>
+    <linearGradient id="bg-snack-lays-khoai-tay" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#B8860B"/>
+      <stop offset="100%" stop-color="#FFC72C"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" rx="28" fill="url(#bg-snack-lays-khoai-tay)"/>
+  <circle cx="40" cy="360" r="90" fill="#ffffff" opacity="0.05"/>
+  <circle cx="370" cy="30" r="70" fill="#ffffff" opacity="0.06"/>
+  
+<g transform="translate(200,180)">
+  <ellipse cx="0" cy="108" rx="66" ry="10" fill="#000" opacity="0.12"/>
+  <path d="M -62,-70 Q -70,10 -58,80 Q -58,100 -38,100 L 38,100 Q 58,100 58,80 Q 70,10 62,-70 Z" fill="#F5B800" stroke="#8A6200" stroke-width="4"/>
+  <path d="M -62,-70 L -38,-92 L -14,-70 L 10,-92 L 34,-70 L 62,-70" fill="none" stroke="#8A6200" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+  <rect x="-50" y="-30" width="100" height="46" rx="6" fill="#D89A00" opacity="0.92"/>
+</g>
+
+  <text x="200" y="322" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="27" font-weight="600" fill="#ffffff" opacity="0.97">Lay's Khoai Tây</text>
+  <text x="200" y="352" text-anchor="middle" font-family="Verdana, Arial, sans-serif" font-size="13" letter-spacing="2.5" fill="#ffffff" opacity="0.72">SNACK</text>
+</svg>

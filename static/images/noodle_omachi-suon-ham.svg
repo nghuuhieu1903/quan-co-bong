@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="800" height="800">
+  <defs>
+    <linearGradient id="bg-noodle-omachi-suon-ham" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7A3D00"/>
+      <stop offset="100%" stop-color="#C97A22"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" rx="28" fill="url(#bg-noodle-omachi-suon-ham)"/>
+  <circle cx="40" cy="360" r="90" fill="#ffffff" opacity="0.05"/>
+  <circle cx="370" cy="30" r="70" fill="#ffffff" opacity="0.06"/>
+  
+<g transform="translate(200,180)">
+  <ellipse cx="0" cy="100" rx="72" ry="11" fill="#000" opacity="0.12"/>
+  <path d="M -66,-30 L 66,-30 L 52,88 Q 50,100 36,100 L -36,100 Q -50,100 -52,88 Z" fill="#B5651D" stroke="#5C2F00" stroke-width="4"/>
+  <ellipse cx="0" cy="-30" rx="66" ry="14" fill="#F0CBA0"/>
+  <path d="M -30,-30 Q -18,-42 -6,-30 Q 6,-18 18,-30 Q 30,-42 42,-30" fill="none" stroke="#5C2F00" stroke-width="4" stroke-linecap="round" opacity="0.65"/>
+  <path d="M -14,-108 Q -22,-124 -14,-140 Q -6,-124 -14,-108" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.75"/>
+  <path d="M 14,-108 Q 6,-126 14,-144 Q 22,-126 14,-108" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.6"/>
+</g>
+
+  <text x="200" y="322" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="24" font-weight="600" fill="#ffffff" opacity="0.97">Omachi Sườn Hầm</text>
+  <text x="200" y="352" text-anchor="middle" font-family="Verdana, Arial, sans-serif" font-size="13" letter-spacing="2.5" fill="#ffffff" opacity="0.72">MÌ ĂN LIỀN</text>
+</svg>

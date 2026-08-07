@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="800" height="800">
+  <defs>
+    <linearGradient id="bg-r-standard" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4A5A6A"/>
+      <stop offset="100%" stop-color="#8DA3B5"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" rx="28" fill="url(#bg-r-standard)"/>
+  <circle cx="40" cy="360" r="90" fill="#ffffff" opacity="0.05"/>
+  <circle cx="370" cy="30" r="70" fill="#ffffff" opacity="0.06"/>
+  <g transform="translate(200,190)">
+            <rect x="-80" y="10" width="160" height="65" rx="12" fill="#ffffff" opacity="0.88"/>
+            <rect x="-80" y="-6" width="60" height="28" rx="8" fill="#ffffff" opacity="0.7"/>
+            <rect x="-95" y="65" width="9" height="28" rx="4" fill="#ffffff" opacity="0.55"/>
+            <rect x="86" y="65" width="9" height="28" rx="4" fill="#ffffff" opacity="0.55"/>
+          </g>
+  <text x="200" y="330" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="34" font-weight="600" fill="#ffffff" opacity="0.96">Phòng Standard</text>
+  <text x="200" y="358" text-anchor="middle" font-family="Verdana, Arial, sans-serif" font-size="14" letter-spacing="3" fill="#ffffff" opacity="0.7">STANDARD ROOM</text>
+</svg>

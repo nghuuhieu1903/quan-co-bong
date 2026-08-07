@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="800" height="800">
+  <defs>
+    <linearGradient id="bg-p-cold-brew" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1F2A33"/>
+      <stop offset="100%" stop-color="#3D5A6C"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" rx="28" fill="url(#bg-p-cold-brew)"/>
+  <circle cx="40" cy="360" r="90" fill="#ffffff" opacity="0.05"/>
+  <circle cx="370" cy="30" r="70" fill="#ffffff" opacity="0.06"/>
+  
+<g transform="translate(200,175)">
+  <ellipse cx="0" cy="120" rx="66" ry="11" fill="#000" opacity="0.12"/>
+  <path d="M -54,-70 L 54,-70 L 44,96 Q 43,108 30,108 L -30,108 Q -43,108 -44,96 Z" fill="#2C1B18" fill-opacity="0.55" stroke="#0F1417" stroke-width="4"/>
+  <rect x="-30" y="-40" width="26" height="26" rx="5" fill="#ffffff" opacity="0.75"/>
+  <rect x="6" y="-8" width="24" height="24" rx="5" fill="#ffffff" opacity="0.7"/>
+  <rect x="-26" y="30" width="24" height="24" rx="5" fill="#ffffff" opacity="0.65"/>
+  <line x1="18" y1="-96" x2="8" y2="-2" stroke="#0F1417" stroke-width="9" stroke-linecap="round"/>
+</g>
+
+  <text x="200" y="330" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="34" font-weight="600" fill="#ffffff" opacity="0.96">Cold Brew</text>
+  <text x="200" y="358" text-anchor="middle" font-family="Verdana, Arial, sans-serif" font-size="14" letter-spacing="3" fill="#ffffff" opacity="0.7">ICED COFFEE</text>
+</svg>

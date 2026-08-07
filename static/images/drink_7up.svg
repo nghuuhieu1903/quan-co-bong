@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="800" height="800">
+  <defs>
+    <linearGradient id="bg-drink-7up" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B6E2E"/>
+      <stop offset="100%" stop-color="#4CAF50"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" rx="28" fill="url(#bg-drink-7up)"/>
+  <circle cx="40" cy="360" r="90" fill="#ffffff" opacity="0.05"/>
+  <circle cx="370" cy="30" r="70" fill="#ffffff" opacity="0.06"/>
+  
+<g transform="translate(200,175)">
+  <ellipse cx="0" cy="110" rx="60" ry="10" fill="#000" opacity="0.12"/>
+  <path d="M -52,-95 L 52,-95 L 46,100 Q 45,110 34,110 L -34,110 Q -45,110 -46,100 Z" fill="#1B8A3D" stroke="#0A4B21" stroke-width="4"/>
+  <ellipse cx="0" cy="-95" rx="52" ry="10" fill="#C4C4C4" stroke="#0A4B21" stroke-width="3"/>
+  <ellipse cx="0" cy="-95" rx="52" ry="10" fill="none" stroke="#0A4B21" stroke-width="2" opacity="0.4"/>
+  <path d="M -10,-98 Q 0,-108 10,-98" fill="none" stroke="#0A4B21" stroke-width="4" stroke-linecap="round"/>
+  <rect x="-48" y="-40" width="96" height="52" fill="#1B8A3D" opacity="0.9"/>
+</g>
+
+  <text x="200" y="322" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="36" font-weight="600" fill="#ffffff" opacity="0.97">7Up</text>
+  <text x="200" y="352" text-anchor="middle" font-family="Verdana, Arial, sans-serif" font-size="13" letter-spacing="2.5" fill="#ffffff" opacity="0.72">NƯỚC GIẢI KHÁT</text>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="800" height="800">
+  <defs>
+    <linearGradient id="bg-r-family" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2E6F5E"/>
+      <stop offset="100%" stop-color="#7FBFA6"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" rx="28" fill="url(#bg-r-family)"/>
+  <circle cx="40" cy="360" r="90" fill="#ffffff" opacity="0.05"/>
+  <circle cx="370" cy="30" r="70" fill="#ffffff" opacity="0.06"/>
+  <g transform="translate(200,185)">
+            <circle cx="-35" cy="-25" r="20" fill="#ffffff" opacity="0.9"/>
+            <path d="M -60,40 Q -60,0 -35,0 Q -10,0 -10,40 Z" fill="#ffffff" opacity="0.85"/>
+            <circle cx="20" cy="-15" r="15" fill="#ffffff" opacity="0.75"/>
+            <path d="M 0,40 Q 0,10 20,10 Q 40,10 40,40 Z" fill="#ffffff" opacity="0.7"/>
+            <circle cx="55" cy="-8" r="11" fill="#ffffff" opacity="0.6"/>
+            <path d="M 40,40 Q 40,18 55,18 Q 70,18 70,40 Z" fill="#ffffff" opacity="0.55"/>
+          </g>
+  <text x="200" y="330" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="34" font-weight="600" fill="#ffffff" opacity="0.96">Phòng Family</text>
+  <text x="200" y="358" text-anchor="middle" font-family="Verdana, Arial, sans-serif" font-size="14" letter-spacing="3" fill="#ffffff" opacity="0.7">FAMILY ROOM</text>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="800" height="800">
+  <defs>
+    <linearGradient id="bg-nd-nutriboost-cam" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#A85A00"/>
+      <stop offset="100%" stop-color="#FAD7A0"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" rx="28" fill="url(#bg-nd-nutriboost-cam)"/>
+  <circle cx="40" cy="360" r="90" fill="#ffffff" opacity="0.05"/>
+  <circle cx="370" cy="30" r="70" fill="#ffffff" opacity="0.06"/>
+  
+<g transform="translate(200,175)">
+  <ellipse cx="0" cy="118" rx="46" ry="9" fill="#000" opacity="0.12"/>
+  <path d="M -18,-140 L 18,-140 L 18,-108 Q 46,-88 46,-50 L 46,96 Q 46,112 30,112 L -30,112 Q -46,112 -46,96 L -46,-50 Q -46,-88 -18,-108 Z" fill="#F0932B" fill-opacity="0.9" stroke="#6E3A00" stroke-width="4"/>
+  <rect x="-20" y="-152" width="40" height="16" rx="4" fill="#A85A00" stroke="#6E3A00" stroke-width="3"/>
+  <rect x="-46" y="-10" width="92" height="60" fill="#F5B860" opacity="0.92"/>
+</g>
+
+  <text x="200" y="322" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="24" font-weight="600" fill="#ffffff" opacity="0.97">Nutriboost Cam</text>
+  <text x="200" y="352" text-anchor="middle" font-family="Verdana, Arial, sans-serif" font-size="13" letter-spacing="2.5" fill="#ffffff" opacity="0.72">NƯỚC GIẢI KHÁT</text>
+</svg>

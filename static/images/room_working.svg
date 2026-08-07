@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="800" height="800">
+  <defs>
+    <linearGradient id="bg-r-working" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#33475B"/>
+      <stop offset="100%" stop-color="#5E8CA8"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" rx="28" fill="url(#bg-r-working)"/>
+  <circle cx="40" cy="360" r="90" fill="#ffffff" opacity="0.05"/>
+  <circle cx="370" cy="30" r="70" fill="#ffffff" opacity="0.06"/>
+  <g transform="translate(200,190)">
+            <rect x="-85" y="20" width="170" height="12" rx="4" fill="#ffffff" opacity="0.85"/>
+            <rect x="-70" y="32" width="10" height="35" fill="#ffffff" opacity="0.6"/>
+            <rect x="60" y="32" width="10" height="35" fill="#ffffff" opacity="0.6"/>
+            <rect x="-45" y="-38" width="90" height="60" rx="6" fill="#ffffff" opacity="0.9"/>
+            <rect x="-38" y="-31" width="76" height="46" rx="3" fill="#33475B"/>
+            <rect x="-8" y="22" width="16" height="10" fill="#ffffff" opacity="0.7"/>
+          </g>
+  <text x="200" y="330" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="34" font-weight="600" fill="#ffffff" opacity="0.96">Phòng Working</text>
+  <text x="200" y="358" text-anchor="middle" font-family="Verdana, Arial, sans-serif" font-size="14" letter-spacing="3" fill="#ffffff" opacity="0.7">WORK SPACE</text>
+</svg>
