@@ -47,6 +47,15 @@ import builtins
 import sys
 from functools import wraps
 
+try:
+    from dotenv import load_dotenv
+    # Loads variables from a .env file placed next to app.py (if present).
+    # Lets DATABASE_URL/SECRET_KEY be set via a plain file on the VPS
+    # instead of relying on a control panel's "environment variables" UI.
+    load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
+except ImportError:
+    pass
+
 def safe_print(*args, **kwargs):
     safe_args = []
     encoding = sys.stdout.encoding or 'utf-8'
@@ -2283,8 +2292,7 @@ def automation_settings():
                          screen_info=screen_info)
 
 @app.route('/admin/automation_toggle', methods=['POST'])
-@super_admin_required
-def automation_toggle():
+@super_admin_requireddef automation_toggle():
     automation_controller.enabled = not automation_controller.enabled
     status = "bật" if automation_controller.enabled else "tắt"
     flash(f'Tự động hóa đã được {status}.', 'success')
