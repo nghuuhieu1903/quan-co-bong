@@ -783,8 +783,13 @@ def super_admin_required(view):
     return wrapped
 
 def manager_required(view):
+    """Allows Manager customer accounts, and also Admin/Super Admin (admins
+    have full access by design - Manager is just a helper role for daily
+    menu updates, not the only account that can do it)."""
     @wraps(view)
     def wrapped(*args, **kwargs):
+        if 'admin_logged_in' in session:
+            return view(*args, **kwargs)
         if 'customer_logged_in' not in session:
             return redirect(url_for('customer_login'))
         if session.get('customer_role') != 'manager':
@@ -1250,7 +1255,8 @@ def order_daily_item(item_id):
 @manager_required
 def daily_menu_manage():
     items = DailyMenuItem.query.order_by(DailyMenuItem.created_at.desc()).all()
-    return render_template('daily_menu_manage.html', items=items)
+    base_template = 'admin_base.html' if 'admin_logged_in' in session else 'modern_base.html'
+    return render_template('daily_menu_manage.html', items=items, base_template=base_template)
 
 @app.route('/customer/daily-menu/add', methods=['POST'])
 @manager_required

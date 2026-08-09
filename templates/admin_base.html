@@ -333,6 +333,9 @@
                         <a href="{{ url_for('admin_daily_menu_orders') }}" class="sidebar-sublink {% if request.endpoint == 'admin_daily_menu_orders' %}active{% endif %}" onclick="closeSidebar()">
                             <i class="fas fa-utensils"></i> Đơn món ăn hôm nay
                         </a>
+                        <a href="{{ url_for('daily_menu_manage') }}" class="sidebar-sublink {% if request.endpoint == 'daily_menu_manage' %}active{% endif %}" onclick="closeSidebar()">
+                            <i class="fas fa-plus-circle"></i> Thêm món ăn hôm nay
+                        </a>
                         {% if session.admin_role == 'super_admin' %}
                         <a href="{{ url_for('admin_debts') }}" class="sidebar-sublink {% if request.endpoint == 'admin_debts' %}active{% endif %}" onclick="closeSidebar()">
                             <i class="fas fa-book"></i> Sổ nợ khách hàng
