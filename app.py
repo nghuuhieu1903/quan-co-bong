@@ -2292,7 +2292,8 @@ def automation_settings():
                          screen_info=screen_info)
 
 @app.route('/admin/automation_toggle', methods=['POST'])
-@super_admin_requireddef automation_toggle():
+@super_admin_required
+def automation_toggle():
     automation_controller.enabled = not automation_controller.enabled
     status = "bật" if automation_controller.enabled else "tắt"
     flash(f'Tự động hóa đã được {status}.', 'success')
