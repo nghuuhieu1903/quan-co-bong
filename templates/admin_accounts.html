@@ -118,6 +118,15 @@
                                         <i class="fas fa-trash"></i> Xóa
                                     </button>
                                 </form>
+                                <details style="margin: 0;">
+                                    <summary class="btn btn-sm btn-outline" style="display: inline-block; cursor: pointer; list-style: none;">
+                                        <i class="fas fa-key"></i> Đặt lại mật khẩu
+                                    </summary>
+                                    <form method="POST" action="{{ url_for('admin_accounts_reset_admin_password', admin_id=a.id) }}" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                                        <input type="password" name="new_password" class="form-control" placeholder="Mật khẩu mới" minlength="6" required style="min-width: 160px;">
+                                        <button type="submit" class="btn btn-sm btn-primary">Lưu</button>
+                                    </form>
+                                </details>
                             </div>
                         </td>
                     </tr>
@@ -147,9 +156,20 @@
                         <td>{{ m.full_name }}</td>
                         <td>{{ m.phone }}</td>
                         <td>
-                            <form method="POST" action="{{ url_for('admin_accounts_toggle_manager', customer_id=m.id) }}" style="margin: 0;">
-                                <button type="submit" class="btn btn-sm btn-outline"><i class="fas fa-user-minus"></i> Gỡ quyền Manager</button>
-                            </form>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <form method="POST" action="{{ url_for('admin_accounts_toggle_manager', customer_id=m.id) }}" style="margin: 0;">
+                                    <button type="submit" class="btn btn-sm btn-outline"><i class="fas fa-user-minus"></i> Gỡ quyền Manager</button>
+                                </form>
+                                <details style="margin: 0;">
+                                    <summary class="btn btn-sm btn-outline" style="display: inline-block; cursor: pointer; list-style: none;">
+                                        <i class="fas fa-key"></i> Đặt lại mật khẩu
+                                    </summary>
+                                    <form method="POST" action="{{ url_for('admin_accounts_reset_customer_password', customer_id=m.id) }}" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                                        <input type="password" name="new_password" class="form-control" placeholder="Mật khẩu mới" minlength="6" required style="min-width: 160px;">
+                                        <button type="submit" class="btn btn-sm btn-primary">Lưu</button>
+                                    </form>
+                                </details>
+                            </div>
                         </td>
                     </tr>
                     {% else %}
@@ -180,9 +200,20 @@
                         <td>{{ c.full_name }}</td>
                         <td>{{ c.phone }}</td>
                         <td>
-                            <form method="POST" action="{{ url_for('admin_accounts_toggle_manager', customer_id=c.id) }}" style="margin: 0;">
-                                <button type="submit" class="btn btn-sm btn-primary"><i class="fas fa-user-plus"></i> Chỉ định Manager</button>
-                            </form>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <form method="POST" action="{{ url_for('admin_accounts_toggle_manager', customer_id=c.id) }}" style="margin: 0;">
+                                    <button type="submit" class="btn btn-sm btn-primary"><i class="fas fa-user-plus"></i> Chỉ định Manager</button>
+                                </form>
+                                <details style="margin: 0;">
+                                    <summary class="btn btn-sm btn-outline" style="display: inline-block; cursor: pointer; list-style: none;">
+                                        <i class="fas fa-key"></i> Đặt lại mật khẩu
+                                    </summary>
+                                    <form method="POST" action="{{ url_for('admin_accounts_reset_customer_password', customer_id=c.id) }}" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                                        <input type="password" name="new_password" class="form-control" placeholder="Mật khẩu mới" minlength="6" required style="min-width: 160px;">
+                                        <button type="submit" class="btn btn-sm btn-primary">Lưu</button>
+                                    </form>
+                                </details>
+                            </div>
                         </td>
                     </tr>
                     {% else %}

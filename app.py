@@ -7,8 +7,11 @@ import qrcode
 import io
 import base64
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
+import secrets
+import smtplib
+from email.mime.text import MIMEText
 import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 import threading
@@ -92,6 +95,38 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['UPLOAD_FOLDER'] = 'static/images'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+# Customers stay logged in across visits; admins do not (see admin_authenticate /
+# customer_authenticate - only the customer session is marked permanent).
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+
+# SMTP settings for the super-admin password recovery email. Configure these
+# via environment variables (.env) on the server; nothing is sent if
+# SMTP_USER/SMTP_PASSWORD aren't set.
+SMTP_HOST = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
+SMTP_PORT = int(os.environ.get('SMTP_PORT', '587'))
+SMTP_USER = os.environ.get('SMTP_USER')
+SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD')
+SUPER_ADMIN_RECOVERY_EMAIL = os.environ.get('SUPER_ADMIN_RECOVERY_EMAIL', 'hhieu193@gmail.com')
+
+def send_email(to_email, subject, body):
+    """Sends a plain-text email via SMTP. Returns True on success, False
+    (and prints the error) if SMTP isn't configured or sending fails."""
+    if not SMTP_USER or not SMTP_PASSWORD:
+        print(f"SMTP not configured - would have sent to {to_email}: {subject}")
+        return False
+    try:
+        msg = MIMEText(body, 'plain', 'utf-8')
+        msg['Subject'] = subject
+        msg['From'] = SMTP_USER
+        msg['To'] = to_email
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SMTP_USER, SMTP_PASSWORD)
+            server.sendmail(SMTP_USER, [to_email], msg.as_string())
+        return True
+    except Exception as e:
+        print(f"Failed to send email to {to_email}: {e}")
+        return False
 
 # Laptop Speaker Configuration
 class LaptopSpeaker:
@@ -899,6 +934,8 @@ class Admin(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), default='admin', nullable=False)  # 'super_admin' or 'admin'
+    reset_code_hash = db.Column(db.String(255))
+    reset_code_expiry = db.Column(db.DateTime)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1346,7 +1383,9 @@ def admin_authenticate():
         session['admin_logged_in'] = True
         session['admin_username'] = username
         session['admin_role'] = admin.role
-        session.permanent = True  # Make session permanent
+        # Deliberately NOT permanent: admins must log in again every time
+        # they open a new browser session (unlike customers).
+        session.permanent = False
         return redirect(url_for('admin_dashboard'))
     else:
         flash('Thông tin đăng nhập không hợp lệ', 'error')
@@ -1415,6 +1454,99 @@ def admin_logout():
     session.pop('admin_logged_in', None)
     session.pop('admin_username', None)
     session.pop('admin_role', None)
+    return redirect(url_for('admin_login'))
+
+@app.route('/admin/change_password', methods=['GET'])
+@admin_required
+def admin_change_password():
+    return render_template('admin_change_password.html')
+
+@app.route('/admin/change_password', methods=['POST'])
+@admin_required
+def admin_change_password_submit():
+    current_password = request.form.get('current_password', '')
+    new_password = request.form.get('new_password', '')
+    confirm_password = request.form.get('confirm_password', '')
+
+    admin = Admin.query.filter_by(username=session.get('admin_username')).first_or_404()
+
+    if not check_password_hash(admin.password, current_password):
+        flash('Mật khẩu hiện tại không đúng', 'error')
+        return redirect(url_for('admin_change_password'))
+
+    if len(new_password) < 6:
+        flash('Mật khẩu mới phải có ít nhất 6 ký tự', 'error')
+        return redirect(url_for('admin_change_password'))
+
+    if new_password != confirm_password:
+        flash('Xác nhận mật khẩu không khớp', 'error')
+        return redirect(url_for('admin_change_password'))
+
+    admin.password = generate_password_hash(new_password)
+    db.session.commit()
+    flash('Đã đổi mật khẩu thành công', 'success')
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/forgot_password', methods=['GET'])
+def admin_forgot_password():
+    return render_template('admin_forgot_password.html')
+
+@app.route('/admin/forgot_password', methods=['POST'])
+def admin_forgot_password_submit():
+    username = request.form.get('username', '').strip()
+    admin = Admin.query.filter_by(username=username, role='super_admin').first()
+
+    # Always show the same message regardless of whether the account exists,
+    # so this form can't be used to discover valid super_admin usernames.
+    generic_message = 'Nếu tài khoản Super Admin tồn tại, mã xác nhận đã được gửi qua email khôi phục.'
+
+    if admin:
+        code = f"{secrets.randbelow(1000000):06d}"
+        admin.reset_code_hash = generate_password_hash(code)
+        admin.reset_code_expiry = datetime.utcnow() + timedelta(minutes=15)
+        db.session.commit()
+        send_email(
+            SUPER_ADMIN_RECOVERY_EMAIL,
+            'Mã khôi phục mật khẩu Super Admin - Cô Bông Cát Lái',
+            f'Mã xác nhận khôi phục mật khẩu cho tài khoản "{username}" là: {code}\n\n'
+            f'Mã có hiệu lực trong 15 phút. Nếu bạn không yêu cầu, hãy bỏ qua email này.'
+        )
+
+    flash(generic_message, 'success')
+    return redirect(url_for('admin_reset_password', username=username))
+
+@app.route('/admin/reset_password', methods=['GET'])
+def admin_reset_password():
+    return render_template('admin_reset_password.html', username=request.args.get('username', ''))
+
+@app.route('/admin/reset_password', methods=['POST'])
+def admin_reset_password_submit():
+    username = request.form.get('username', '').strip()
+    code = request.form.get('code', '').strip()
+    new_password = request.form.get('new_password', '')
+    confirm_password = request.form.get('confirm_password', '')
+
+    admin = Admin.query.filter_by(username=username, role='super_admin').first()
+
+    if (not admin or not admin.reset_code_hash or not admin.reset_code_expiry
+            or datetime.utcnow() > admin.reset_code_expiry
+            or not check_password_hash(admin.reset_code_hash, code)):
+        flash('Mã xác nhận không đúng hoặc đã hết hạn', 'error')
+        return redirect(url_for('admin_reset_password', username=username))
+
+    if len(new_password) < 6:
+        flash('Mật khẩu mới phải có ít nhất 6 ký tự', 'error')
+        return redirect(url_for('admin_reset_password', username=username))
+
+    if new_password != confirm_password:
+        flash('Xác nhận mật khẩu không khớp', 'error')
+        return redirect(url_for('admin_reset_password', username=username))
+
+    admin.password = generate_password_hash(new_password)
+    admin.reset_code_hash = None
+    admin.reset_code_expiry = None
+    db.session.commit()
+    flash('Đã đặt lại mật khẩu thành công, hãy đăng nhập lại', 'success')
     return redirect(url_for('admin_login'))
 
 @app.route('/admin/rooms')
@@ -2144,6 +2276,8 @@ def customer_authenticate():
         session['customer_id'] = customer.id
         session['customer_name'] = customer.full_name
         session['customer_role'] = customer.role
+        # Customers stay logged in across visits (permanent session).
+        session.permanent = True
         flash('Đăng nhập thành công!', 'success')
         return redirect(url_for('customer_home'))
     else:
@@ -2436,6 +2570,32 @@ def admin_accounts_change_role(admin_id):
     flash(f'Đã đổi quyền của "{target.username}" thành {new_role}', 'success')
     return redirect(url_for('admin_accounts'))
 
+@app.route('/admin/accounts/<int:admin_id>/reset_password', methods=['POST'])
+@super_admin_required
+def admin_accounts_reset_admin_password(admin_id):
+    target = Admin.query.get_or_404(admin_id)
+    new_password = request.form.get('new_password', '')
+    if len(new_password) < 6:
+        flash('Mật khẩu mới phải có ít nhất 6 ký tự', 'error')
+        return redirect(url_for('admin_accounts'))
+    target.password = generate_password_hash(new_password)
+    db.session.commit()
+    flash(f'Đã đặt lại mật khẩu cho "{target.username}"', 'success')
+    return redirect(url_for('admin_accounts'))
+
+@app.route('/admin/accounts/<int:customer_id>/reset_customer_password', methods=['POST'])
+@super_admin_required
+def admin_accounts_reset_customer_password(customer_id):
+    target = Customer.query.get_or_404(customer_id)
+    new_password = request.form.get('new_password', '')
+    if len(new_password) < 6:
+        flash('Mật khẩu mới phải có ít nhất 6 ký tự', 'error')
+        return redirect(url_for('admin_accounts'))
+    target.password = generate_password_hash(new_password)
+    db.session.commit()
+    flash(f'Đã đặt lại mật khẩu cho "{target.username}"', 'success')
+    return redirect(url_for('admin_accounts'))
+
 @app.route('/admin/accounts/<int:admin_id>/delete_admin', methods=['POST'])
 @super_admin_required
 def admin_accounts_delete_admin(admin_id):
@@ -2475,6 +2635,8 @@ with app.app_context():
         ensure_column('room', 'price_unit', "ALTER TABLE room ADD COLUMN price_unit VARCHAR(50) DEFAULT 'giờ'")
         ensure_column('admin', 'role', "ALTER TABLE admin ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'admin'")
         ensure_column('customer', 'role', "ALTER TABLE customer ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'customer'")
+        ensure_column('admin', 'reset_code_hash', "ALTER TABLE admin ADD COLUMN reset_code_hash VARCHAR(255)")
+        ensure_column('admin', 'reset_code_expiry', "ALTER TABLE admin ADD COLUMN reset_code_expiry DATETIME")
         populate_default_basic_costs()
 
         # Create default admin if not exists

@@ -358,6 +358,9 @@
             </nav>
 
             <div class="sidebar-footer">
+                <a href="{{ url_for('admin_change_password') }}" class="sidebar-link {% if request.endpoint == 'admin_change_password' %}active{% endif %}">
+                    <i class="fas fa-key"></i> Đổi mật khẩu
+                </a>
                 <a href="{{ url_for('admin_logout') }}" class="sidebar-link sidebar-link-logout">
                     <i class="fas fa-sign-out-alt"></i> Đăng xuất
                 </a>
