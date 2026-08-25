@@ -4,9 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Cô Bông Cát Lái{% endblock %}</title>
+    <script>
+    (function() {
+        var saved = localStorage.getItem('theme');
+        if (saved === 'dark' || saved === 'light') {
+            document.documentElement.setAttribute('data-theme', saved);
+        }
+        if (!localStorage.getItem('onboarding_seen')) {
+            document.documentElement.classList.add('show-onboarding');
+        }
+    })();
+    </script>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,17 +27,6 @@
 
     <!-- Sidebar Layout CSS -->
     <style>
-    /* Font Face - Agbalumo */
-    @font-face {
-        font-family: 'Agbalumo';
-        src: local('Agbalumo'),
-             local('Agbalumo-Regular'),
-             url('https://fonts.googleapis.com/css2?family=Agbalumo&display=swap');
-        font-weight: normal;
-        font-style: normal;
-        font-display: swap;
-    }
-
     .app-shell {
         display: flex;
         min-height: 100vh;
@@ -51,7 +51,7 @@
 
     .sidebar-brand {
         padding: 1.5rem 1.25rem;
-        font-family: 'Agbalumo', 'Verdana', sans-serif;
+        
         font-size: 1.15rem;
         font-weight: 500;
         color: var(--text-primary);
@@ -169,7 +169,7 @@
         }
 
         .mobile-topbar-brand {
-            font-family: 'Agbalumo', 'Verdana', sans-serif;
+            
             font-size: 1.1rem;
             color: var(--text-primary);
             text-decoration: none;
@@ -204,11 +204,100 @@
             visibility: visible;
         }
     }
+
+    /* ---- Theme toggle ---- */
+    .theme-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.25s ease;
+        flex-shrink: 0;
+    }
+
+    .theme-toggle-btn:hover {
+        color: var(--accent-color);
+        border-color: var(--accent-color);
+        transform: rotate(20deg);
+    }
+
+    .sidebar-footer {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .sidebar-footer .sidebar-link-logout {
+        flex: 1;
+    }
     </style>
 
     {% block head %}{% endblock %}
 </head>
 <body>
+    <!-- Onboarding welcome flow (first visit only) -->
+    <div class="onboarding-overlay" id="onboarding-overlay" role="dialog" aria-modal="true" aria-label="Chào mừng">
+        <button type="button" class="onboarding-skip" onclick="finishOnboarding()">Bỏ qua</button>
+        <div class="onboarding-track" id="onboarding-track">
+            <div class="onboarding-slide onboarding-slide-cover" onclick="goToOnboardingSlide(1)">
+                <div>
+                    <div class="onboarding-cover-brand"><i class="fa-solid fa-mug-saucer"></i> Cô Bông <span>Cát Lái</span></div>
+                    <div class="onboarding-cover-tap">Chạm để bắt đầu</div>
+                </div>
+                <div class="onboarding-cover-version">Phiên bản 1.0</div>
+            </div>
+
+            <div class="onboarding-slide">
+                <div class="onboarding-art onboarding-art-1"><i class="fa-solid fa-mug-hot"></i></div>
+                <div class="onboarding-body">
+                    <div class="onboarding-dots">
+                        <span class="onboarding-dot" data-slide="1"></span>
+                        <span class="onboarding-dot" data-slide="2"></span>
+                        <span class="onboarding-dot" data-slide="3"></span>
+                    </div>
+                    <h2>Khám phá các loại cà phê</h2>
+                    <p>Đa dạng hương vị cà phê và đồ uống, chỉ với vài thao tác đơn giản là có thể đặt món yêu thích.</p>
+                    <button type="button" class="btn btn-primary onboarding-next" onclick="goToOnboardingSlide(2)">Tiếp theo</button>
+                </div>
+            </div>
+
+            <div class="onboarding-slide">
+                <div class="onboarding-art onboarding-art-2"><i class="fa-solid fa-house-chimney"></i></div>
+                <div class="onboarding-body">
+                    <div class="onboarding-dots">
+                        <span class="onboarding-dot" data-slide="1"></span>
+                        <span class="onboarding-dot" data-slide="2"></span>
+                        <span class="onboarding-dot" data-slide="3"></span>
+                    </div>
+                    <h2>Theo dõi và đặt phòng trọ</h2>
+                    <p>Xem tình trạng phòng, tiện nghi và đặt lịch ghé thăm chỉ với vài cú chạm.</p>
+                    <button type="button" class="btn btn-primary onboarding-next" onclick="goToOnboardingSlide(3)">Tiếp theo</button>
+                </div>
+            </div>
+
+            <div class="onboarding-slide">
+                <div class="onboarding-art onboarding-art-3"><i class="fa-solid fa-star"></i></div>
+                <div class="onboarding-body">
+                    <div class="onboarding-dots">
+                        <span class="onboarding-dot" data-slide="1"></span>
+                        <span class="onboarding-dot" data-slide="2"></span>
+                        <span class="onboarding-dot" data-slide="3"></span>
+                    </div>
+                    <h2>Sẵn sàng cho trải nghiệm mới</h2>
+                    <p>Bắt đầu ngay để khám phá cà phê thơm ngon và phòng trọ tiện nghi tại Cát Lái.</p>
+                    <button type="button" class="btn btn-primary onboarding-next" onclick="finishOnboarding()">Bắt đầu ngay</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="app-shell">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
@@ -248,13 +337,16 @@
                 {% endif %}
             </nav>
 
-            {% if session.get('customer_logged_in') %}
             <div class="sidebar-footer">
+                {% if session.get('customer_logged_in') %}
                 <a href="{{ url_for('customer_logout') }}" class="sidebar-link sidebar-link-logout">
                     <i class="fas fa-sign-out-alt"></i> Đăng xuất
                 </a>
+                {% endif %}
+                <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển giao diện sáng/tối" aria-label="Toggle dark mode">
+                    <i class="fas fa-moon" id="theme-toggle-icon"></i>
+                </button>
             </div>
-            {% endif %}
         </aside>
 
         <!-- Mobile overlay -->
@@ -267,9 +359,14 @@
                 <a href="{{ url_for('index') }}" class="mobile-topbar-brand">
                     <i class="fa-solid fa-mug-saucer"></i> Cô Bông Cát Lái
                 </a>
-                <button class="mobile-menu-btn" onclick="toggleSidebar()">
-                    <i class="fas fa-bars" id="mobile-menu-icon"></i>
-                </button>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển giao diện sáng/tối" aria-label="Toggle dark mode">
+                        <i class="fas fa-moon" id="theme-toggle-icon-mobile"></i>
+                    </button>
+                    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                        <i class="fas fa-bars" id="mobile-menu-icon"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Flash Messages -->
@@ -303,6 +400,66 @@
 
     <!-- JavaScript -->
     <script>
+        // Onboarding welcome flow
+        var onboardingIndex = 0;
+        var onboardingTotalSlides = 4;
+        var onboardingAutoTimer = null;
+
+        function renderOnboardingDots() {
+            document.querySelectorAll('.onboarding-dot').forEach(function(dot) {
+                dot.classList.toggle('active', parseInt(dot.dataset.slide, 10) === onboardingIndex);
+            });
+        }
+
+        function goToOnboardingSlide(i) {
+            onboardingIndex = i;
+            var track = document.getElementById('onboarding-track');
+            if (track) {
+                track.style.transform = 'translateX(-' + (i * 100 / onboardingTotalSlides) + '%)';
+            }
+            renderOnboardingDots();
+            if (onboardingAutoTimer) {
+                clearTimeout(onboardingAutoTimer);
+                onboardingAutoTimer = null;
+            }
+        }
+
+        function finishOnboarding() {
+            localStorage.setItem('onboarding_seen', '1');
+            var overlay = document.getElementById('onboarding-overlay');
+            document.documentElement.classList.remove('show-onboarding');
+            if (overlay) {
+                overlay.style.opacity = '0';
+                setTimeout(function() {
+                    overlay.style.display = 'none';
+                }, 300);
+            }
+        }
+
+        if (document.documentElement.classList.contains('show-onboarding')) {
+            onboardingAutoTimer = setTimeout(function() { goToOnboardingSlide(1); }, 1800);
+        }
+
+        // Dark/Light Theme Toggle
+        function updateThemeIcon() {
+            var theme = document.documentElement.getAttribute('data-theme') || 'light';
+            var iconClass = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            var icon1 = document.getElementById('theme-toggle-icon');
+            var icon2 = document.getElementById('theme-toggle-icon-mobile');
+            if (icon1) icon1.className = iconClass;
+            if (icon2) icon2.className = iconClass;
+        }
+
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme') || 'light';
+            var next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            updateThemeIcon();
+        }
+
+        updateThemeIcon();
+
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
