@@ -88,8 +88,10 @@ if db_url.startswith('mysql://'):
     db_url = db_url.replace('mysql://', 'mysql+pymysql://', 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 # Force utf8mb4 on every connection so Vietnamese text is stored correctly
-# regardless of the MySQL server's default charset.
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'connect_args': {'charset': 'utf8mb4'}}
+# regardless of the MySQL server's default charset. Only MySQL connections
+# understand this option, so skip it for local SQLite/dev databases.
+if db_url.startswith('mysql'):
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'connect_args': {'charset': 'utf8mb4'}}
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_TYPE'] = 'filesystem'
