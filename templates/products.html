@@ -2,22 +2,6 @@
 
 {% block head %}
 <style>
-/* Font Face - Agbalumo */
-@font-face {
-    font-family: 'Agbalumo';
-    src: local('Agbalumo'), 
-         local('Agbalumo-Regular'),
-         url('https://fonts.googleapis.com/css2?family=Agbalumo&display=swap');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
-}
-
-/* Apply Agbalumo font to products page */
-.page-header h1, .products-layout h2, .products-layout .btn {
-    font-family: 'Agbalumo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-}
-
 /* Responsive Button Text classes */
 .btn-text-desktop {
     display: inline;
@@ -330,7 +314,7 @@
 </style>
 {% endblock %}
 
-{% block title %}{{ _('nav_products') }} - Cô Bông Cát Lái{% endblock %}
+{% block title %}{{ _('nav_food') if item_type == 'food' else _('nav_products') }} - Cô Bông Cát Lái{% endblock %}
 
 {% block content %}
 <!-- Filter Drawer Overlay -->
@@ -341,10 +325,18 @@
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div>
                 <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
-                    <i class="fas fa-box"></i> {{ _('prod_title') }}
+                    {% if item_type == 'food' %}
+                        <i class="fas fa-utensils"></i> {{ _('food_title') }}
+                    {% else %}
+                        <i class="fas fa-mug-hot"></i> {{ _('prod_title') }}
+                    {% endif %}
                 </h1>
                 <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
-                    {{ _('prod_desc') }}
+                    {% if item_type == 'food' %}
+                        {{ _('food_desc') }}
+                    {% else %}
+                        {{ _('prod_desc') }}
+                    {% endif %}
                 </p>
             </div>
             <div style="display: flex; gap: 1rem; align-items: center;">

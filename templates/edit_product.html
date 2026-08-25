@@ -52,11 +52,25 @@
                         <option value="tea" {% if product.category == 'tea' %}selected{% endif %}>Trà</option>
                         <option value="juice" {% if product.category == 'juice' %}selected{% endif %}>Sinh tố / Nước ép</option>
                         <option value="cake" {% if product.category == 'cake' %}selected{% endif %}>Bánh ngọt</option>
+                        <option value="food" {% if product.category == 'food' %}selected{% endif %}>Món ăn</option>
                         <option value="other" {% if product.category == 'other' %}selected{% endif %}>Khác</option>
                     </select>
                 </div>
             </div>
-            
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-utensils"></i> Loại mặt hàng *
+                </label>
+                <select name="item_type" class="form-control" required>
+                    <option value="drink" {% if product.item_type == 'drink' %}selected{% endif %}>Đồ uống</option>
+                    <option value="food" {% if product.item_type == 'food' %}selected{% endif %}>Đồ ăn</option>
+                </select>
+                <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">
+                    <i class="fas fa-info-circle"></i> Quyết định mặt hàng này hiện ở trang "Đồ uống" hay "Đồ ăn".
+                </small>
+            </div>
+
             <div class="form-group">
                 <label class="form-label">
                     <i class="fas fa-align-left"></i> Mô tả sản phẩm *

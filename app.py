@@ -101,7 +101,8 @@ TRANSLATIONS = {
     'vi': {
         # Sidebar / nav
         'nav_home': 'Trang chủ',
-        'nav_products': 'Sản phẩm',
+        'nav_products': 'Đồ uống',
+        'nav_food': 'Đồ ăn',
         'nav_rooms': 'Căn hộ dịch vụ',
         'nav_cart': 'Giỏ hàng',
         'nav_login': 'Đăng nhập',
@@ -116,13 +117,16 @@ TRANSLATIONS = {
         'home_view_all': 'Xem tất cả',
         'home_hot_drink': 'Cà phê & Đồ uống',
         'home_hot_desc': 'Hương vị nguyên bản, chất lượng hàng đầu',
-        # Products
-        'prod_title': 'Tất cả sản phẩm',
+        # Products (drinks)
+        'prod_title': 'Tất cả đồ uống',
         'prod_desc': 'Khám phá món cà phê và đồ uống chất lượng cao',
         'prod_add_to_cart': 'Thêm giỏ',
         'prod_in_stock': 'Còn hàng',
         'prod_out_of_stock': 'Hết hàng',
         'prod_buy_now': 'Mua ngay',
+        # Food
+        'food_title': 'Tất cả món ăn',
+        'food_desc': 'Thực đơn món ăn hằng ngày, tươi ngon mỗi ngày',
         # Rooms / serviced apartments
         'room_title': 'Căn hộ dịch vụ cho thuê',
         'room_desc': 'Căn hộ dịch vụ đầy đủ tiện nghi, phù hợp cho lưu trú ngắn hoặc dài hạn.',
@@ -144,7 +148,8 @@ TRANSLATIONS = {
     'en': {
         # Sidebar / nav
         'nav_home': 'Home',
-        'nav_products': 'Products',
+        'nav_products': 'Drinks',
+        'nav_food': 'Food',
         'nav_rooms': 'Serviced Apartments',
         'nav_cart': 'Cart',
         'nav_login': 'Login',
@@ -159,13 +164,16 @@ TRANSLATIONS = {
         'home_view_all': 'View All',
         'home_hot_drink': 'Coffee & Drinks',
         'home_hot_desc': 'Original taste, premium quality',
-        # Products
-        'prod_title': 'All Products',
+        # Products (drinks)
+        'prod_title': 'All Drinks',
         'prod_desc': 'Explore high-quality coffee and drinks',
         'prod_add_to_cart': 'Add to Cart',
         'prod_in_stock': 'In Stock',
         'prod_out_of_stock': 'Out of Stock',
         'prod_buy_now': 'Buy Now',
+        # Food
+        'food_title': 'All Food',
+        'food_desc': 'Fresh daily food menu, made every day',
         # Rooms / serviced apartments
         'room_title': 'Serviced Apartments for Rent',
         'room_desc': 'Fully-equipped serviced apartments, great for short or long stays.',
@@ -983,6 +991,7 @@ class Product(db.Model):
     stock = db.Column(db.Integer, nullable=False)
     image = db.Column(db.String(200), default='pngtree.png')
     category = db.Column(db.String(50), nullable=False)
+    item_type = db.Column(db.String(20), nullable=False, default='drink')  # 'drink' or 'food'
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     images = db.relationship('ProductImage', backref='product', lazy=True, cascade="all, delete-orphan")
 
@@ -1213,14 +1222,15 @@ def manage_products():
     # Get search and filter parameters
     search = request.args.get('search', '')
     stock_filter = request.args.get('stock_filter', '')
-    
+    item_type_filter = request.args.get('item_type_filter', '')
+
     # Start with all products
     products = Product.query
-    
+
     # Apply search filter
     if search:
         products = products.filter(Product.name.contains(search))
-    
+
     # Apply stock filter
     if stock_filter == 'in_stock':
         products = products.filter(Product.stock > 0)
@@ -1228,10 +1238,14 @@ def manage_products():
         products = products.filter(Product.stock == 0)
     elif stock_filter == 'low_stock':
         products = products.filter(Product.stock > 0, Product.stock <= 10)
-    
+
+    # Apply item type filter (drink vs food)
+    if item_type_filter in ('drink', 'food'):
+        products = products.filter(Product.item_type == item_type_filter)
+
     # Get filtered products
     products = products.all()
-    
+
     return render_template('manage_products.html', products=products)
 
 @app.route('/products')
@@ -1239,29 +1253,32 @@ def products():
     # Get filter parameters
     search_query = request.args.get('search', '').strip()
     category_filter = request.args.get('category', '').strip()
-    
-    # Start with base query
-    query = Product.query
-    
+    item_type = request.args.get('type', 'drink').strip()
+    if item_type not in ('drink', 'food'):
+        item_type = 'drink'
+
+    # Start with base query, scoped to the requested item type
+    query = Product.query.filter(Product.item_type == item_type)
+
     # Apply search filter
     if search_query:
         query = query.filter(Product.name.contains(search_query))
-    
+
     # Apply category filter
     if category_filter:
         query = query.filter(Product.category == category_filter)
-    
+
     # Get filtered products
     products = query.all()
-    
-    # Get all unique categories from database
-    categories = db.session.query(Product.category).distinct().all()
+
+    # Get all unique categories from database (within this item type)
+    categories = db.session.query(Product.category).filter(Product.item_type == item_type).distinct().all()
     categories = [cat[0] for cat in categories if cat[0]]  # Remove None values
-    
-    # Get total products count
-    total_products = Product.query.count()
-    
-    return render_template('products.html', products=products, categories=categories, total_products=total_products)
+
+    # Get total products count (within this item type)
+    total_products = Product.query.filter(Product.item_type == item_type).count()
+
+    return render_template('products.html', products=products, categories=categories, total_products=total_products, item_type=item_type)
 
 @app.route('/rooms')
 def rooms():
@@ -1829,10 +1846,13 @@ def add_product():
         price = float(request.form.get('price'))
         stock = int(request.form.get('stock'))
         category = request.form.get('category')
+        item_type = request.form.get('item_type', 'drink')
+        if item_type not in ('drink', 'food'):
+            item_type = 'drink'
 
         image_url = save_uploaded_file(request.files.get('image'))
 
-        product = Product(name=name, description=description, price=price, stock=stock, category=category, image=image_url)  # type: ignore[call-arg]
+        product = Product(name=name, description=description, price=price, stock=stock, category=category, item_type=item_type, image=image_url)  # type: ignore[call-arg]
         db.session.add(product)
         db.session.flush()  # Get product.id before committing
 
@@ -1862,6 +1882,8 @@ def edit_product(product_id):
         product.price = float(request.form.get('price'))
         product.stock = int(request.form.get('stock'))
         product.category = request.form.get('category')
+        item_type = request.form.get('item_type', 'drink')
+        product.item_type = item_type if item_type in ('drink', 'food') else 'drink'
 
         db.session.commit()
         flash('Sản phẩm đã cập nhật thành công', 'success')
@@ -2736,6 +2758,7 @@ with app.app_context():
     try:
         db.create_all()
         ensure_column('product', 'image', "ALTER TABLE product ADD COLUMN image VARCHAR(200) DEFAULT 'placeholder.jpg'")
+        ensure_column('product', 'item_type', "ALTER TABLE product ADD COLUMN item_type VARCHAR(20) NOT NULL DEFAULT 'drink'")
         ensure_column('room', 'basic_costs', "ALTER TABLE room ADD COLUMN basic_costs TEXT")
         ensure_column('room', 'price_unit', "ALTER TABLE room ADD COLUMN price_unit VARCHAR(50) DEFAULT 'giờ'")
         ensure_column('admin', 'role', "ALTER TABLE admin ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'admin'")

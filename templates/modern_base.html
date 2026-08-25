@@ -335,8 +335,11 @@
                 <a href="{{ url_for('index') }}" class="sidebar-link {% if request.endpoint in ['index', 'customer_home'] %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-home"></i> {{ _('nav_home') }}
                 </a>
-                <a href="{{ url_for('products') }}" class="sidebar-link {% if request.endpoint in ['products', 'product_detail_route'] %}active{% endif %}" onclick="closeSidebar()">
-                    <i class="fas fa-box"></i> {{ _('nav_products') }}
+                <a href="{{ url_for('products') }}" class="sidebar-link {% if request.endpoint in ['products', 'product_detail_route'] and request.args.get('type', 'drink') == 'drink' %}active{% endif %}" onclick="closeSidebar()">
+                    <i class="fas fa-mug-hot"></i> {{ _('nav_products') }}
+                </a>
+                <a href="{{ url_for('products', type='food') }}" class="sidebar-link {% if request.endpoint in ['products', 'product_detail_route'] and request.args.get('type') == 'food' %}active{% endif %}" onclick="closeSidebar()">
+                    <i class="fas fa-utensils"></i> {{ _('nav_food') }}
                 </a>
                 <a href="{{ url_for('rooms') }}" class="sidebar-link {% if request.endpoint in ['rooms', 'room_detail'] %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-house-user"></i> {{ _('nav_rooms') }}

@@ -271,7 +271,18 @@
                     <option value="low_stock" {% if request.args.get('stock_filter') == 'low_stock' %}selected{% endif %}>Sắp hết hàng</option>
                 </select>
             </div>
-            
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-utensils"></i> Lọc theo loại
+                </label>
+                <select name="item_type_filter" class="form-control">
+                    <option value="">Đồ uống & Đồ ăn</option>
+                    <option value="drink" {% if request.args.get('item_type_filter') == 'drink' %}selected{% endif %}>Chỉ đồ uống</option>
+                    <option value="food" {% if request.args.get('item_type_filter') == 'food' %}selected{% endif %}>Chỉ đồ ăn</option>
+                </select>
+            </div>
+
             <div class="form-group">
                 <button type="submit" class="btn btn-primary">
                     <i class="fas fa-search"></i> Tìm kiếm
@@ -292,6 +303,7 @@
                 <th>Giá</th>
                 <th class="hide-mobile">Tồn kho</th>
                 <th class="hide-mobile">Danh mục</th>
+                <th class="hide-mobile">Loại</th>
                 <th>Thao tác</th>
             </tr>
         </thead>
@@ -323,6 +335,13 @@
                     <span class="badge" style="background: var(--bg-secondary); color: var(--text-primary);">
                         {{ product.category or 'Chưa phân loại' }}
                     </span>
+                </td>
+                <td class="hide-mobile">
+                    {% if product.item_type == 'food' %}
+                        <span class="badge badge-warning"><i class="fas fa-utensils"></i> Đồ ăn</span>
+                    {% else %}
+                        <span class="badge badge-info"><i class="fas fa-mug-hot"></i> Đồ uống</span>
+                    {% endif %}
                 </td>
                 <td>
                     <div class="action-buttons">

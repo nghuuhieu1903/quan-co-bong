@@ -52,11 +52,25 @@
                         <option value="tea">Trà</option>
                         <option value="juice">Sinh tố / Nước ép</option>
                         <option value="cake">Bánh ngọt</option>
+                        <option value="food">Món ăn</option>
                         <option value="other">Khác</option>
                     </select>
                 </div>
             </div>
-            
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-utensils"></i> Loại mặt hàng *
+                </label>
+                <select name="item_type" class="form-control" required>
+                    <option value="drink">Đồ uống</option>
+                    <option value="food">Đồ ăn</option>
+                </select>
+                <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">
+                    <i class="fas fa-info-circle"></i> Quyết định mặt hàng này hiện ở trang "Đồ uống" hay "Đồ ăn".
+                </small>
+            </div>
+
             <div class="form-group">
                 <label class="form-label">
                     <i class="fas fa-align-left"></i> Mô tả sản phẩm *
