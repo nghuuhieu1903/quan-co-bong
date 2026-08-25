@@ -2,22 +2,6 @@
 
 {% block head %}
 <style>
-/* Font Face - Agbalumo */
-@font-face {
-    font-family: 'Agbalumo';
-    src: local('Agbalumo'), 
-         local('Agbalumo-Regular'),
-         url('https://fonts.googleapis.com/css2?family=Agbalumo&display=swap');
-    font-weight: normal;
-    font-style: normal;
-    font-display: swap;
-}
-
-/* Apply Agbalumo font to hero section */
-.hero h1, .hero p, .hero .btn {
-    font-family: 'Agbalumo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
-}
-
 /* Enhanced responsive design for customer page */
 @media (max-width: 768px) {
     .hero {
@@ -128,22 +112,6 @@
     }
 }
 
-/* Better mobile navigation */
-@media (max-width: 768px) {
-    .navbar {
-        padding: 1rem;
-    }
-    
-    .nav-container {
-        flex-direction: column;
-        gap: 1rem;
-    }
-    
-    .nav-links {
-        flex-direction: column;
-        width: 100%;
-    }
-}
 </style>
 {% endblock %}
 
@@ -156,28 +124,25 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;">
             <div class="fade-in">
                 <h1 style="font-size: 3rem; font-weight: 500; color: white; margin-bottom: 1rem; line-height: 1.2;">
-                    Chào mừng đến với<br>Cô Bông Cát Lái Hiện Đại
+                    Chào mừng đến với<br>Cô Bông Cát Lái
                 </h1>
                 <p style="font-size: 1.25rem; color: rgba(255,255,255,0.9); margin-bottom: 2rem; line-height: 1.6;">
-                    Khám phá những sản phẩm công nghệ mới nhất với chất lượng đảm bảo và giá cả cạnh tranh.
+                    Cà phê nguyên chất, đồ uống thơm ngon và căn hộ dịch vụ tiện nghi ngay tại Cát Lái.
                 </p>
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                     <a href="{{ url_for('products') }}" class="btn btn-primary" style="background: white; color: var(--accent-color); padding: 16px 32px; font-size: 16px;">
-                        <i class="fas fa-shopping-bag"></i> Mua sắm ngay
+                        <i class="fas fa-mug-hot"></i> Xem thực đơn
                     </a>
-                    <a href="{{ url_for('cart') }}" class="btn btn-outline" style="border-color: white; color: white; padding: 16px 32px; font-size: 16px;">
-                        <i class="fas fa-shopping-cart"></i> Giỏ hàng
-                        {% if session.get('cart', []) %}
-                            <span class="badge" style="background: var(--danger-color); color: white; margin-left: 8px;">{{ session.get('cart', [])|length }}</span>
-                        {% endif %}
+                    <a href="{{ url_for('rooms') }}" class="btn btn-outline" style="border-color: white; color: white; padding: 16px 32px; font-size: 16px;">
+                        <i class="fas fa-house-user"></i> Thuê căn hộ dịch vụ
                     </a>
                 </div>
             </div>
             <div class="fade-in" style="text-align: center;">
                 <div style="background: rgba(255,255,255,0.1); border-radius: 16px; padding: 2rem; backdrop-filter: blur(10px);">
-                    <i class="fas fa-laptop" style="font-size: 4rem; color: white; margin-bottom: 1rem;"></i>
-                    <h3 style="color: white; margin-bottom: 0.5rem;">Sản phẩm công nghệ</h3>
-                    <p style="color: rgba(255,255,255,0.8);">Luôn cập nhật xu hướng mới nhất</p>
+                    <i class="fas fa-mug-saucer" style="font-size: 4rem; color: white; margin-bottom: 1rem;"></i>
+                    <h3 style="color: white; margin-bottom: 0.5rem;">Cà phê & Đồ uống</h3>
+                    <p style="color: rgba(255,255,255,0.8);">Hương vị nguyên bản, chất lượng hàng đầu</p>
                 </div>
             </div>
         </div>
