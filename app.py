@@ -95,6 +95,109 @@ if db_url.startswith('mysql'):
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_TYPE'] = 'filesystem'
+
+# Translation dictionary for the bilingual customer-facing pages
+TRANSLATIONS = {
+    'vi': {
+        # Sidebar / nav
+        'nav_home': 'Trang chủ',
+        'nav_products': 'Sản phẩm',
+        'nav_rooms': 'Căn hộ dịch vụ',
+        'nav_cart': 'Giỏ hàng',
+        'nav_login': 'Đăng nhập',
+        'nav_logout': 'Đăng xuất',
+        # Home
+        'home_title': 'Chào mừng đến với Cô Bông Cát Lái',
+        'home_desc': 'Cà phê nguyên chất, đồ uống thơm ngon và căn hộ dịch vụ tiện nghi ngay tại Cát Lái.',
+        'home_view_products': 'Xem thực đơn',
+        'home_view_rooms': 'Thuê căn hộ dịch vụ',
+        'home_featured': 'Sản phẩm nổi bật',
+        'home_best_sellers': 'Được mua nhiều nhất',
+        'home_view_all': 'Xem tất cả',
+        'home_hot_drink': 'Cà phê & Đồ uống',
+        'home_hot_desc': 'Hương vị nguyên bản, chất lượng hàng đầu',
+        # Products
+        'prod_title': 'Tất cả sản phẩm',
+        'prod_desc': 'Khám phá món cà phê và đồ uống chất lượng cao',
+        'prod_add_to_cart': 'Thêm giỏ',
+        'prod_in_stock': 'Còn hàng',
+        'prod_out_of_stock': 'Hết hàng',
+        'prod_buy_now': 'Mua ngay',
+        # Rooms / serviced apartments
+        'room_title': 'Căn hộ dịch vụ cho thuê',
+        'room_desc': 'Căn hộ dịch vụ đầy đủ tiện nghi, phù hợp cho lưu trú ngắn hoặc dài hạn.',
+        'room_capacity': 'Sức chứa',
+        'room_status_ready': 'Sẵn sàng',
+        'room_view_detail': 'Xem chi tiết & đặt phòng',
+        # Cart & checkout
+        'cart_title': 'Giỏ hàng của bạn',
+        'cart_empty': 'Giỏ hàng đang trống',
+        'cart_total': 'Tổng tiền',
+        'cart_checkout': 'Thanh toán',
+        'checkout_title': 'Thông tin thanh toán',
+        'checkout_subtitle': 'Hoàn tất thông tin để đặt hàng',
+        'checkout_name': 'Họ và tên',
+        'checkout_phone': 'Số điện thoại',
+        'checkout_notes': 'Ghi chú thêm',
+        'checkout_place_order': 'Xác nhận đặt hàng',
+    },
+    'en': {
+        # Sidebar / nav
+        'nav_home': 'Home',
+        'nav_products': 'Products',
+        'nav_rooms': 'Serviced Apartments',
+        'nav_cart': 'Cart',
+        'nav_login': 'Login',
+        'nav_logout': 'Logout',
+        # Home
+        'home_title': 'Welcome to Co Bong Cat Lai',
+        'home_desc': 'Pure coffee, delicious drinks, and comfortable serviced apartments right in Cat Lai.',
+        'home_view_products': 'View Menu',
+        'home_view_rooms': 'Rent an Apartment',
+        'home_featured': 'Featured Products',
+        'home_best_sellers': 'Best Sellers',
+        'home_view_all': 'View All',
+        'home_hot_drink': 'Coffee & Drinks',
+        'home_hot_desc': 'Original taste, premium quality',
+        # Products
+        'prod_title': 'All Products',
+        'prod_desc': 'Explore high-quality coffee and drinks',
+        'prod_add_to_cart': 'Add to Cart',
+        'prod_in_stock': 'In Stock',
+        'prod_out_of_stock': 'Out of Stock',
+        'prod_buy_now': 'Buy Now',
+        # Rooms / serviced apartments
+        'room_title': 'Serviced Apartments for Rent',
+        'room_desc': 'Fully-equipped serviced apartments, great for short or long stays.',
+        'room_capacity': 'Capacity',
+        'room_status_ready': 'Available',
+        'room_view_detail': 'View Details & Book',
+        # Cart & checkout
+        'cart_title': 'Your Cart',
+        'cart_empty': 'Your cart is empty',
+        'cart_total': 'Total',
+        'cart_checkout': 'Checkout',
+        'checkout_title': 'Payment Information',
+        'checkout_subtitle': 'Complete your details to place the order',
+        'checkout_name': 'Full name',
+        'checkout_phone': 'Phone number',
+        'checkout_notes': 'Additional notes',
+        'checkout_place_order': 'Place Order',
+    }
+}
+
+@app.context_processor
+def inject_translations():
+    lang = session.get('lang', 'vi')
+    def get_text(key):
+        return TRANSLATIONS.get(lang, TRANSLATIONS['vi']).get(key, key)
+    return dict(_=get_text, current_lang=lang)
+
+@app.route('/change_lang/<lang>')
+def change_lang(lang):
+    if lang in ('vi', 'en'):
+        session['lang'] = lang
+    return redirect(request.referrer or url_for('index'))
 app.config['UPLOAD_FOLDER'] = 'static/images'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 # Customers stay logged in across visits; admins do not (see admin_authenticate /

@@ -115,7 +115,7 @@
 </style>
 {% endblock %}
 
-{% block title %}Trang chủ - Cô Bông Cát Lái{% endblock %}
+{% block title %}{{ _('nav_home') }} - Cô Bông Cát Lái{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
@@ -124,25 +124,25 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;">
             <div class="fade-in">
                 <h1 style="font-size: 3rem; font-weight: 500; color: white; margin-bottom: 1rem; line-height: 1.2;">
-                    Chào mừng đến với<br>Cô Bông Cát Lái
+                    {{ _('home_title') }}
                 </h1>
                 <p style="font-size: 1.25rem; color: rgba(255,255,255,0.9); margin-bottom: 2rem; line-height: 1.6;">
-                    Cà phê nguyên chất, đồ uống thơm ngon và căn hộ dịch vụ tiện nghi ngay tại Cát Lái.
+                    {{ _('home_desc') }}
                 </p>
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                     <a href="{{ url_for('products') }}" class="btn btn-primary" style="background: white; color: var(--accent-color); padding: 16px 32px; font-size: 16px;">
-                        <i class="fas fa-mug-hot"></i> Xem thực đơn
+                        <i class="fas fa-mug-hot"></i> {{ _('home_view_products') }}
                     </a>
                     <a href="{{ url_for('rooms') }}" class="btn btn-outline" style="border-color: white; color: white; padding: 16px 32px; font-size: 16px;">
-                        <i class="fas fa-house-user"></i> Thuê căn hộ dịch vụ
+                        <i class="fas fa-house-user"></i> {{ _('home_view_rooms') }}
                     </a>
                 </div>
             </div>
             <div class="fade-in" style="text-align: center;">
                 <div style="background: rgba(255,255,255,0.1); border-radius: 16px; padding: 2rem; backdrop-filter: blur(10px);">
                     <i class="fas fa-mug-saucer" style="font-size: 4rem; color: white; margin-bottom: 1rem;"></i>
-                    <h3 style="color: white; margin-bottom: 0.5rem;">Cà phê & Đồ uống</h3>
-                    <p style="color: rgba(255,255,255,0.8);">Hương vị nguyên bản, chất lượng hàng đầu</p>
+                    <h3 style="color: white; margin-bottom: 0.5rem;">{{ _('home_hot_drink') }}</h3>
+                    <p style="color: rgba(255,255,255,0.8);">{{ _('home_hot_desc') }}</p>
                 </div>
             </div>
         </div>
@@ -227,10 +227,10 @@ function closeDailyOrderModal() {
         <div class="card-header">
             <h2 class="card-title">
                 <i class="fas fa-star" style="color: var(--warning-color);"></i>
-                Sản phẩm nổi bật
+                {{ _('home_featured') }}
             </h2>
             <a href="{{ url_for('products') }}" class="btn btn-primary">
-                Xem tất cả <i class="fas fa-arrow-right"></i>
+                {{ _('home_view_all') }} <i class="fas fa-arrow-right"></i>
             </a>
         </div>
         
@@ -254,9 +254,9 @@ function closeDailyOrderModal() {
                     </div>
                     <div style="margin-bottom: 1rem;">
                         {% if product.stock > 0 %}
-                            <span class="badge badge-success stock-badge">Còn hàng</span>
+                            <span class="badge badge-success stock-badge">{{ _('prod_in_stock') }}</span>
                         {% else %}
-                            <span class="badge badge-danger stock-badge">Hết hàng</span>
+                            <span class="badge badge-danger stock-badge">{{ _('prod_out_of_stock') }}</span>
                         {% endif %}
                     </div>
                     <div class="product-actions">
@@ -272,16 +272,16 @@ function closeDailyOrderModal() {
                             </div>
                             <div style="display: flex; gap: 0.5rem; width: 100%;">
                                 <button type="submit" onclick="this.form.querySelector('.next-redirect').value='';" class="btn btn-outline" style="flex: 1; font-size: 0.85rem; padding: 10px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;">
-                                    <i class="fas fa-cart-plus"></i> Thêm giỏ
+                                    <i class="fas fa-cart-plus"></i> {{ _('prod_add_to_cart') }}
                                 </button>
                                 <button type="submit" onclick="this.form.querySelector('.next-redirect').value=this.dataset.redirect;" data-redirect="{{ url_for('checkout') }}" class="btn btn-primary" style="flex: 1; font-size: 0.85rem; padding: 10px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;">
-                                    <i class="fas fa-bolt"></i> Mua ngay
+                                    <i class="fas fa-bolt"></i> {{ _('prod_buy_now') }}
                                 </button>
                             </div>
                         </form>
                         {% else %}
                         <button class="btn btn-secondary" style="width: 100%;" disabled>
-                            <i class="fas fa-times-circle"></i> Hết hàng
+                            <i class="fas fa-times-circle"></i> {{ _('prod_out_of_stock') }}
                         </button>
                         {% endif %}
                     </div>
@@ -305,10 +305,10 @@ function closeDailyOrderModal() {
         <div class="card-header">
             <h2 class="card-title">
                 <i class="fas fa-fire" style="color: var(--danger-color);"></i> 
-                Được mua nhiều nhất
+                {{ _('home_best_sellers') }}
             </h2>
             <a href="{{ url_for('products') }}" class="btn btn-primary">
-                Xem tất cả <i class="fas fa-arrow-right"></i>
+                {{ _('home_view_all') }} <i class="fas fa-arrow-right"></i>
             </a>
         </div>
         
@@ -335,9 +335,9 @@ function closeDailyOrderModal() {
                     </div>
                     <div style="margin-bottom: 1rem;">
                         {% if product.stock > 0 %}
-                            <span class="badge badge-success stock-badge">Còn hàng</span>
+                            <span class="badge badge-success stock-badge">{{ _('prod_in_stock') }}</span>
                         {% else %}
-                            <span class="badge badge-danger stock-badge">Hết hàng</span>
+                            <span class="badge badge-danger stock-badge">{{ _('prod_out_of_stock') }}</span>
                         {% endif %}
                     </div>
                     <div class="product-actions">
@@ -353,16 +353,16 @@ function closeDailyOrderModal() {
                             </div>
                             <div style="display: flex; gap: 0.5rem; width: 100%;">
                                 <button type="submit" onclick="this.form.querySelector('.next-redirect').value='';" class="btn btn-outline" style="flex: 1; font-size: 0.85rem; padding: 10px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;">
-                                    <i class="fas fa-cart-plus"></i> Thêm giỏ
+                                    <i class="fas fa-cart-plus"></i> {{ _('prod_add_to_cart') }}
                                 </button>
                                 <button type="submit" onclick="this.form.querySelector('.next-redirect').value=this.dataset.redirect;" data-redirect="{{ url_for('checkout') }}" class="btn btn-primary" style="flex: 1; font-size: 0.85rem; padding: 10px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;">
-                                    <i class="fas fa-bolt"></i> Mua ngay
+                                    <i class="fas fa-bolt"></i> {{ _('prod_buy_now') }}
                                 </button>
                             </div>
                         </form>
                         {% else %}
                         <button class="btn btn-secondary" style="width: 100%;" disabled>
-                            <i class="fas fa-times-circle"></i> Hết hàng
+                            <i class="fas fa-times-circle"></i> {{ _('prod_out_of_stock') }}
                         </button>
                         {% endif %}
                     </div>

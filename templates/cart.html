@@ -321,7 +321,7 @@
 </style>
 {% endblock %}
 
-{% block title %}Giỏ hàng - Cô Bông Cát Lái{% endblock %}
+{% block title %}{{ _('nav_cart') }} - Cô Bông Cát Lái{% endblock %}
 
 {% block content %}
 <!-- Header Section -->
@@ -330,7 +330,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div>
                 <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
-                    <i class="fas fa-shopping-cart"></i> Giỏ hàng của bạn
+                    <i class="fas fa-shopping-cart"></i> {{ _('cart_title') }}
                 </h1>
                 <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
                     {% if cart_items %}
@@ -484,7 +484,7 @@
                 </div>
                 <hr style="border-color: var(--border-color); margin: 1rem 0;">
                 <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 500; color: var(--accent-color);">
-                    <span>Tổng cộng:</span>
+                    <span>{{ _('cart_total') }}:</span>
                     <span>{{ "{:,.0f}".format(total) }} VNĐ</span>
                 </div>
             </div>
@@ -526,7 +526,7 @@
             <i class="fas fa-shopping-cart" style="font-size: 3rem; color: var(--text-muted);"></i>
         </div>
         
-        <h2 style="color: var(--text-primary); margin-bottom: 1rem;">Giỏ hàng trống</h2>
+        <h2 style="color: var(--text-primary); margin-bottom: 1rem;">{{ _('cart_empty') }}</h2>
         <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 1.1rem;">
             Bạn chưa có sản phẩm nào trong giỏ hàng. Hãy khám phá sản phẩm của chúng tôi!
         </p>

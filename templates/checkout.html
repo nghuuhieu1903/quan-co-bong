@@ -286,7 +286,7 @@
 </style>
 {% endblock %}
 
-{% block title %}Thanh toán - Cô Bông Cát Lái{% endblock %}
+{% block title %}{{ _('cart_checkout') }} - Cô Bông Cát Lái{% endblock %}
 
 {% block content %}
 <!-- Header Section -->
@@ -295,10 +295,10 @@
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div>
                 <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
-                    <i class="fas fa-credit-card"></i> Thanh toán
+                    <i class="fas fa-credit-card"></i> {{ _('checkout_title') }}
                 </h1>
                 <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
-                    Hoàn tất thông tin để đặt hàng
+                    {{ _('checkout_subtitle') }}
                 </p>
             </div>
             <div style="display: flex; gap: 1rem;">

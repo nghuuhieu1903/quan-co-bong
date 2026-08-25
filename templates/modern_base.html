@@ -228,6 +228,32 @@
         transform: rotate(20deg);
     }
 
+    /* ---- Language toggle ---- */
+    .lang-toggle-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        height: 36px;
+        padding: 0 0.75rem;
+        border-radius: 999px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        text-decoration: none !important;
+        transition: all 0.25s ease;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+
+    .lang-toggle-btn:hover {
+        color: var(--accent-color);
+        border-color: var(--accent-color);
+    }
+
     .sidebar-footer {
         display: flex;
         align-items: center;
@@ -307,16 +333,16 @@
 
             <nav class="sidebar-nav">
                 <a href="{{ url_for('index') }}" class="sidebar-link {% if request.endpoint in ['index', 'customer_home'] %}active{% endif %}" onclick="closeSidebar()">
-                    <i class="fas fa-home"></i> Trang chủ
+                    <i class="fas fa-home"></i> {{ _('nav_home') }}
                 </a>
                 <a href="{{ url_for('products') }}" class="sidebar-link {% if request.endpoint in ['products', 'product_detail_route'] %}active{% endif %}" onclick="closeSidebar()">
-                    <i class="fas fa-box"></i> Sản phẩm
+                    <i class="fas fa-box"></i> {{ _('nav_products') }}
                 </a>
                 <a href="{{ url_for('rooms') }}" class="sidebar-link {% if request.endpoint in ['rooms', 'room_detail'] %}active{% endif %}" onclick="closeSidebar()">
-                    <i class="fas fa-house-user"></i> Thuê trọ
+                    <i class="fas fa-house-user"></i> {{ _('nav_rooms') }}
                 </a>
                 <a href="{{ url_for('cart') }}" class="sidebar-link {% if request.endpoint == 'cart' %}active{% endif %}" onclick="closeSidebar()">
-                    <i class="fas fa-shopping-cart"></i> Giỏ hàng
+                    <i class="fas fa-shopping-cart"></i> {{ _('nav_cart') }}
                     {% if session.get('cart', []) %}
                         <span class="badge badge-info">{{ session.get('cart', [])|length }}</span>
                     {% endif %}
@@ -332,7 +358,7 @@
                 {% endif %}
                 {% else %}
                 <a href="{{ url_for('customer_login') }}" class="sidebar-link {% if request.endpoint == 'customer_login' %}active{% endif %}" onclick="closeSidebar()">
-                    <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                    <i class="fas fa-sign-in-alt"></i> {{ _('nav_login') }}
                 </a>
                 {% endif %}
             </nav>
@@ -340,9 +366,12 @@
             <div class="sidebar-footer">
                 {% if session.get('customer_logged_in') %}
                 <a href="{{ url_for('customer_logout') }}" class="sidebar-link sidebar-link-logout">
-                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                    <i class="fas fa-sign-out-alt"></i> {{ _('nav_logout') }}
                 </a>
                 {% endif %}
+                <a href="{{ url_for('change_lang', lang='en' if current_lang == 'vi' else 'vi') }}" class="lang-toggle-btn" title="Switch language / Đổi ngôn ngữ">
+                    <i class="fa-solid fa-globe"></i> {{ current_lang|upper }}
+                </a>
                 <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển giao diện sáng/tối" aria-label="Toggle dark mode">
                     <i class="fas fa-moon" id="theme-toggle-icon"></i>
                 </button>
@@ -360,6 +389,9 @@
                     <i class="fa-solid fa-mug-saucer"></i> Cô Bông Cát Lái
                 </a>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <a href="{{ url_for('change_lang', lang='en' if current_lang == 'vi' else 'vi') }}" class="lang-toggle-btn" title="Switch language / Đổi ngôn ngữ">
+                        <i class="fa-solid fa-globe"></i> {{ current_lang|upper }}
+                    </a>
                     <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển giao diện sáng/tối" aria-label="Toggle dark mode">
                         <i class="fas fa-moon" id="theme-toggle-icon-mobile"></i>
                     </button>

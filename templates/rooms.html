@@ -1,16 +1,16 @@
 {% extends "modern_base.html" %}
 
-{% block title %}Thuê trọ / Đặt phòng - Cô Bông Cát Lái{% endblock %}
+{% block title %}{{ _('nav_rooms') }} - Cô Bông Cát Lái{% endblock %}
 
 {% block content %}
 <!-- Header Banner -->
 <section class="page-header" style="background: var(--gradient-accent); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
     <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem; text-align: center;">
         <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
-            <i class="fas fa-house-user"></i> Dịch Vụ Thuê Trọ & Đặt Phòng
+            <i class="fas fa-house-user"></i> {{ _('room_title') }}
         </h1>
         <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
-            Không gian phòng hiện đại, yên tĩnh, đầy đủ tiện nghi cho công việc, họp nhóm hoặc thư giãn.
+            {{ _('room_desc') }}
         </p>
     </div>
 </section>
@@ -39,8 +39,8 @@
                             
                             <!-- Capacity and Specs -->
                             <div style="display: flex; gap: 1.5rem; margin-bottom: 1.25rem; font-size: 0.9rem; color: var(--text-muted);">
-                                <span><i class="fas fa-users" style="color: var(--accent-color); margin-right: 0.4rem;"></i> Sức chứa: <strong>{{ room.capacity }} người</strong></span>
-                                <span><i class="fas fa-check-circle" style="color: var(--success-color); margin-right: 0.4rem;"></i> Trạng thái: <strong>Sẵn sàng</strong></span>
+                                <span><i class="fas fa-users" style="color: var(--accent-color); margin-right: 0.4rem;"></i> {{ _('room_capacity') }}: <strong>{{ room.capacity }}</strong></span>
+                                <span><i class="fas fa-check-circle" style="color: var(--success-color); margin-right: 0.4rem;"></i> <strong>{{ _('room_status_ready') }}</strong></span>
                             </div>
                             
                             <!-- Amenities -->
@@ -58,7 +58,7 @@
                         <!-- CTA Action -->
                         <div>
                             <a href="{{ url_for('room_detail', room_id=room.id) }}" class="btn btn-primary" style="width: 100%; text-align: center; padding: 0.75rem 1rem;">
-                                <i class="fas fa-calendar-alt"></i> Xem Chi Tiết & Đặt Phòng
+                                <i class="fas fa-calendar-alt"></i> {{ _('room_view_detail') }}
                             </a>
                         </div>
                     </div>
