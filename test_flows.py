@@ -87,14 +87,20 @@ def customer_flows(rep, ids):
 
     with app.app_context():
         before = models.Order.query.count()
+    # the checkout form posts `name`/`phone`; sending customer_* silently
+    # stored "Guest Customer" and the assertion below never noticed
     r = post(c, '/process_order', {
-        'customer_name': 'QA Flow', 'customer_phone': '0912345678',
+        'name': 'QA Flow', 'phone': '0912345678',
         'payment_method': 'cash', 'notes': 'automated flow check'}, '/checkout')
     with app.app_context():
         after = models.Order.query.count()
         new_order = models.Order.query.order_by(models.Order.id.desc()).first()
     rep.check(r.status_code == 302 and after == before + 1,
               'placing an order creates it', f'{before} -> {after}')
+    rep.check(new_order is not None and new_order.customer_name == 'QA Flow'
+              and new_order.customer_phone == '0912345678',
+              'the order stores the name and phone that were submitted',
+              new_order.customer_name if new_order else 'no order')
     ids['order'] = new_order.id if after > before else None
 
     if ids['order']:

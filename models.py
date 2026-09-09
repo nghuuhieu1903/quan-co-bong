@@ -80,6 +80,7 @@ class Admin(db.Model):
     role = db.Column(db.String(20), default='admin', nullable=False)  # 'super_admin' or 'admin'
     reset_code_hash = db.Column(db.String(255))
     reset_code_expiry = db.Column(db.DateTime)
+    reset_code_attempts = db.Column(db.Integer, nullable=False, default=0)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

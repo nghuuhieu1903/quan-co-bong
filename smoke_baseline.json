@@ -41,7 +41,7 @@
   "anon:generate_qr": 302,
   "anon:index": 302,
   "anon:manage_products": 302,
-  "anon:order_confirmation": 200,
+  "anon:order_confirmation": 404,
   "anon:product_detail_route": 200,
   "anon:products": 200,
   "anon:remove_from_cart": 302,

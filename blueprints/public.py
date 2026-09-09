@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 
 import openpyxl
 import qrcode
-from flask import (Blueprint, current_app, flash, jsonify, redirect,
+from flask import (Blueprint, abort, current_app, flash, jsonify, redirect,
                    render_template, request, send_file, session, url_for)
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from sqlalchemy import func, text
@@ -399,6 +399,11 @@ def process_order():
         
     # Clear cart
     session['cart'] = []
+    # Remember which orders this browser is allowed to look at. The order
+    # table has no owner column and guests check out without an account, so
+    # the session is what ties a confirmation page to the person who placed
+    # it. Keep the list short - it only needs to cover recent orders.
+    session['my_orders'] = (session.get('my_orders', []) + [order.id])[-20:]
 
     create_notification('new_order', f"Đơn hàng mới #{order.id} - {customer_name} - {final_total:,.0f} VNĐ")
     
@@ -436,6 +441,13 @@ VUI LÒNG KIỂM TRA HỆ THỐNG ĐỂ XỬ LÝ ĐƠN HÀNG!
 @bp.route('/order_confirmation/<int:order_id>')
 def order_confirmation(order_id):
     order = Order.query.get_or_404(order_id)
+
+    # Without this, order ids are sequential and unauthenticated, so anyone
+    # could walk /order_confirmation/1,2,3... and read every customer's name
+    # and phone number. Staff still need to open any order.
+    if not (order_id in session.get('my_orders', [])
+            or 'admin_logged_in' in session):
+        abort(404)
     # Get order items for display
     order_items = OrderItem.query.filter_by(order_id=order.id).all()
     

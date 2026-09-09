@@ -71,6 +71,7 @@ def init_database():
         ensure_column('customer', 'role', "ALTER TABLE customer ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'customer'")
         ensure_column('admin', 'reset_code_hash', "ALTER TABLE admin ADD COLUMN reset_code_hash VARCHAR(255)")
         ensure_column('admin', 'reset_code_expiry', "ALTER TABLE admin ADD COLUMN reset_code_expiry DATETIME")
+        ensure_column('admin', 'reset_code_attempts', "ALTER TABLE admin ADD COLUMN reset_code_attempts INT NOT NULL DEFAULT 0")
         populate_default_basic_costs()
 
         # Create default admin if not exists

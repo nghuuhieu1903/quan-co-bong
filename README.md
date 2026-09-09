@@ -127,6 +127,30 @@ fetch(url, {
 })
 ```
 
+## 🔑 Sessions and SECRET_KEY
+
+`SECRET_KEY` signs the session cookie, and the cookie is what says
+`admin_role=super_admin`. The example value is committed to this repository,
+so anyone could forge a valid admin cookie against a deployment still using
+it. The app therefore refuses the known example values: if `SECRET_KEY` is
+unset or unchanged it generates a random key for the process and logs a
+warning. That costs you sessions on restart rather than the admin account -
+**set a real one in `.env` before deploying**:
+
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+The session cookie is `HttpOnly` and `SameSite=Lax`. Set
+`SESSION_COOKIE_SECURE=1` once the site is behind HTTPS.
+
+## 🧾 Who can see an order
+
+`/order_confirmation/<id>` shows a customer's name and phone, and order ids
+are sequential, so it checks who is asking: the browser that placed the order
+(the id is kept in its session) or a signed-in admin. Anyone else gets a 404.
+`test_security.py` performs the enumeration attack and fails if it works.
+
 ## 📋 Logging
 
 Error handlers call `logger.exception(...)`, which records the message *and*
@@ -143,6 +167,8 @@ baseline. Run it before and after any refactor:
 python test_smoke_routes.py --save   # record current behaviour
 python test_smoke_routes.py          # report anything that changed
 python test_csrf.py                  # CSRF is on and forms still work
+python test_flows.py                 # 38 real write paths, end to end
+python test_security.py              # each fix, verified by running the attack
 ```
 
 The other `test_*.py` scripts are older one-off checks that need a server

@@ -16,7 +16,9 @@ together; the pieces themselves live in:
 Run locally with `python app.py`; Gunicorn imports the module-level `app`.
 """
 
+import logging
 import os
+import secrets
 from datetime import timedelta
 
 from flask import Flask, request, session
@@ -37,9 +39,38 @@ from extensions import csrf, db, sess
 from translations import TRANSLATIONS
 
 
+# The value this used to fall back to is committed in a public repository,
+# so anyone could compute a valid session cookie - including one that says
+# admin_role=super_admin - against any deployment that had not set its own.
+# A random per-process key means unset SECRET_KEY costs you sessions on
+# restart instead of costing you the admin account.
+INSECURE_DEFAULT_KEYS = {'your-secret-key-change-this-in-production',
+                         'change-this-to-a-long-random-string'}
+
+
+def resolve_secret_key():
+    key = os.environ.get('SECRET_KEY')
+    if key and key not in INSECURE_DEFAULT_KEYS:
+        return key
+    reason = 'is not set' if not key else 'is still the example value'
+    logging.getLogger(__name__).warning(
+        'SECRET_KEY %s, so a random one was generated for this process. '
+        'Sessions will not survive a restart and will not be shared between '
+        'workers. Set SECRET_KEY in .env to a long random string '
+        '(python -c "import secrets; print(secrets.token_hex(32))").', reason)
+    return secrets.token_hex(32)
+
+
 def configure(app):
-    app.config['SECRET_KEY'] = os.environ.get(
-        'SECRET_KEY', 'your-secret-key-change-this-in-production')
+    app.config['SECRET_KEY'] = resolve_secret_key()
+
+    # The session cookie is the only thing standing between a visitor and an
+    # admin session, so keep it out of JavaScript and off cross-site requests.
+    # SESSION_COOKIE_SECURE is opt-in because it would break plain-http local
+    # testing; turn it on once the site is behind HTTPS.
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['SESSION_COOKIE_SECURE'] = os.environ.get('SESSION_COOKIE_SECURE') == '1' 
 
     # MySQL database configuration.
     # Set DATABASE_URL to e.g. mysql+pymysql://user:password@host:3306/dbname

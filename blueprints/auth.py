@@ -1,5 +1,7 @@
 """Sign-in, sign-out and password recovery for both admins and customers."""
 
+import logging
+
 import base64
 import io
 import json
@@ -27,6 +29,8 @@ from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, safe_print as print,
 from models import (Admin, Customer, DailyMenuItem, DailyMenuOrder,
                     Notification, Order, OrderItem, Product, ProductImage,
                     Room, RoomBooking, RoomImage, create_notification)
+
+logger = logging.getLogger(__name__)
 
 bp = Blueprint('auth', __name__)
 
@@ -111,6 +115,7 @@ def admin_forgot_password_submit():
         code = f"{secrets.randbelow(1000000):06d}"
         admin.reset_code_hash = generate_password_hash(code)
         admin.reset_code_expiry = datetime.utcnow() + timedelta(minutes=15)
+        admin.reset_code_attempts = 0
         db.session.commit()
         send_email(
             SUPER_ADMIN_RECOVERY_EMAIL,
@@ -135,9 +140,24 @@ def admin_reset_password_submit():
 
     admin = Admin.query.filter_by(username=username, role='super_admin').first()
 
-    if (not admin or not admin.reset_code_hash or not admin.reset_code_expiry
-            or datetime.utcnow() > admin.reset_code_expiry
-            or not check_password_hash(admin.reset_code_hash, code)):
+    # The code is six digits, so all million of them can be tried inside the
+    # 15-minute window if wrong guesses are free. Burn the code after a few.
+    MAX_RESET_ATTEMPTS = 5
+
+    expired = (not admin or not admin.reset_code_hash or not admin.reset_code_expiry
+               or datetime.utcnow() > admin.reset_code_expiry)
+
+    if not expired and not check_password_hash(admin.reset_code_hash, code):
+        admin.reset_code_attempts = (admin.reset_code_attempts or 0) + 1
+        if admin.reset_code_attempts >= MAX_RESET_ATTEMPTS:
+            admin.reset_code_hash = None
+            admin.reset_code_expiry = None
+            logger.warning('Reset code for %r invalidated after %d wrong attempts',
+                           username, admin.reset_code_attempts)
+        db.session.commit()
+        expired = True
+
+    if expired:
         flash('Mã xác nhận không đúng hoặc đã hết hạn', 'error')
         return redirect(url_for('auth.admin_reset_password', username=username))
 
@@ -152,6 +172,7 @@ def admin_reset_password_submit():
     admin.password = generate_password_hash(new_password)
     admin.reset_code_hash = None
     admin.reset_code_expiry = None
+    admin.reset_code_attempts = 0
     db.session.commit()
     flash('Đã đặt lại mật khẩu thành công, hãy đăng nhập lại', 'success')
     return redirect(url_for('auth.admin_login'))
