@@ -457,3 +457,25 @@
     background: color-mix(in srgb, var(--danger-color) 12%, transparent) !important;
     color: var(--danger-color) !important;
 }
+
+/* ---------------------------------------------------------------
+   Buttons as flex items
+   ------------------------------------------------------------------
+   Several admin rows put a button next to an input inside a flex container
+   (the inline "reset password" forms, the edit-room actions). A flex item
+   shrinks below its content by default, and next to an input carrying
+   min-width the button lost the argument: the "Lưu" button ended up a 20px
+   box holding 43px of text. A control should never be narrower than its
+   own label. */
+.btn {
+    flex-shrink: 0;
+}
+
+/* .btn-sm is used in eight templates but was never defined, so it did
+   nothing at all. These are the inline, in-row controls, so give them a
+   genuinely smaller scale. */
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    min-height: 0;
+}
