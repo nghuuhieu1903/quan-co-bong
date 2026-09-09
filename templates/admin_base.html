@@ -302,7 +302,8 @@
                     <i class="fas fa-tachometer-alt"></i> Dashboard
                 </a>
 
-                <div class="sidebar-group {% if current_endpoint in ['admin_rooms', 'admin_add_room', 'admin_edit_room', 'admin_room_bookings'] %}open{% endif %}">
+                <div class="sidebar-group" data-group="rooms"
+                     {% if current_endpoint in ['admin_rooms', 'admin_add_room', 'admin_edit_room', 'admin_room_bookings'] %}data-has-current="1"{% endif %}>
                     <button type="button" class="sidebar-group-toggle">
                         <span><i class="fas fa-door-open"></i> Quản lý trọ</span>
                         <i class="fas fa-chevron-down sidebar-group-arrow"></i>
@@ -320,7 +321,10 @@
                     </div>
                 </div>
 
-                <div class="sidebar-group {% if current_endpoint in ['manage_products', 'add_product', 'edit_product', 'admin_debts'] %}open{% endif %}">
+                <div class="sidebar-group" data-group="products"
+                     {% if current_endpoint in ['manage_products', 'add_product', 'edit_product',
+                                                'admin_debts', 'admin_daily_menu_orders',
+                                                'daily_menu_manage'] %}data-has-current="1"{% endif %}>
                     <button type="button" class="sidebar-group-toggle">
                         <span><i class="fas fa-box"></i> Quản lý sản phẩm</span>
                         <i class="fas fa-chevron-down sidebar-group-arrow"></i>
@@ -447,18 +451,57 @@
             if (window.innerWidth >= 768) closeSidebar();
         });
 
-        // Collapsible sidebar groups (Quản lý trọ / Quản lý sản phẩm)
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.sidebar-group-toggle').forEach(function(toggle) {
-                toggle.addEventListener('click', function() {
-                    const group = this.closest('.sidebar-group');
-                    document.querySelectorAll('.sidebar-group.open').forEach(function(g) {
-                        if (g !== group) g.classList.remove('open');
+        // Collapsible sidebar groups (Quản lý trọ / Quản lý sản phẩm).
+        //
+        // Every click here reloads the page, so the open group has to be
+        // restored afterwards or the menu appears to snap shut under you.
+        // Two things decide what stays open:
+        //   1. the group holding the page you are on (marked server-side),
+        //   2. failing that, whichever group you last opened yourself.
+        (function () {
+            const STORE = 'admin_sidebar_group';
+
+            function remember(name) {
+                try { name ? localStorage.setItem(STORE, name)
+                           : localStorage.removeItem(STORE); } catch (e) {}
+            }
+
+            function recall() {
+                try { return localStorage.getItem(STORE); } catch (e) { return null; }
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                const groups = document.querySelectorAll('.sidebar-group');
+
+                // the group containing the current page wins
+                let current = null;
+                groups.forEach(function (g) {
+                    if (g.hasAttribute('data-has-current')) current = g;
+                });
+                if (!current) {
+                    const saved = recall();
+                    groups.forEach(function (g) {
+                        if (saved && g.dataset.group === saved) current = g;
                     });
-                    group.classList.toggle('open');
+                }
+                if (current) {
+                    current.classList.add('open');
+                    remember(current.dataset.group);
+                }
+
+                document.querySelectorAll('.sidebar-group-toggle').forEach(function (toggle) {
+                    toggle.addEventListener('click', function () {
+                        const group = this.closest('.sidebar-group');
+                        const opening = !group.classList.contains('open');
+                        document.querySelectorAll('.sidebar-group.open').forEach(function (g) {
+                            if (g !== group) g.classList.remove('open');
+                        });
+                        group.classList.toggle('open', opening);
+                        remember(opening ? group.dataset.group : null);
+                    });
                 });
             });
-        });
+        })();
 
         // Auto-hide flash messages
         setTimeout(function() {
