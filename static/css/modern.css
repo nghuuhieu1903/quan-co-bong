@@ -247,6 +247,11 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Container */
 .container {
+    /* .main-area is a column flex container, and an auto horizontal margin
+       stops a flex item from stretching - without an explicit width this box
+       collapsed to its content instead of growing to max-width, which left a
+       wide screen mostly empty. */
+    width: 100%;
     max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
@@ -863,5 +868,445 @@ html.show-onboarding body {
     .onboarding-body {
         max-width: 30rem;
         margin: 0 auto;
+    }
+}
+
+/* Product card call-to-action pair ("thêm giỏ" + "mua ngay")
+   ------------------------------------------------------------------
+   These two buttons share a row inside a product card. On the catalogue
+   page phones get a two-column grid, which leaves each button roughly 60px -
+   too narrow for an icon plus a label, so the label used to wrap onto a
+   second line and the two buttons ended up different heights. There the cart
+   button collapses to just its icon and the primary action takes the rest of
+   the row. The home page stacks its cards full-width and has room for both
+   labels, so the collapse is scoped to .products-layout rather than applied
+   at every narrow viewport. */
+.product-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    width: 100%;
+    align-items: stretch;
+}
+
+.product-cta .btn {
+    min-width: 0;          /* allow shrinking; flex items default to min-content */
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 10px 8px;
+    font-size: 0.85rem;
+    white-space: nowrap;   /* short labels; wrapping was the defect */
+}
+
+/* Row one is the quantity stepper plus a square icon-only cart button; row
+   two is the primary action across the full width. The label came off the
+   cart button because at card width it was being clipped, so the icon plus
+   its aria-label/title carry the meaning now. */
+.product-cta .quantity-selector {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-bottom: 0;
+}
+
+.product-cta .btn-cart {
+    flex: 0 0 40px;
+    width: 40px;
+    padding: 0;
+    min-height: 38px;      /* square even when it is the tallest thing in the row */
+}
+
+/* Inside a card the stepper has to share ~170px with the cart button, so it
+   uses a tighter scale than the one on the product detail page. Without this
+   the row is 12px too wide and the cart button wraps to a line of its own. */
+.product-cta .quantity-controls {
+    width: 100%;
+}
+
+.product-cta .quantity-btn {
+    width: 30px;
+    height: 36px;
+    flex: 0 0 30px;
+}
+
+.product-cta .quantity-input {
+    width: auto;
+    min-width: 0;
+    flex: 1 1 auto;
+    font-size: 0.9rem;
+}
+
+.product-cta .btn-buy {
+    flex: 1 0 100%;        /* forces its own row */
+}
+
+@media (max-width: 768px) {
+    .product-cta {
+        gap: 0.4rem;
+    }
+
+    .product-cta .btn {
+        padding: 0 6px;
+        font-size: 0.78rem;
+        min-height: 36px;
+    }
+
+    .product-cta .btn-cart {
+        flex: 0 0 38px;
+        width: 38px;
+    }
+
+    /* The catalogue hides the stepper on phones to keep its two-up cards
+       short, so the cart button and the primary action share one row again
+       instead of the primary action dropping to a line of its own. */
+    .product-cta .btn-buy {
+        flex: 1 1 auto;
+    }
+}
+
+/* Catalogue grid
+   ------------------------------------------------------------------
+   The products page pairs a 300px filter sidebar with the card grid, so it
+   has noticeably less room than the other pages - and it used a hard-coded
+   two-column grid, which on a desktop screen produced two ~390px cards and
+   left the rest of the row empty. Sizing by column width instead of column
+   count lets the same grid be 2-up on a tablet, 3-up on a laptop and 4-up on
+   a wide monitor without another breakpoint. */
+.grid-products {
+    grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Swiggy-style catalogue header
+   ------------------------------------------------------------------
+   A tab strip, a full-width search bar and a scrollable chip row, the
+   pattern the Swiggy app uses. Every colour here comes from the existing
+   tokens, so the theme (and dark mode) is unchanged. */
+
+/* Tabs: one per catalogue type, icon above label, accent underline when
+   active. Horizontally scrollable so more tabs can be added later without
+   the row wrapping. */
+.sw-tabs {
+    display: flex;
+    gap: 0.25rem;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1.25rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.sw-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.sw-tab {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.75rem 1.5rem 0;
+    text-decoration: none;
+    color: var(--text-secondary);
+    border-bottom: 3px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.sw-tab-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: var(--radius-card);
+    display: grid;
+    place-items: center;
+    font-size: 1.35rem;
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.sw-tab-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding-bottom: 0.65rem;
+    white-space: nowrap;
+}
+
+.sw-tab:hover {
+    color: var(--text-primary);
+}
+
+.sw-tab.active {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+}
+
+.sw-tab.active .sw-tab-icon {
+    background: var(--gradient-accent);
+    color: white;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Search row: the search field and the filter button sit together, the way
+   Swiggy pairs its search bar with the veg toggle. */
+.sw-searchbar {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.sw-search {
+    flex: 1;
+    /* the flex item itself needs this, not just the input inside it -
+       without it the box refuses to shrink and pushes the filter button
+       past the container edge on a narrow phone */
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    padding: 0.65rem 1.15rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.sw-search i {
+    color: var(--text-muted);
+}
+
+.sw-search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    font-family: inherit;
+}
+
+.sw-search input::placeholder {
+    color: var(--text-muted);
+}
+
+.sw-filter-btn {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    padding: 0.65rem 1.15rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    font-family: inherit;
+}
+
+.sw-filter-btn:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+/* Sort chips - a horizontal, scrollable row like Swiggy's filter pills. */
+.sw-chips {
+    display: flex;
+    gap: 0.6rem;
+    overflow-x: auto;
+    padding-bottom: 0.35rem;
+    margin-bottom: 1.5rem;
+    scrollbar-width: none;
+}
+
+.sw-chips::-webkit-scrollbar {
+    display: none;
+}
+
+.sw-chip {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    padding: 0.45rem 0.95rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-decoration: none;
+    white-space: nowrap;
+    box-shadow: var(--shadow-sm);
+}
+
+.sw-chip:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.sw-chip.active {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    background: var(--bg-secondary);
+}
+
+.sw-result-count {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+/* A badge laid over the product image, like Swiggy's discount flash. */
+.sw-media {
+    position: relative;
+    display: block;
+    overflow: hidden;
+}
+
+.sw-media .sw-badge {
+    position: absolute;
+    left: 0.6rem;
+    bottom: 0.6rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: var(--radius-pill);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: white;
+    background: var(--success-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.sw-media .sw-badge.is-out {
+    background: var(--danger-color);
+}
+
+@media (max-width: 768px) {
+    /* Narrow phones: the label would crowd out the search field, so the
+       filter control shows just its icon (the aria-label carries the name). */
+    .sw-filter-btn {
+        padding: 0.65rem 0.85rem;
+    }
+
+    .sw-filter-btn .sw-filter-label {
+        display: none;
+    }
+
+    .sw-tab {
+        padding: 0.6rem 1.05rem 0;
+    }
+
+    .sw-tab-icon {
+        width: 46px;
+        height: 46px;
+        font-size: 1.15rem;
+    }
+
+    .sw-tab-label {
+        font-size: 0.78rem;
+    }
+}
+
+/* Card cells all share the row height, so the price and the action row have
+   to be pinned to the bottom - otherwise a two-line description pushes them
+   down and the buttons zig-zag across the row. */
+.grid-products .product-card {
+    display: flex;
+    flex-direction: column;
+}
+
+.grid-products .product-info {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* Descriptions vary a lot in length; clamp to two lines so every card gives
+   the same amount of room to it. */
+.grid-products .product-info > p {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.7em;
+}
+
+.grid-products .product-actions {
+    margin-top: auto;
+}
+
+/* Customer page header
+   ------------------------------------------------------------------
+   The catalogue page moved to a flat header when it was rebuilt; cart,
+   checkout, rooms and the order confirmation kept the old full-bleed
+   gradient banner, so the customer site read as two different designs on a
+   desktop screen. This is that same flat treatment, shared. */
+.page-head,
+.sw-header {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.75rem 0 1.35rem;
+    margin: -2rem -2rem 1.75rem -2rem;
+}
+
+/* The catalogue header has no single inner wrapper, so each child forms the
+   centred column itself - same width and gutters as .page-head .container. */
+.sw-header > * {
+    max-width: 1440px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+@media (max-width: 768px) {
+    .sw-header > * {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}
+
+.page-head .container {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.page-head h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem;
+    letter-spacing: -0.01em;
+}
+
+.page-head p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .page-head,
+    .sw-header {
+        margin: -1rem -1rem 1.25rem -1rem;
+        padding: 1.25rem 0 1rem;
+    }
+
+    .page-head .container {
+        padding: 0 1rem;
+    }
+}
+
+/* On a large monitor the 1200px cap leaves a lot of the screen unused, and
+   it made the catalogue (which also spends 300px on its filter sidebar) look
+   cramped next to the other pages. One shared width keeps every page's
+   header and content aligned on the same column. */
+@media (min-width: 1500px) {
+    .main-area > .container {
+        max-width: 1440px;
     }
 }

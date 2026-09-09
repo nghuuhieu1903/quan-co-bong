@@ -5,7 +5,7 @@
 {% block content %}
 <!-- Back link -->
 <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 2rem 1rem 0 1rem;">
-    <a href="{{ url_for('rooms') }}" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.5rem; border: none; padding: 0.5rem 0;">
+    <a href="{{ url_for('public.rooms') }}" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.5rem; border: none; padding: 0.5rem 0;">
         <i class="fas fa-arrow-left"></i> Quay lại danh sách phòng
     </a>
 </div>
@@ -155,7 +155,8 @@
                     </h3>
                 </div>
                 
-                <form method="POST" action="{{ url_for('book_room', room_id=room.id) }}">
+                <form method="POST" action="{{ url_for('public.book_room', room_id=room.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <!-- Customer Name -->
                     <div class="form-group">
                         <label class="form-label" for="customer_name">Tên của bạn *</label>

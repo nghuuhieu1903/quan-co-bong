@@ -387,7 +387,7 @@ body, .modal-content, .table, .dropdown-menu {
                 <div class="stat-label">Tổng doanh thu (đã hoàn thành)</div>
             </div>
         </div>
-        <{% if session.admin_role == 'super_admin' %}a href="{{ url_for('admin_debts') }}"{% else %}div{% endif %} class="stat-card fade-in" style="--stat-gradient: var(--gradient-danger);">
+        <{% if session.admin_role == 'super_admin' %}a href="{{ url_for('admin.admin_debts') }}"{% else %}div{% endif %} class="stat-card fade-in" style="--stat-gradient: var(--gradient-danger);">
             <div class="stat-icon"><i class="fas fa-hand-holding-usd"></i></div>
             <div class="stat-info">
                 <div class="stat-value">{{ "{:,.0f}".format(stats.total_debt) }} <span class="stat-unit">VNĐ</span></div>
@@ -408,21 +408,21 @@ body, .modal-content, .table, .dropdown-menu {
                 <div class="stat-label">Đơn hàng hôm nay</div>
             </div>
         </div>
-        <a href="{{ url_for('manage_products') }}?stock_filter=low_stock" class="stat-card fade-in" style="--stat-gradient: var(--gradient-warning);">
+        <a href="{{ url_for('admin.manage_products') }}?stock_filter=low_stock" class="stat-card fade-in" style="--stat-gradient: var(--gradient-warning);">
             <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
             <div class="stat-info">
                 <div class="stat-value">{{ stats.low_stock_count }}</div>
                 <div class="stat-label">Sản phẩm sắp hết hàng</div>
             </div>
         </a>
-        <a href="{{ url_for('manage_products') }}?stock_filter=out_of_stock" class="stat-card fade-in" style="--stat-gradient: var(--gradient-danger);">
+        <a href="{{ url_for('admin.manage_products') }}?stock_filter=out_of_stock" class="stat-card fade-in" style="--stat-gradient: var(--gradient-danger);">
             <div class="stat-icon"><i class="fas fa-ban"></i></div>
             <div class="stat-info">
                 <div class="stat-value">{{ stats.out_of_stock_count }}</div>
                 <div class="stat-label">Sản phẩm hết hàng</div>
             </div>
         </a>
-        <a href="{{ url_for('admin_rooms') }}" class="stat-card fade-in" style="--stat-gradient: var(--gradient-success);">
+        <a href="{{ url_for('admin.admin_rooms') }}" class="stat-card fade-in" style="--stat-gradient: var(--gradient-success);">
             <div class="stat-icon"><i class="fas fa-door-open"></i></div>
             <div class="stat-info">
                 <div class="stat-value">{{ stats.available_rooms_count }}/{{ rooms|length }}</div>
@@ -456,32 +456,32 @@ body, .modal-content, .table, .dropdown-menu {
             <span style="font-weight: 600; color: var(--text-primary); font-size: 1rem;">Truy cập nhanh</span>
         </div>
         <div class="quick-actions-grid">
-            <a href="{{ url_for('add_product') }}" class="quick-chip" style="background: rgba(99,102,241,0.1); color: var(--accent-color); border: 1px solid rgba(99,102,241,0.25);">
+            <a href="{{ url_for('admin.add_product') }}" class="quick-chip" style="background: rgba(99,102,241,0.1); color: var(--accent-color); border: 1px solid rgba(99,102,241,0.25);">
                 <i class="fas fa-plus-circle"></i> Thêm sản phẩm
             </a>
-            <a href="{{ url_for('manage_products') }}" class="quick-chip" style="background: rgba(99,102,241,0.06); color: var(--text-primary); border: 1px solid var(--border-color);">
+            <a href="{{ url_for('admin.manage_products') }}" class="quick-chip" style="background: rgba(99,102,241,0.06); color: var(--text-primary); border: 1px solid var(--border-color);">
                 <i class="fas fa-box"></i> Sản phẩm
             </a>
-            <a href="{{ url_for('admin_rooms') }}" class="quick-chip" style="background: rgba(16,185,129,0.1); color: #059669; border: 1px solid rgba(16,185,129,0.25);">
+            <a href="{{ url_for('admin.admin_rooms') }}" class="quick-chip" style="background: rgba(16,185,129,0.1); color: #059669; border: 1px solid rgba(16,185,129,0.25);">
                 <i class="fas fa-door-open"></i> Phòng trọ
             </a>
-            <a href="{{ url_for('admin_room_bookings') }}" class="quick-chip" style="background: rgba(239,68,68,0.08); color: #dc2626; border: 1px solid rgba(239,68,68,0.2);">
+            <a href="{{ url_for('admin.admin_room_bookings') }}" class="quick-chip" style="background: rgba(239,68,68,0.08); color: #dc2626; border: 1px solid rgba(239,68,68,0.2);">
                 <i class="fas fa-calendar-alt"></i> Lịch đặt
             </a>
-            <a href="{{ url_for('admin_daily_menu_orders') }}" class="quick-chip" style="background: rgba(139,90,43,0.08); color: #8B5A2B; border: 1px solid rgba(139,90,43,0.2);">
+            <a href="{{ url_for('admin.admin_daily_menu_orders') }}" class="quick-chip" style="background: rgba(139,90,43,0.08); color: #8B5A2B; border: 1px solid rgba(139,90,43,0.2);">
                 <i class="fas fa-utensils"></i> Đơn món ăn
             </a>
-            <a href="{{ url_for('generate_qr') }}" class="quick-chip" style="background: rgba(14,165,233,0.08); color: #0369a1; border: 1px solid rgba(14,165,233,0.2);">
+            <a href="{{ url_for('admin.generate_qr') }}" class="quick-chip" style="background: rgba(14,165,233,0.08); color: #0369a1; border: 1px solid rgba(14,165,233,0.2);">
                 <i class="fas fa-qrcode"></i> Tạo QR
             </a>
-            <a href="{{ url_for('generate_bank_qr') }}" class="quick-chip" style="background: rgba(16,185,129,0.08); color: #059669; border: 1px solid rgba(16,185,129,0.2);">
+            <a href="{{ url_for('admin.generate_bank_qr') }}" class="quick-chip" style="background: rgba(16,185,129,0.08); color: #059669; border: 1px solid rgba(16,185,129,0.2);">
                 <i class="fas fa-university"></i> Tạo QR Ngân Hàng
             </a>
             {% if session.admin_role == 'super_admin' %}
-            <a href="{{ url_for('automation_settings') }}" class="quick-chip" style="background: rgba(245,158,11,0.1); color: #b45309; border: 1px solid rgba(245,158,11,0.25);">
+            <a href="{{ url_for('admin.automation_settings') }}" class="quick-chip" style="background: rgba(245,158,11,0.1); color: #b45309; border: 1px solid rgba(245,158,11,0.25);">
                 <i class="fas fa-cogs"></i> Tự động hóa
             </a>
-            <a href="{{ url_for('export_orders') }}" class="quick-chip" style="background: rgba(100,116,139,0.08); color: var(--text-secondary); border: 1px solid var(--border-color);">
+            <a href="{{ url_for('admin.export_orders') }}" class="quick-chip" style="background: rgba(100,116,139,0.08); color: var(--text-secondary); border: 1px solid var(--border-color);">
                 <i class="fas fa-download"></i> Xuất đơn
             </a>
             {% endif %}
@@ -496,7 +496,7 @@ body, .modal-content, .table, .dropdown-menu {
             <h3 style="margin: 0; color: var(--text-primary);">
                 <i class="fas fa-shopping-bag"></i> Đơn hàng gần đây
             </h3>
-            <a href="{{ url_for('export_orders') }}" class="btn btn-outline">
+            <a href="{{ url_for('admin.export_orders') }}" class="btn btn-outline">
                 Xuất đơn hàng <i class="fas fa-download"></i>
             </a>
         </div>
@@ -551,7 +551,8 @@ body, .modal-content, .table, .dropdown-menu {
                                     </button>
                                     <ul class="dropdown-menu">
                                         <li>
-                                            <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}" style="margin: 0;">
+                                            <form method="POST" action="{{ url_for('admin.update_order_status', order_id=order.id) }}" style="margin: 0;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <input type="hidden" name="status" value="completed">
                                                 <button type="submit" class="dropdown-item" style="color: var(--success-color);">
                                                     <i class="fas fa-check-circle"></i> Hoàn tất
@@ -559,7 +560,8 @@ body, .modal-content, .table, .dropdown-menu {
                                             </form>
                                         </li>
                                         <li>
-                                            <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}" style="margin: 0;">
+                                            <form method="POST" action="{{ url_for('admin.update_order_status', order_id=order.id) }}" style="margin: 0;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <input type="hidden" name="status" value="cancelled">
                                                 <button type="submit" class="dropdown-item" style="color: var(--danger-color);">
                                                     <i class="fas fa-times-circle"></i> Hủy
@@ -809,18 +811,20 @@ function showOrderDetail(orderId) {
             `;
             
             // Add action buttons
-            const updateUrlTemplate = "{{ url_for('update_order_status', order_id=999999) }}".replace("999999", data.id);
+            const updateUrlTemplate = "{{ url_for('admin.update_order_status', order_id=999999) }}".replace("999999", data.id);
             let actionButtons = '';
             if (data.status === 'pending' || data.status === 'processing') {
                 actionButtons = `
                     <div style="display: flex; gap: 0.5rem;">
                         <form method="POST" action="${updateUrlTemplate}" style="margin: 0;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="status" value="completed">
                             <button type="submit" class="btn btn-success">
                                 <i class="fas fa-check-circle"></i> Duyệt đơn
                             </button>
                         </form>
                         <form method="POST" action="${updateUrlTemplate}" style="margin: 0;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="status" value="cancelled">
                             <button type="submit" class="btn btn-danger">
                                 <i class="fas fa-times-circle"></i> Hủy đơn

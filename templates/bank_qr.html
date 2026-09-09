@@ -53,7 +53,7 @@
                 </p>
             </div>
             <div style="display: flex; gap: 1rem;">
-                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary" style="background: white; color: var(--primary-color); border: none; font-weight: 600;">
+                <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-primary" style="background: white; color: var(--primary-color); border: none; font-weight: 600;">
                     <i class="fas fa-arrow-left"></i> Quay lại Dashboard
                 </a>
             </div>
@@ -72,7 +72,8 @@
                 </h3>
             </div>
             
-            <form method="POST" action="{{ url_for('generate_bank_qr') }}">
+            <form method="POST" action="{{ url_for('admin.generate_bank_qr') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-group" style="margin-bottom: 1.25rem;">
                     <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);">
                         <i class="fas fa-piggy-bank"></i> Chọn Ngân hàng *
@@ -223,7 +224,8 @@
                     <h4 style="margin: 0 0 0.5rem 0; color: var(--text-primary);">Tài khoản mặc định</h4>
                     <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 1rem 0; line-height: 1.4;">Vietcombank - Cô Bông Cát Lái<br>STK: 1234567890</p>
                 </div>
-                <form method="POST" action="{{ url_for('generate_bank_qr') }}">
+                <form method="POST" action="{{ url_for('admin.generate_bank_qr') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="bank_id" value="VCB">
                     <input type="hidden" name="account_no" value="1234567890">
                     <input type="hidden" name="account_name" value="CO BONG CAT LAI">
@@ -242,7 +244,8 @@
                     <h4 style="margin: 0 0 0.5rem 0; color: var(--text-primary);">Chỉ mã QR chuyển khoản</h4>
                     <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 1rem 0; line-height: 1.4;">Mẫu quét nhanh, không hiển thị tên chủ thẻ bên ngoài ảnh QR</p>
                 </div>
-                <form method="POST" action="{{ url_for('generate_bank_qr') }}">
+                <form method="POST" action="{{ url_for('admin.generate_bank_qr') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="bank_id" value="VCB">
                     <input type="hidden" name="account_no" value="1234567890">
                     <input type="hidden" name="account_name" value="CO BONG CAT LAI">
@@ -261,7 +264,8 @@
                     <h4 style="margin: 0 0 0.5rem 0; color: var(--text-primary);">Techcombank Compact</h4>
                     <p style="color: var(--text-secondary); font-size: 0.85rem; margin: 0 0 1rem 0; line-height: 1.4;">Techcombank - Tài khoản cửa hàng<br>STK: 1234567890</p>
                 </div>
-                <form method="POST" action="{{ url_for('generate_bank_qr') }}">
+                <form method="POST" action="{{ url_for('admin.generate_bank_qr') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="bank_id" value="TCB">
                     <input type="hidden" name="account_no" value="1234567890">
                     <input type="hidden" name="account_name" value="CO BONG CAT LAI">

@@ -95,7 +95,8 @@
                 </span>
                 <span style="color: var(--text-secondary); margin-left: 0.5rem;">({{ debt_orders|length }} đơn)</span>
             </div>
-            <form method="POST" action="{{ url_for('admin_debts_bulk_pay') }}" id="bulkPayForm" onsubmit="return confirm('Xác nhận đã thu hết các khoản nợ đã chọn?');">
+            <form method="POST" action="{{ url_for('admin.admin_debts_bulk_pay') }}" id="bulkPayForm" onsubmit="return confirm('Xác nhận đã thu hết các khoản nợ đã chọn?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn-success" id="bulkPayBtn" disabled>
                     <i class="fas fa-check-double"></i> Xóa nợ đã chọn (<span id="selectedCount">0</span>)
                 </button>
@@ -139,7 +140,8 @@
                                     {{ order.created_at.strftime('%d/%m/%Y %H:%M') if order.created_at else 'N/A' }}
                                 </td>
                                 <td>
-                                    <form method="POST" action="{{ url_for('admin_debt_pay', order_id=order.id) }}" style="margin: 0;" onsubmit="return confirm('Xác nhận {{ order.customer_name }} đã trả hết nợ đơn #{{ order.id }}?');">
+                                    <form method="POST" action="{{ url_for('admin.admin_debt_pay', order_id=order.id) }}" style="margin: 0;" onsubmit="return confirm('Xác nhận {{ order.customer_name }} đã trả hết nợ đơn #{{ order.id }}?');">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit" class="btn btn-success btn-sm">
                                             <i class="fas fa-check-circle"></i> Đã trả nợ
                                         </button>

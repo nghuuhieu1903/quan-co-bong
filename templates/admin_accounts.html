@@ -68,7 +68,8 @@
     <!-- Add new admin -->
     <div class="card fade-in" style="padding: 1.5rem; margin-bottom: 2rem;">
         <h3 style="margin: 0 0 1rem; color: var(--text-primary);"><i class="fas fa-user-plus"></i> Thêm tài khoản Admin</h3>
-        <form method="POST" action="{{ url_for('admin_accounts_add_admin') }}" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+        <form method="POST" action="{{ url_for('admin.admin_accounts_add_admin') }}" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group" style="flex: 1; min-width: 160px; margin: 0;">
                 <label class="form-label">Tên đăng nhập</label>
                 <input type="text" name="username" class="form-control" required>
@@ -107,13 +108,15 @@
                         <td><span class="role-badge role-{{ a.role }}">{{ 'Super Admin' if a.role == 'super_admin' else 'Admin' }}</span></td>
                         <td>
                             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                                <form method="POST" action="{{ url_for('admin_accounts_change_role', admin_id=a.id) }}" style="margin: 0;">
+                                <form method="POST" action="{{ url_for('admin.admin_accounts_change_role', admin_id=a.id) }}" style="margin: 0;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <input type="hidden" name="role" value="{{ 'admin' if a.role == 'super_admin' else 'super_admin' }}">
                                     <button type="submit" class="btn btn-sm btn-outline">
                                         {% if a.role == 'super_admin' %}Hạ xuống Admin{% else %}Nâng lên Super Admin{% endif %}
                                     </button>
                                 </form>
-                                <form method="POST" action="{{ url_for('admin_accounts_delete_admin', admin_id=a.id) }}" style="margin: 0;" onsubmit="return confirm('Xóa tài khoản {{ a.username }}?');">
+                                <form method="POST" action="{{ url_for('admin.admin_accounts_delete_admin', admin_id=a.id) }}" style="margin: 0;" onsubmit="return confirm('Xóa tài khoản {{ a.username }}?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="btn btn-sm btn-danger" {% if a.username == session.admin_username %}disabled{% endif %}>
                                         <i class="fas fa-trash"></i> Xóa
                                     </button>
@@ -122,7 +125,8 @@
                                     <summary class="btn btn-sm btn-outline" style="display: inline-block; cursor: pointer; list-style: none;">
                                         <i class="fas fa-key"></i> Đặt lại mật khẩu
                                     </summary>
-                                    <form method="POST" action="{{ url_for('admin_accounts_reset_admin_password', admin_id=a.id) }}" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                                    <form method="POST" action="{{ url_for('admin.admin_accounts_reset_admin_password', admin_id=a.id) }}" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <input type="password" name="new_password" class="form-control" placeholder="Mật khẩu mới" minlength="6" required style="min-width: 160px;">
                                         <button type="submit" class="btn btn-sm btn-primary">Lưu</button>
                                     </form>
@@ -157,14 +161,16 @@
                         <td>{{ m.phone }}</td>
                         <td>
                             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                                <form method="POST" action="{{ url_for('admin_accounts_toggle_manager', customer_id=m.id) }}" style="margin: 0;">
+                                <form method="POST" action="{{ url_for('admin.admin_accounts_toggle_manager', customer_id=m.id) }}" style="margin: 0;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="btn btn-sm btn-outline"><i class="fas fa-user-minus"></i> Gỡ quyền Manager</button>
                                 </form>
                                 <details style="margin: 0;">
                                     <summary class="btn btn-sm btn-outline" style="display: inline-block; cursor: pointer; list-style: none;">
                                         <i class="fas fa-key"></i> Đặt lại mật khẩu
                                     </summary>
-                                    <form method="POST" action="{{ url_for('admin_accounts_reset_customer_password', customer_id=m.id) }}" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                                    <form method="POST" action="{{ url_for('admin.admin_accounts_reset_customer_password', customer_id=m.id) }}" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <input type="password" name="new_password" class="form-control" placeholder="Mật khẩu mới" minlength="6" required style="min-width: 160px;">
                                         <button type="submit" class="btn btn-sm btn-primary">Lưu</button>
                                     </form>
@@ -201,14 +207,16 @@
                         <td>{{ c.phone }}</td>
                         <td>
                             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                                <form method="POST" action="{{ url_for('admin_accounts_toggle_manager', customer_id=c.id) }}" style="margin: 0;">
+                                <form method="POST" action="{{ url_for('admin.admin_accounts_toggle_manager', customer_id=c.id) }}" style="margin: 0;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <button type="submit" class="btn btn-sm btn-primary"><i class="fas fa-user-plus"></i> Chỉ định Manager</button>
                                 </form>
                                 <details style="margin: 0;">
                                     <summary class="btn btn-sm btn-outline" style="display: inline-block; cursor: pointer; list-style: none;">
                                         <i class="fas fa-key"></i> Đặt lại mật khẩu
                                     </summary>
-                                    <form method="POST" action="{{ url_for('admin_accounts_reset_customer_password', customer_id=c.id) }}" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                                    <form method="POST" action="{{ url_for('admin.admin_accounts_reset_customer_password', customer_id=c.id) }}" style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <input type="password" name="new_password" class="form-control" placeholder="Mật khẩu mới" minlength="6" required style="min-width: 160px;">
                                         <button type="submit" class="btn btn-sm btn-primary">Lưu</button>
                                     </form>

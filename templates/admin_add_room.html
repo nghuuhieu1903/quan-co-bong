@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container" style="max-width: 800px; margin: 0 auto; padding: 2rem 1rem 0 1rem;">
-    <a href="{{ url_for('admin_rooms') }}" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.5rem; border: none; padding: 0.5rem 0;">
+    <a href="{{ url_for('admin.admin_rooms') }}" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 0.5rem; border: none; padding: 0.5rem 0;">
         <i class="fas fa-arrow-left"></i> Quay lại danh sách phòng
     </a>
 </div>
@@ -17,7 +17,8 @@
             </h2>
         </div>
         
-        <form method="POST" action="{{ url_for('admin_add_room') }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ url_for('admin.admin_add_room') }}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <!-- Name -->
             <div class="form-group" style="margin-bottom: 1.5rem;">
                 <label class="form-label" for="name" style="font-weight: 600;">Tên phòng *</label>
@@ -110,7 +111,7 @@
             
             <!-- Actions -->
             <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-                <a href="{{ url_for('admin_rooms') }}" class="btn btn-outline" style="width: auto; padding: 0.75rem 2rem;">
+                <a href="{{ url_for('admin.admin_rooms') }}" class="btn btn-outline" style="width: auto; padding: 0.75rem 2rem;">
                     Hủy bỏ
                 </a>
                 <button type="submit" class="btn btn-primary" style="width: auto; padding: 0.75rem 2.5rem;">

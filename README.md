@@ -73,6 +73,84 @@ A modern e-commerce website built with Flask, featuring separate admin and custo
 ### Database
 - **MySQL**: Set via the `DATABASE_URL` environment variable (e.g. `mysql+pymysql://user:password@host:3306/dbname`)
 
+## 📁 Project Layout
+
+`app.py` is an application factory; the code it wires together lives in these
+modules:
+
+| File | Contains |
+|---|---|
+| `app.py` | `create_app()` - config, extensions, blueprint registration |
+| `extensions.py` | The `db` / `sess` objects, created unbound to avoid circular imports |
+| `models.py` | The 13 SQLAlchemy models and `create_notification()` |
+| `translations.py` | The VI/EN strings for the customer-facing pages |
+| `helpers.py` | Console printing, SMTP email, image uploads |
+| `decorators.py` | `admin_required`, `super_admin_required`, `manager_required`, … |
+| `automation.py` | `LaptopSpeaker` and `AutomationController` (all optional deps) |
+| `db_init.py` | `ensure_column()` migrations and first-run seed data |
+| `blueprints/public.py` | Home, catalogue, rooms, cart, checkout |
+| `blueprints/auth.py` | Admin + customer sign-in, sign-out, password recovery |
+| `blueprints/admin.py` | Everything under `/admin` |
+| `blueprints/menu.py` | The daily food menu |
+
+Because the routes are blueprints now, `url_for` needs the blueprint name:
+`url_for('admin.admin_dashboard')`, not `url_for('admin_dashboard')`. The URLs
+themselves are unchanged.
+
+### Adding a database column
+
+There is no Alembic. Add the column to the model, then add a matching
+`ensure_column(...)` line in `db_init.py` - it runs an idempotent `ALTER TABLE`
+on every startup so existing databases pick the column up.
+
+## 🔒 CSRF Protection
+
+Every state-changing request needs a CSRF token; without one the app answers
+`400`. Forms get theirs from a hidden field:
+
+```html
+<form method="POST" action="...">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+```
+
+**Any new POST form needs that line** - leaving it out means the form silently
+stops working. `test_csrf.py` renders the pages and fails if a form is missing
+one, so run it after adding a form.
+
+JavaScript that POSTs reads the token from the meta tag in the base templates
+and sends it as a header:
+
+```js
+fetch(url, {
+    method: 'POST',
+    headers: {'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content}
+})
+```
+
+## 📋 Logging
+
+Error handlers call `logger.exception(...)`, which records the message *and*
+the traceback, so a failure says where it happened. Output goes to stderr;
+set `LOG_LEVEL=DEBUG` for more detail.
+
+## ✅ Tests
+
+`test_smoke_routes.py` requests every GET route twice - once as a signed-in
+admin, once anonymously - and compares the status codes against a recorded
+baseline. Run it before and after any refactor:
+
+```bash
+python test_smoke_routes.py --save   # record current behaviour
+python test_smoke_routes.py          # report anything that changed
+python test_csrf.py                  # CSRF is on and forms still work
+```
+
+The other `test_*.py` scripts are older one-off checks that need a server
+already running on port 5000.
+
+> On macOS, port 5000 is taken by the AirPlay Receiver. Either turn it off in
+> System Settings → General → AirDrop & Handoff, or run on another port.
+
 ## 📦 Installation
 
 1. **Clone the repository**
@@ -90,6 +168,26 @@ A modern e-commerce website built with Flask, featuring separate admin and custo
    ```bash
    python app.py
    ```
+
+   The server listens on every interface, so a second laptop or a phone on
+   the same Wi-Fi can reach it. Find this machine's address with
+   `ipconfig getifaddr en0` and open `http://<that-address>:5000` on the
+   other device. `FLASK_RUN_HOST=127.0.0.1` restricts it to this machine.
+
+   Debug mode is opt-in, because its interactive console executes arbitrary
+   code for anyone who can reach a traceback - which matters precisely when
+   other devices can reach the server:
+   ```bash
+   FLASK_DEBUG=1 python app.py     # auto-reload + debugger
+   ```
+
+   **Testing from two machines:** both devices must be on the same network,
+   and macOS gives port 5000 to the AirPlay Receiver, so pick another port:
+   ```bash
+   FLASK_RUN_PORT=8000 python app.py
+   ```
+   Remember that templates are cached unless `FLASK_DEBUG=1`, so restart the
+   server after editing one.
 
 4. **Access the application**
    - Customer Interface: http://localhost:5000

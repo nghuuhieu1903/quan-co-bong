@@ -44,7 +44,8 @@
 
     <div class="card fade-in" style="padding: 1.5rem; margin-bottom: 2rem;">
         <h3 style="margin: 0 0 1rem; color: var(--text-primary);"><i class="fas fa-plus-circle"></i> Thêm món mới</h3>
-        <form method="POST" action="{{ url_for('daily_menu_add') }}" enctype="multipart/form-data">
+        <form method="POST" action="{{ url_for('menu.daily_menu_add') }}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="grid grid-cols-2">
                 <div class="form-group">
                     <label class="form-label">Tên món</label>
@@ -86,12 +87,14 @@
                 <div class="menu-item-price">{{ "{:,.0f}".format(item.price) }} VNĐ</div>
             </div>
             <div class="menu-item-actions">
-                <form method="POST" action="{{ url_for('daily_menu_toggle', item_id=item.id) }}" style="margin: 0;">
+                <form method="POST" action="{{ url_for('menu.daily_menu_toggle', item_id=item.id) }}" style="margin: 0;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-sm btn-outline">
                         {% if item.available %}<i class="fas fa-eye-slash"></i> Ẩn{% else %}<i class="fas fa-eye"></i> Hiện{% endif %}
                     </button>
                 </form>
-                <form method="POST" action="{{ url_for('daily_menu_delete', item_id=item.id) }}" style="margin: 0;" onsubmit="return confirm('Xóa món {{ item.name }}?');">
+                <form method="POST" action="{{ url_for('menu.daily_menu_delete', item_id=item.id) }}" style="margin: 0;" onsubmit="return confirm('Xóa món {{ item.name }}?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
                 </form>
             </div>

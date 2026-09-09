@@ -1,0 +1,459 @@
+/* Stripe-Dashboard-style admin theme
+   ===================================================================
+   Loaded after modern.css, and only by admin_base.html, so nothing here
+   reaches the customer-facing pages.
+
+   This file changes appearance only. No selector here hides a control,
+   moves a link or touches anything scripted - every button, form and id
+   works exactly as before.
+
+   What makes the Stripe dashboard look the way it does, and what we copy:
+     - flat surfaces: 1px hairline borders, 8px radius, almost no shadow
+     - no coloured hero; the page name sits on the page with actions right
+     - metrics are typography, not tinted icon tiles: small muted label
+       above a large number
+     - dense tables: uppercase micro-headers, hairline rows, hover tint
+     - compact controls: ~32px buttons, 6px radius, no gradients or lift
+
+   Several of the admin templates set their colours inline (the old gradient
+   headers in particular), so the header rules below need !important to win.
+   That is deliberate: overriding here keeps twelve templates untouched
+   instead of hand-editing each one and risking their forms. */
+
+:root {
+    --admin-radius: 8px;
+    --admin-radius-sm: 6px;
+    --admin-hairline: 1px solid var(--border-color);
+}
+
+/* ---------------------------------------------------------------
+   Page header - was a full-bleed gradient banner
+   --------------------------------------------------------------- */
+.page-header {
+    background: var(--bg-card) !important;
+    border-bottom: var(--admin-hairline);
+    border-radius: 0 !important;
+    padding: 1.5rem 0 !important;
+    margin: -2rem -2rem 1.75rem -2rem !important;
+    box-shadow: none !important;
+}
+
+.page-header h1,
+.page-header .admin-title {
+    color: var(--text-primary) !important;
+    font-size: 1.375rem !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em;
+    margin-bottom: 0.2rem !important;
+}
+
+/* The decorative icon in front of each page title is noise at this size. */
+.page-header h1 > i:first-child,
+.page-header .admin-title > i:first-child {
+    display: none;
+}
+
+.page-header p {
+    color: var(--text-secondary) !important;
+    font-size: 0.875rem !important;
+}
+
+/* Status pills were translucent white on the gradient; on a white header
+   they need a real border and readable text. */
+.page-header span[style*="rgba(255,255,255"] {
+    background: var(--bg-secondary) !important;
+    border: var(--admin-hairline) !important;
+    color: var(--text-secondary) !important;
+    font-size: 0.75rem !important;
+    font-weight: 500;
+    padding: 0.3rem 0.7rem !important;
+}
+
+/* Header buttons were inverted (white on gradient) - put them back to the
+   normal button scale now that the header is white. */
+.page-header .btn[style*="background: white"] {
+    background: var(--accent-color) !important;
+    color: #fff !important;
+}
+
+/* ---------------------------------------------------------------
+   Surfaces
+   --------------------------------------------------------------- */
+.card {
+    border-radius: var(--admin-radius);
+    border: var(--admin-hairline);
+    box-shadow: none;
+}
+
+.card:hover {
+    box-shadow: none;
+    transform: none;
+}
+
+.card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: var(--admin-hairline);
+    font-size: 0.9375rem;
+    font-weight: 600;
+}
+
+.section-title {
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary) !important;
+    margin: 1.75rem 0 0.75rem !important;
+}
+
+.section-title i {
+    font-size: 0.8125rem;
+    color: var(--text-muted) !important;
+}
+
+/* ---------------------------------------------------------------
+   Metric tiles - Stripe puts the label above a large plain number and
+   does not wrap it in a coloured icon block.
+   --------------------------------------------------------------- */
+/* The per-page <style> blocks are injected after this file, so anything they
+   also declare needs !important here to win the cascade. */
+.stat-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.4rem !important;
+    border-radius: var(--admin-radius) !important;
+    border: var(--admin-hairline) !important;
+    box-shadow: none !important;
+    padding: 1rem 1.15rem 1.15rem !important;
+}
+
+.stat-card:hover {
+    box-shadow: none;
+    transform: none;
+    border-color: var(--text-muted);
+}
+
+/* Keep the icon (it tells you what the number is) but drop the filled
+   gradient square - a small muted glyph is the Stripe register. */
+.stat-icon {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    height: 1rem !important;
+    border-radius: 0 !important;
+    background: none !important;
+    color: var(--text-muted) !important;
+    font-size: 0.8125rem !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+}
+
+/* The markup is value-then-label; Stripe reads label-then-value. Reordering
+   with `order` rather than column-reverse - in a reversed column the items
+   pack against the bottom of the box, which left a gap above them. */
+.stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.stat-label {
+    order: 1;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    color: var(--text-secondary) !important;
+    letter-spacing: 0.01em;
+}
+
+.stat-value {
+    order: 2;
+    font-size: 1.75rem !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+}
+
+.stat-unit {
+    font-size: 0.8125rem !important;
+    font-weight: 500 !important;
+    color: var(--text-secondary) !important;
+}
+
+/* ---------------------------------------------------------------
+   Tables
+   --------------------------------------------------------------- */
+.table {
+    font-size: 0.8125rem;
+}
+
+.table th {
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.6rem 0.75rem;
+    white-space: nowrap;
+}
+
+.table td {
+    padding: 0.75rem;
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+
+.table tbody tr:hover {
+    background: var(--bg-secondary);
+}
+
+.table-responsive {
+    border: var(--admin-hairline);
+    border-radius: var(--admin-radius);
+    overflow-x: auto;
+}
+
+.table-responsive .table {
+    margin-top: 0;
+}
+
+/* ---------------------------------------------------------------
+   Controls
+   --------------------------------------------------------------- */
+.btn {
+    border-radius: var(--admin-radius-sm);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    padding: 8px 14px;
+    box-shadow: none;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+/* modern.css gives buttons a sweeping highlight and a lift on hover; a
+   dashboard control should stay put. */
+.btn::before {
+    display: none;
+}
+
+.btn:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-primary {
+    background: var(--accent-color);
+}
+
+.btn-primary:hover {
+    background: var(--accent-hover);
+}
+
+.btn-secondary {
+    background: var(--bg-card);
+    border: var(--admin-hairline);
+    color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+    background: var(--bg-secondary);
+}
+
+.form-control {
+    border-radius: var(--admin-radius-sm);
+    font-size: 0.875rem;
+    padding: 0.55rem 0.75rem;
+}
+
+.form-label {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+/* ---------------------------------------------------------------
+   Badges - soft tint plus readable text, not solid shouting colour
+   --------------------------------------------------------------- */
+.badge {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: none;
+    padding: 3px 8px;
+    border-radius: var(--admin-radius-sm);
+}
+
+/* ---------------------------------------------------------------
+   Sidebar - tighter and quieter, like Stripe's nav rail
+   --------------------------------------------------------------- */
+.sidebar-nav {
+    padding: 0.5rem 0.6rem;
+}
+
+.sidebar-link,
+.sidebar-group-toggle,
+.sidebar-sublink {
+    font-size: 0.875rem;
+    padding: 0.5rem 0.7rem;
+    border-radius: var(--admin-radius-sm);
+}
+
+.sidebar-brand {
+    padding: 1.1rem 1.25rem;
+    font-size: 1rem;
+    border-bottom: var(--admin-hairline);
+}
+
+/* ---------------------------------------------------------------
+   Alerts
+   --------------------------------------------------------------- */
+.alert {
+    border-radius: var(--admin-radius);
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+}
+
+/* ---------------------------------------------------------------
+   Quick actions - these were pastel-tinted chips, one colour each.
+   Stripe keeps a row of shortcuts in one neutral style.
+   --------------------------------------------------------------- */
+.quick-actions-grid .quick-chip {
+    background: var(--bg-card) !important;
+    border: var(--admin-hairline) !important;
+    color: var(--text-primary) !important;
+    border-radius: var(--admin-radius-sm);
+    font-size: 0.8125rem;
+    font-weight: 500;
+}
+
+.quick-actions-grid .quick-chip:hover {
+    background: var(--bg-secondary) !important;
+    border-color: var(--text-muted) !important;
+}
+
+.quick-actions-grid .quick-chip i {
+    color: var(--text-muted);
+    margin-right: 0.4rem;
+}
+
+/* The sound-alert banner is a standing notice, not an alarm - Stripe would
+   render it as a quiet bordered strip. */
+#soundAlertBar {
+    border: var(--admin-hairline) !important;
+    border-left: 3px solid var(--warning-color) !important;
+    background: var(--bg-card) !important;
+    border-radius: var(--admin-radius);
+    padding: 0.9rem 1.15rem !important;
+}
+
+#soundAlertBar i.fa-volume-up {
+    font-size: 1.1rem !important;
+}
+
+#soundAlertTitle {
+    font-size: 0.9375rem !important;
+}
+
+/* ---------------------------------------------------------------
+   Per-page tables
+   ------------------------------------------------------------------
+   Six admin pages define their own table class (.accounts-table,
+   .debts-table, .orders-table, .products-table, .rooms-table,
+   .bookings-table) with a gradient header bar. Those blocks are injected
+   after this file, so the rules below carry !important *and* add thead/tbody
+   - the page rules already use !important, so equal specificity would lose on
+   order alone. (The class sits on the wrapper div, not the table, so a
+   `table.x-table` prefix matches nothing.) Bringing all six to one treatment: a plain header row of small uppercase labels
+   over hairline-separated rows. */
+.accounts-table thead th,
+.bookings-table thead th,
+.debts-table thead th,
+.orders-table thead th,
+.products-table thead th,
+.rooms-table thead th {
+    background: var(--bg-secondary) !important;
+    color: var(--text-muted) !important;
+    font-size: 0.6875rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.05em !important;
+    padding: 0.6rem 0.75rem !important;
+    border-bottom: var(--admin-hairline) !important;
+}
+
+.accounts-table tbody td,
+.bookings-table tbody td,
+.debts-table tbody td,
+.orders-table tbody td,
+.products-table tbody td,
+.rooms-table tbody td {
+    padding: 0.75rem !important;
+    font-size: 0.8125rem !important;
+    border-bottom: var(--admin-hairline) !important;
+}
+
+.accounts-table tbody tr:hover,
+.bookings-table tbody tr:hover,
+.debts-table tbody tr:hover,
+.orders-table tbody tr:hover,
+.products-table tbody tr:hover,
+.rooms-table tbody tr:hover {
+    background: var(--bg-secondary) !important;
+}
+
+/* Action buttons sit inside table rows; keep them small so a row stays one
+   line high. */
+.accounts-table tbody .btn,
+.bookings-table tbody .btn,
+.debts-table tbody .btn,
+.orders-table tbody .btn,
+.products-table tbody .btn,
+.rooms-table tbody .btn {
+    padding: 5px 10px !important;
+    font-size: 0.75rem !important;
+    min-height: 0 !important;
+}
+
+/* ---------------------------------------------------------------
+   Status badges
+   ------------------------------------------------------------------
+   modern.css fills these with the same gradients used for buttons, so a
+   table row ends up with several saturated blocks competing for attention.
+   Stripe states are a soft tint with the colour carried by the text, which
+   keeps the row scannable and the real actions the brightest thing on it.
+   colour-mix keeps each tint derived from the existing token - no new
+   colours are introduced. */
+.badge-success {
+    background: color-mix(in srgb, var(--success-color) 14%, transparent) !important;
+    color: var(--success-color) !important;
+}
+
+.badge-warning {
+    background: color-mix(in srgb, var(--warning-color) 16%, transparent) !important;
+    color: var(--warning-color) !important;
+}
+
+.badge-danger {
+    background: color-mix(in srgb, var(--danger-color) 12%, transparent) !important;
+    color: var(--danger-color) !important;
+}
+
+.badge-info {
+    background: color-mix(in srgb, var(--accent-color) 12%, transparent) !important;
+    color: var(--accent-color) !important;
+}
+
+/* manage_products.html defines its own stock pills; same soft-tint treatment
+   so the stock column matches every other status badge. Its <style> block is
+   injected after this file, hence !important. */
+.stock-badge.stock-in {
+    background: color-mix(in srgb, var(--success-color) 14%, transparent) !important;
+    color: var(--success-color) !important;
+}
+
+.stock-badge.stock-low {
+    background: color-mix(in srgb, var(--warning-color) 18%, transparent) !important;
+    color: var(--warning-color) !important;
+}
+
+.stock-badge.stock-out {
+    background: color-mix(in srgb, var(--danger-color) 12%, transparent) !important;
+    color: var(--danger-color) !important;
+}

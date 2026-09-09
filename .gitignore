@@ -14,3 +14,4 @@ db_products.txt
 test.html
 img/
 .env
+.DS_Store

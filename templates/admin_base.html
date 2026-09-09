@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Cô Bông Cát Lái - Admin{% endblock %}</title>
 
     <!-- Google Fonts -->
@@ -13,6 +14,10 @@
 
     <!-- Modern CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/modern.css') }}">
+
+    <!-- Stripe-dashboard styling for the admin area. Loaded after modern.css
+         so it can override it; appearance only, no behaviour changes. -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
 
     <!-- Sidebar Layout CSS -->
     <style>
@@ -288,59 +293,59 @@
     <div class="app-shell">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
-            <a href="{{ url_for('admin_dashboard') }}" class="sidebar-brand">
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-brand">
                 <i class="fa-solid fa-mug-saucer"></i> Cô Bông Cát Lái
             </a>
 
             <nav class="sidebar-nav">
-                <a href="{{ url_for('admin_dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}" onclick="closeSidebar()">
+                <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-link {% if current_endpoint == 'admin_dashboard' %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-tachometer-alt"></i> Dashboard
                 </a>
 
-                <div class="sidebar-group {% if request.endpoint in ['admin_rooms', 'admin_add_room', 'admin_edit_room', 'admin_room_bookings'] %}open{% endif %}">
+                <div class="sidebar-group {% if current_endpoint in ['admin_rooms', 'admin_add_room', 'admin_edit_room', 'admin_room_bookings'] %}open{% endif %}">
                     <button type="button" class="sidebar-group-toggle">
                         <span><i class="fas fa-door-open"></i> Quản lý trọ</span>
                         <i class="fas fa-chevron-down sidebar-group-arrow"></i>
                     </button>
                     <div class="sidebar-submenu">
-                        <a href="{{ url_for('admin_rooms') }}" class="sidebar-sublink {% if request.endpoint in ['admin_rooms', 'admin_edit_room'] %}active{% endif %}" onclick="closeSidebar()">
+                        <a href="{{ url_for('admin.admin_rooms') }}" class="sidebar-sublink {% if current_endpoint in ['admin_rooms', 'admin_edit_room'] %}active{% endif %}" onclick="closeSidebar()">
                             <i class="fas fa-list"></i> Danh sách phòng
                         </a>
-                        <a href="{{ url_for('admin_add_room') }}" class="sidebar-sublink {% if request.endpoint == 'admin_add_room' %}active{% endif %}" onclick="closeSidebar()">
+                        <a href="{{ url_for('admin.admin_add_room') }}" class="sidebar-sublink {% if current_endpoint == 'admin_add_room' %}active{% endif %}" onclick="closeSidebar()">
                             <i class="fas fa-plus-circle"></i> Thêm phòng
                         </a>
-                        <a href="{{ url_for('admin_room_bookings') }}" class="sidebar-sublink {% if request.endpoint == 'admin_room_bookings' %}active{% endif %}" onclick="closeSidebar()">
+                        <a href="{{ url_for('admin.admin_room_bookings') }}" class="sidebar-sublink {% if current_endpoint == 'admin_room_bookings' %}active{% endif %}" onclick="closeSidebar()">
                             <i class="fas fa-calendar-alt"></i> Lịch đặt phòng
                         </a>
                     </div>
                 </div>
 
-                <div class="sidebar-group {% if request.endpoint in ['manage_products', 'add_product', 'edit_product', 'admin_debts'] %}open{% endif %}">
+                <div class="sidebar-group {% if current_endpoint in ['manage_products', 'add_product', 'edit_product', 'admin_debts'] %}open{% endif %}">
                     <button type="button" class="sidebar-group-toggle">
                         <span><i class="fas fa-box"></i> Quản lý sản phẩm</span>
                         <i class="fas fa-chevron-down sidebar-group-arrow"></i>
                     </button>
                     <div class="sidebar-submenu">
-                        <a href="{{ url_for('manage_products') }}" class="sidebar-sublink {% if request.endpoint in ['manage_products', 'edit_product'] %}active{% endif %}" onclick="closeSidebar()">
+                        <a href="{{ url_for('admin.manage_products') }}" class="sidebar-sublink {% if current_endpoint in ['manage_products', 'edit_product'] %}active{% endif %}" onclick="closeSidebar()">
                             <i class="fas fa-list"></i> Danh sách sản phẩm
                         </a>
-                        <a href="{{ url_for('add_product') }}" class="sidebar-sublink {% if request.endpoint == 'add_product' %}active{% endif %}" onclick="closeSidebar()">
+                        <a href="{{ url_for('admin.add_product') }}" class="sidebar-sublink {% if current_endpoint == 'add_product' %}active{% endif %}" onclick="closeSidebar()">
                             <i class="fas fa-plus-circle"></i> Thêm sản phẩm
                         </a>
-                        <a href="{{ url_for('admin_dashboard') }}" class="sidebar-sublink" onclick="closeSidebar()">
+                        <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-sublink" onclick="closeSidebar()">
                             <i class="fas fa-receipt"></i> Đơn hàng
                         </a>
-                        <a href="{{ url_for('admin_daily_menu_orders') }}" class="sidebar-sublink {% if request.endpoint == 'admin_daily_menu_orders' %}active{% endif %}" onclick="closeSidebar()">
+                        <a href="{{ url_for('admin.admin_daily_menu_orders') }}" class="sidebar-sublink {% if current_endpoint == 'admin_daily_menu_orders' %}active{% endif %}" onclick="closeSidebar()">
                             <i class="fas fa-utensils"></i> Đơn món ăn hôm nay
                         </a>
-                        <a href="{{ url_for('daily_menu_manage') }}" class="sidebar-sublink {% if request.endpoint == 'daily_menu_manage' %}active{% endif %}" onclick="closeSidebar()">
+                        <a href="{{ url_for('menu.daily_menu_manage') }}" class="sidebar-sublink {% if current_endpoint == 'daily_menu_manage' %}active{% endif %}" onclick="closeSidebar()">
                             <i class="fas fa-plus-circle"></i> Thêm món ăn hôm nay
                         </a>
                         {% if session.admin_role == 'super_admin' %}
-                        <a href="{{ url_for('admin_debts') }}" class="sidebar-sublink {% if request.endpoint == 'admin_debts' %}active{% endif %}" onclick="closeSidebar()">
+                        <a href="{{ url_for('admin.admin_debts') }}" class="sidebar-sublink {% if current_endpoint == 'admin_debts' %}active{% endif %}" onclick="closeSidebar()">
                             <i class="fas fa-book"></i> Sổ nợ khách hàng
                         </a>
-                        <a href="{{ url_for('export_orders') }}" class="sidebar-sublink" onclick="closeSidebar()">
+                        <a href="{{ url_for('admin.export_orders') }}" class="sidebar-sublink" onclick="closeSidebar()">
                             <i class="fas fa-file-excel"></i> Xuất Excel
                         </a>
                         {% endif %}
@@ -348,20 +353,20 @@
                 </div>
 
                 {% if session.admin_role == 'super_admin' %}
-                <a href="{{ url_for('automation_settings') }}" class="sidebar-link {% if request.endpoint == 'automation_settings' %}active{% endif %}" onclick="closeSidebar()">
+                <a href="{{ url_for('admin.automation_settings') }}" class="sidebar-link {% if current_endpoint == 'automation_settings' %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-cog"></i> Cài đặt
                 </a>
-                <a href="{{ url_for('admin_accounts') }}" class="sidebar-link {% if request.endpoint == 'admin_accounts' %}active{% endif %}" onclick="closeSidebar()">
+                <a href="{{ url_for('admin.admin_accounts') }}" class="sidebar-link {% if current_endpoint == 'admin_accounts' %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-users-cog"></i> Quản lý tài khoản
                 </a>
                 {% endif %}
             </nav>
 
             <div class="sidebar-footer">
-                <a href="{{ url_for('admin_change_password') }}" class="sidebar-link {% if request.endpoint == 'admin_change_password' %}active{% endif %}">
+                <a href="{{ url_for('auth.admin_change_password') }}" class="sidebar-link {% if current_endpoint == 'admin_change_password' %}active{% endif %}">
                     <i class="fas fa-key"></i> Đổi mật khẩu
                 </a>
-                <a href="{{ url_for('admin_logout') }}" class="sidebar-link sidebar-link-logout">
+                <a href="{{ url_for('auth.admin_logout') }}" class="sidebar-link sidebar-link-logout">
                     <i class="fas fa-sign-out-alt"></i> Đăng xuất
                 </a>
             </div>
@@ -374,7 +379,7 @@
         <div class="main-area">
             <!-- Mobile top bar -->
             <div class="mobile-topbar">
-                <a href="{{ url_for('admin_dashboard') }}" class="mobile-topbar-brand">
+                <a href="{{ url_for('admin.admin_dashboard') }}" class="mobile-topbar-brand">
                     <i class="fa-solid fa-mug-saucer"></i> Cô Bông Cát Lái
                 </a>
                 <button class="mobile-menu-btn" onclick="toggleSidebar()">

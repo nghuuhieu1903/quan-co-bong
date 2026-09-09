@@ -13,7 +13,8 @@
             <p style="color: var(--text-secondary); margin-top: 0.5rem;">Đăng nhập vào trang quản trị</p>
         </div>
         
-        <form method="POST" action="{{ url_for('admin_authenticate') }}">
+        <form method="POST" action="{{ url_for('auth.admin_authenticate') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label class="form-label">
                     <i class="fas fa-user"></i> Tên đăng nhập
@@ -34,13 +35,13 @@
         </form>
         
         <div style="margin-top: 1rem; text-align: center;">
-            <a href="{{ url_for('admin_forgot_password') }}" style="color: var(--text-secondary); font-size: 0.9rem;">
+            <a href="{{ url_for('auth.admin_forgot_password') }}" style="color: var(--text-secondary); font-size: 0.9rem;">
                 Quên mật khẩu?
             </a>
         </div>
 
         <div style="margin-top: 1.5rem; text-align: center;">
-            <a href="{{ url_for('customer_login') }}" class="btn btn-outline" style="width: 100%;">
+            <a href="{{ url_for('auth.customer_login') }}" class="btn btn-outline" style="width: 100%;">
                 <i class="fas fa-user"></i> Đăng nhập khách hàng
             </a>
         </div>

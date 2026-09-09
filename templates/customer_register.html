@@ -15,7 +15,8 @@
                 <p style="color: var(--text-secondary); margin-top: 0.5rem;">Tạo tài khoản mới để mua sắm</p>
             </div>
             
-            <form method="POST" action="{{ url_for('customer_create') }}">
+            <form method="POST" action="{{ url_for('auth.customer_create') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-group">
                     <label class="form-label">
                         <i class="fas fa-user"></i> Tên đăng nhập *
@@ -44,7 +45,7 @@
             
             <div style="margin-top: 1.5rem; text-align: center;">
                 <p style="color: var(--text-secondary); margin-bottom: 1rem;">Đã có tài khoản?</p>
-                <a href="{{ url_for('customer_login') }}" class="btn btn-outline" style="width: 100%;">
+                <a href="{{ url_for('auth.customer_login') }}" class="btn btn-outline" style="width: 100%;">
                     <i class="fas fa-sign-in-alt"></i> Đăng nhập
                 </a>
             </div>

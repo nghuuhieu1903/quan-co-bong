@@ -130,10 +130,10 @@
                     {{ _('home_desc') }}
                 </p>
                 <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <a href="{{ url_for('products') }}" class="btn btn-primary" style="background: white; color: var(--accent-color); padding: 16px 32px; font-size: 16px;">
+                    <a href="{{ url_for('public.products') }}" class="btn btn-primary" style="background: white; color: var(--accent-color); padding: 16px 32px; font-size: 16px;">
                         <i class="fas fa-mug-hot"></i> {{ _('home_view_products') }}
                     </a>
-                    <a href="{{ url_for('rooms') }}" class="btn btn-outline" style="border-color: white; color: white; padding: 16px 32px; font-size: 16px;">
+                    <a href="{{ url_for('public.rooms') }}" class="btn btn-outline" style="border-color: white; color: white; padding: 16px 32px; font-size: 16px;">
                         <i class="fas fa-house-user"></i> {{ _('home_view_rooms') }}
                     </a>
                 </div>
@@ -189,6 +189,7 @@
         <button type="button" onclick="closeDailyOrderModal()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.4rem; color: var(--text-secondary); cursor: pointer;">&times;</button>
         <h3 id="dailyOrderTitle" style="margin: 0 0 1rem; color: var(--text-primary);"><i class="fas fa-utensils"></i> Đặt món</h3>
         <form id="dailyOrderForm" method="POST" action="">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label class="form-label">Tên của bạn</label>
                 <input type="text" name="customer_name" class="form-control" placeholder="Không bắt buộc">
@@ -229,7 +230,7 @@ function closeDailyOrderModal() {
                 <i class="fas fa-star" style="color: var(--warning-color);"></i>
                 {{ _('home_featured') }}
             </h2>
-            <a href="{{ url_for('products') }}" class="btn btn-primary">
+            <a href="{{ url_for('public.products') }}" class="btn btn-primary">
                 {{ _('home_view_all') }} <i class="fas fa-arrow-right"></i>
             </a>
         </div>
@@ -238,12 +239,12 @@ function closeDailyOrderModal() {
         <div class="grid grid-cols-4">
             {% for product in products[:4] %}
             <div class="product-card fade-in">
-                <a href="{{ url_for('product_detail_route', product_id=product.id) }}">
+                <a href="{{ url_for('public.product_detail_route', product_id=product.id) }}">
                 <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image">
                 </a>
                 
                 <div class="product-info">
-                    <a href="{{ url_for('product_detail_route', product_id=product.id) }}" style="text-decoration: none; color: inherit;">
+                    <a href="{{ url_for('public.product_detail_route', product_id=product.id) }}" style="text-decoration: none; color: inherit;">
                         <h3 class="product-title">{{ product.name }}</h3>
                     </a>
                     <p style="color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5;">
@@ -261,21 +262,22 @@ function closeDailyOrderModal() {
                     </div>
                     <div class="product-actions">
                         {% if product.stock > 0 %}
-                        <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
+                        <form method="POST" action="{{ url_for('public.add_to_cart', product_id=product.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="next" class="next-redirect" value="">
-                            <div class="quantity-selector" style="margin-bottom: 0.5rem;">
-                                <div class="quantity-controls">
-                                    <button type="button" class="quantity-btn" onclick="decreaseQuantity(this)">−</button>
-                                    <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="quantity-input" placeholder="SL">
-                                    <button type="button" class="quantity-btn" onclick="increaseQuantity(this)">+</button>
+                            <div class="product-cta">
+                                <div class="quantity-selector">
+                                    <div class="quantity-controls">
+                                        <button type="button" class="quantity-btn" onclick="decreaseQuantity(this)">−</button>
+                                        <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="quantity-input" placeholder="SL">
+                                        <button type="button" class="quantity-btn" onclick="increaseQuantity(this)">+</button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div style="display: flex; gap: 0.5rem; width: 100%;">
-                                <button type="submit" onclick="this.form.querySelector('.next-redirect').value='';" class="btn btn-outline" style="flex: 1; font-size: 0.85rem; padding: 10px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;">
-                                    <i class="fas fa-cart-plus"></i> {{ _('prod_add_to_cart') }}
+                                <button type="submit" onclick="this.form.querySelector('.next-redirect').value='';" class="btn btn-outline btn-cart" aria-label="{{ _('prod_add_to_cart') }}" title="{{ _('prod_add_to_cart') }}">
+                                    <i class="fas fa-cart-plus"></i>
                                 </button>
-                                <button type="submit" onclick="this.form.querySelector('.next-redirect').value=this.dataset.redirect;" data-redirect="{{ url_for('checkout') }}" class="btn btn-primary" style="flex: 1; font-size: 0.85rem; padding: 10px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;">
-                                    <i class="fas fa-bolt"></i> {{ _('prod_buy_now') }}
+                                <button type="submit" onclick="this.form.querySelector('.next-redirect').value=this.dataset.redirect;" data-redirect="{{ url_for('public.checkout') }}" class="btn btn-primary btn-buy">
+                                    <i class="fas fa-bolt"></i><span class="btn-label">{{ _('prod_buy_now') }}</span>
                                 </button>
                             </div>
                         </form>
@@ -307,7 +309,7 @@ function closeDailyOrderModal() {
                 <i class="fas fa-fire" style="color: var(--danger-color);"></i> 
                 {{ _('home_best_sellers') }}
             </h2>
-            <a href="{{ url_for('products') }}" class="btn btn-primary">
+            <a href="{{ url_for('public.products') }}" class="btn btn-primary">
                 {{ _('home_view_all') }} <i class="fas fa-arrow-right"></i>
             </a>
         </div>
@@ -316,13 +318,13 @@ function closeDailyOrderModal() {
         <div class="grid grid-cols-4">
             {% for product in products[-4:] %}
             <div class="product-card fade-in">
-                <a href="{{ url_for('product_detail_route', product_id=product.id) }}">
+                <a href="{{ url_for('public.product_detail_route', product_id=product.id) }}">
                 <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image">
                 </a>
                 
                 <div class="product-info">
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                        <a href="{{ url_for('product_detail_route', product_id=product.id) }}" style="text-decoration: none; color: inherit;">
+                        <a href="{{ url_for('public.product_detail_route', product_id=product.id) }}" style="text-decoration: none; color: inherit;">
                             <h3 class="product-title">{{ product.name }}</h3>
                         </a>
                         <span class="badge badge-danger" style="font-size: 0.7rem;">Hot</span>
@@ -342,21 +344,22 @@ function closeDailyOrderModal() {
                     </div>
                     <div class="product-actions">
                         {% if product.stock > 0 %}
-                        <form method="POST" action="{{ url_for('add_to_cart', product_id=product.id) }}">
+                        <form method="POST" action="{{ url_for('public.add_to_cart', product_id=product.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="next" class="next-redirect" value="">
-                            <div class="quantity-selector" style="margin-bottom: 0.5rem;">
-                                <div class="quantity-controls">
-                                    <button type="button" class="quantity-btn" onclick="decreaseQuantity(this)">−</button>
-                                    <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="quantity-input" placeholder="SL">
-                                    <button type="button" class="quantity-btn" onclick="increaseQuantity(this)">+</button>
+                            <div class="product-cta">
+                                <div class="quantity-selector">
+                                    <div class="quantity-controls">
+                                        <button type="button" class="quantity-btn" onclick="decreaseQuantity(this)">−</button>
+                                        <input type="number" name="quantity" value="1" min="1" max="{{ product.stock }}" class="quantity-input" placeholder="SL">
+                                        <button type="button" class="quantity-btn" onclick="increaseQuantity(this)">+</button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div style="display: flex; gap: 0.5rem; width: 100%;">
-                                <button type="submit" onclick="this.form.querySelector('.next-redirect').value='';" class="btn btn-outline" style="flex: 1; font-size: 0.85rem; padding: 10px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;">
-                                    <i class="fas fa-cart-plus"></i> {{ _('prod_add_to_cart') }}
+                                <button type="submit" onclick="this.form.querySelector('.next-redirect').value='';" class="btn btn-outline btn-cart" aria-label="{{ _('prod_add_to_cart') }}" title="{{ _('prod_add_to_cart') }}">
+                                    <i class="fas fa-cart-plus"></i>
                                 </button>
-                                <button type="submit" onclick="this.form.querySelector('.next-redirect').value=this.dataset.redirect;" data-redirect="{{ url_for('checkout') }}" class="btn btn-primary" style="flex: 1; font-size: 0.85rem; padding: 10px 8px; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem;">
-                                    <i class="fas fa-bolt"></i> {{ _('prod_buy_now') }}
+                                <button type="submit" onclick="this.form.querySelector('.next-redirect').value=this.dataset.redirect;" data-redirect="{{ url_for('public.checkout') }}" class="btn btn-primary btn-buy">
+                                    <i class="fas fa-bolt"></i><span class="btn-label">{{ _('prod_buy_now') }}</span>
                                 </button>
                             </div>
                         </form>

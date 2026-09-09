@@ -16,7 +16,7 @@
                 </p>
             </div>
             <div style="display: flex; gap: 1rem;">
-                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary" style="background: white; color: var(--accent-color);">
+                <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-primary" style="background: white; color: var(--accent-color);">
                     <i class="fas fa-arrow-left"></i> Quay lại Dashboard Admin - Cô Bông Cát Lái
                 </a>
             </div>
@@ -35,7 +35,8 @@
                 </h3>
             </div>
             
-            <form method="POST" action="{{ url_for('generate_qr') }}">
+            <form method="POST" action="{{ url_for('admin.generate_qr') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-group">
                     <label class="form-label">
                         <i class="fas fa-link"></i> URL cho mã QR *
@@ -181,7 +182,8 @@
         </div>
         
         <div class="grid grid-cols-4">
-            <form method="POST" action="{{ url_for('generate_qr') }}" style="text-align: center;">
+            <form method="POST" action="{{ url_for('admin.generate_qr') }}" style="text-align: center;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="url" value="http://localhost:5000">
                 <input type="hidden" name="size" value="15">
                 <input type="hidden" name="bg_color" value="#ffffff">
@@ -196,7 +198,8 @@
                 <button type="submit" class="btn btn-sm btn-primary">Tạo</button>
             </form>
             
-            <form method="POST" action="{{ url_for('generate_qr') }}" style="text-align: center;">
+            <form method="POST" action="{{ url_for('admin.generate_qr') }}" style="text-align: center;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="url" value="http://localhost:5000/products">
                 <input type="hidden" name="size" value="15">
                 <input type="hidden" name="bg_color" value="#ffffff">
@@ -211,7 +214,8 @@
                 <button type="submit" class="btn btn-sm btn-primary">Tạo</button>
             </form>
             
-            <form method="POST" action="{{ url_for('generate_qr') }}" style="text-align: center;">
+            <form method="POST" action="{{ url_for('admin.generate_qr') }}" style="text-align: center;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="url" value="http://localhost:5000/login">
                 <input type="hidden" name="size" value="15">
                 <input type="hidden" name="bg_color" value="#ffffff">
@@ -226,7 +230,8 @@
                 <button type="submit" class="btn btn-sm btn-primary">Tạo</button>
             </form>
             
-            <form method="POST" action="{{ url_for('generate_qr') }}" style="text-align: center;">
+            <form method="POST" action="{{ url_for('admin.generate_qr') }}" style="text-align: center;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="url" value="http://localhost:5000/cart">
                 <input type="hidden" name="size" value="15">
                 <input type="hidden" name="bg_color" value="#ffffff">

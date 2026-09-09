@@ -4,12 +4,12 @@
 
 {% block content %}
 <!-- Header Banner -->
-<section class="page-header" style="background: var(--gradient-accent); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
-    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem; text-align: center;">
-        <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+<section class="page-head">
+    <div class="container" style="text-align: center;">
+        <h1>
             <i class="fas fa-house-user"></i> {{ _('room_title') }}
         </h1>
-        <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
+        <p>
             {{ _('room_desc') }}
         </p>
     </div>
@@ -57,7 +57,7 @@
                         
                         <!-- CTA Action -->
                         <div>
-                            <a href="{{ url_for('room_detail', room_id=room.id) }}" class="btn btn-primary" style="width: 100%; text-align: center; padding: 0.75rem 1rem;">
+                            <a href="{{ url_for('public.room_detail', room_id=room.id) }}" class="btn btn-primary" style="width: 100%; text-align: center; padding: 0.75rem 1rem;">
                                 <i class="fas fa-calendar-alt"></i> {{ _('room_view_detail') }}
                             </a>
                         </div>

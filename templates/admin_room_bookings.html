@@ -159,7 +159,8 @@
                                 <td>
                                     <div class="action-buttons hide-mobile">
                                         {% if booking.status != 'confirmed' %}
-                                            <form method="POST" action="{{ url_for('admin_update_room_booking', booking_id=booking.id) }}" style="margin: 0; display: inline;">
+                                            <form method="POST" action="{{ url_for('admin.admin_update_room_booking', booking_id=booking.id) }}" style="margin: 0; display: inline;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <input type="hidden" name="status" value="confirmed">
                                                 <button type="submit" class="btn btn-success">
                                                     <i class="fas fa-check"></i> Duyệt
@@ -168,7 +169,8 @@
                                         {% endif %}
                                         
                                         {% if booking.status != 'cancelled' %}
-                                            <form method="POST" action="{{ url_for('admin_update_room_booking', booking_id=booking.id) }}" style="margin: 0; display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đặt phòng này?');">
+                                            <form method="POST" action="{{ url_for('admin.admin_update_room_booking', booking_id=booking.id) }}" style="margin: 0; display: inline;" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đặt phòng này?');">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <input type="hidden" name="status" value="cancelled">
                                                 <button type="submit" class="btn btn-danger">
                                                     <i class="fas fa-times"></i> Hủy
@@ -177,7 +179,8 @@
                                         {% endif %}
                                         
                                         {% if booking.status != 'pending' %}
-                                            <form method="POST" action="{{ url_for('admin_update_room_booking', booking_id=booking.id) }}" style="margin: 0; display: inline;">
+                                            <form method="POST" action="{{ url_for('admin.admin_update_room_booking', booking_id=booking.id) }}" style="margin: 0; display: inline;">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <input type="hidden" name="status" value="pending">
                                                 <button type="submit" class="btn btn-outline" style="border-color: var(--border-color); color: var(--text-secondary);">
                                                     Đặt lại chờ duyệt
@@ -196,9 +199,9 @@
                                             data-time="{{ booking.start_time.strftime('%H:%M') }} - {{ booking.end_time.strftime('%H:%M') }} ({{ booking.total_hours }}h)"
                                             data-total-price="{{ '{:,.0f}'.format(booking.total_price) }} VNĐ"
                                             data-status="{{ booking.status }}"
-                                            data-confirm-url="{{ url_for('admin_update_room_booking', booking_id=booking.id) }}"
-                                            data-cancel-url="{{ url_for('admin_update_room_booking', booking_id=booking.id) }}"
-                                            data-reset-url="{{ url_for('admin_update_room_booking', booking_id=booking.id) }}"
+                                            data-confirm-url="{{ url_for('admin.admin_update_room_booking', booking_id=booking.id) }}"
+                                            data-cancel-url="{{ url_for('admin.admin_update_room_booking', booking_id=booking.id) }}"
+                                            data-reset-url="{{ url_for('admin.admin_update_room_booking', booking_id=booking.id) }}"
                                             onclick="showBookingDetails(this)">
                                         <i class="fas fa-info-circle"></i>
                                     </button>
@@ -266,6 +269,7 @@ function showBookingDetails(button) {
     if (data.status !== 'confirmed') {
         actionButtons += `
             <form method="POST" action="${data.confirm_url}" style="margin: 0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="status" value="confirmed">
                 <button type="submit" class="btn btn-success" style="width: 100%; padding: 0.6rem; border-radius: 8px; font-weight: 500; font-size: 0.9rem; cursor: pointer;">
                     <i class="fas fa-check"></i> Duyệt đặt phòng
@@ -277,6 +281,7 @@ function showBookingDetails(button) {
     if (data.status !== 'cancelled') {
         actionButtons += `
             <form method="POST" action="${data.cancel_url}" style="margin: 0;" onsubmit="return confirm('Bạn có chắc chắn muốn hủy đặt phòng này?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="status" value="cancelled">
                 <button type="submit" class="btn btn-danger" style="width: 100%; padding: 0.6rem; border-radius: 8px; font-weight: 500; font-size: 0.9rem; cursor: pointer;">
                     <i class="fas fa-times"></i> Hủy đặt phòng
@@ -288,6 +293,7 @@ function showBookingDetails(button) {
     if (data.status !== 'pending') {
         actionButtons += `
             <form method="POST" action="${data.reset_url}" style="margin: 0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="status" value="pending">
                 <button type="submit" class="btn btn-outline" style="width: 100%; padding: 0.6rem; border-radius: 8px; font-weight: 500; font-size: 0.9rem; border-color: var(--border-color); color: var(--text-secondary); cursor: pointer;">
                     Đặt lại chờ duyệt

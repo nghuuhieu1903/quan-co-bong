@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Cô Bông Cát Lái{% endblock %}</title>
     <script>
     (function() {
@@ -327,24 +328,24 @@
     <div class="app-shell">
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
-            <a href="{{ url_for('index') }}" class="sidebar-brand">
+            <a href="{{ url_for('public.index') }}" class="sidebar-brand">
                 <i class="fa-solid fa-mug-saucer"></i> Cô Bông Cát Lái
             </a>
 
             <nav class="sidebar-nav">
-                <a href="{{ url_for('index') }}" class="sidebar-link {% if request.endpoint in ['index', 'customer_home'] %}active{% endif %}" onclick="closeSidebar()">
+                <a href="{{ url_for('public.index') }}" class="sidebar-link {% if current_endpoint in ['index', 'customer_home'] %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-home"></i> {{ _('nav_home') }}
                 </a>
-                <a href="{{ url_for('products') }}" class="sidebar-link {% if request.endpoint in ['products', 'product_detail_route'] and request.args.get('type', 'drink') == 'drink' %}active{% endif %}" onclick="closeSidebar()">
+                <a href="{{ url_for('public.products') }}" class="sidebar-link {% if current_endpoint in ['products', 'product_detail_route'] and request.args.get('type', 'drink') == 'drink' %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-mug-hot"></i> {{ _('nav_products') }}
                 </a>
-                <a href="{{ url_for('products', type='food') }}" class="sidebar-link {% if request.endpoint in ['products', 'product_detail_route'] and request.args.get('type') == 'food' %}active{% endif %}" onclick="closeSidebar()">
+                <a href="{{ url_for('public.products', type='food') }}" class="sidebar-link {% if current_endpoint in ['products', 'product_detail_route'] and request.args.get('type') == 'food' %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-utensils"></i> {{ _('nav_food') }}
                 </a>
-                <a href="{{ url_for('rooms') }}" class="sidebar-link {% if request.endpoint in ['rooms', 'room_detail'] %}active{% endif %}" onclick="closeSidebar()">
+                <a href="{{ url_for('public.rooms') }}" class="sidebar-link {% if current_endpoint in ['rooms', 'room_detail'] %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-house-user"></i> {{ _('nav_rooms') }}
                 </a>
-                <a href="{{ url_for('cart') }}" class="sidebar-link {% if request.endpoint == 'cart' %}active{% endif %}" onclick="closeSidebar()">
+                <a href="{{ url_for('public.cart') }}" class="sidebar-link {% if current_endpoint == 'cart' %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-shopping-cart"></i> {{ _('nav_cart') }}
                     {% if session.get('cart', []) %}
                         <span class="badge badge-info">{{ session.get('cart', [])|length }}</span>
@@ -355,12 +356,12 @@
                     <i class="fas fa-user-circle"></i> {{ session.get('customer_name', 'Khách') }}
                 </a>
                 {% if session.get('customer_role') == 'manager' %}
-                <a href="{{ url_for('daily_menu_manage') }}" class="sidebar-link {% if request.endpoint in ['daily_menu_manage'] %}active{% endif %}" onclick="closeSidebar()">
+                <a href="{{ url_for('menu.daily_menu_manage') }}" class="sidebar-link {% if current_endpoint in ['daily_menu_manage'] %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-utensils"></i> Quản lý thực đơn hôm nay
                 </a>
                 {% endif %}
                 {% else %}
-                <a href="{{ url_for('customer_login') }}" class="sidebar-link {% if request.endpoint == 'customer_login' %}active{% endif %}" onclick="closeSidebar()">
+                <a href="{{ url_for('auth.customer_login') }}" class="sidebar-link {% if current_endpoint == 'customer_login' %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-sign-in-alt"></i> {{ _('nav_login') }}
                 </a>
                 {% endif %}
@@ -368,11 +369,11 @@
 
             <div class="sidebar-footer">
                 {% if session.get('customer_logged_in') %}
-                <a href="{{ url_for('customer_logout') }}" class="sidebar-link sidebar-link-logout">
+                <a href="{{ url_for('auth.customer_logout') }}" class="sidebar-link sidebar-link-logout">
                     <i class="fas fa-sign-out-alt"></i> {{ _('nav_logout') }}
                 </a>
                 {% endif %}
-                <a href="{{ url_for('change_lang', lang='en' if current_lang == 'vi' else 'vi') }}" class="lang-toggle-btn" title="Switch language / Đổi ngôn ngữ">
+                <a href="{{ url_for('public.change_lang', lang='en' if current_lang == 'vi' else 'vi') }}" class="lang-toggle-btn" title="Switch language / Đổi ngôn ngữ">
                     <i class="fa-solid fa-globe"></i> {{ current_lang|upper }}
                 </a>
                 <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển giao diện sáng/tối" aria-label="Toggle dark mode">
@@ -388,11 +389,11 @@
         <div class="main-area">
             <!-- Mobile top bar -->
             <div class="mobile-topbar">
-                <a href="{{ url_for('index') }}" class="mobile-topbar-brand">
+                <a href="{{ url_for('public.index') }}" class="mobile-topbar-brand">
                     <i class="fa-solid fa-mug-saucer"></i> Cô Bông Cát Lái
                 </a>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <a href="{{ url_for('change_lang', lang='en' if current_lang == 'vi' else 'vi') }}" class="lang-toggle-btn" title="Switch language / Đổi ngôn ngữ">
+                    <a href="{{ url_for('public.change_lang', lang='en' if current_lang == 'vi' else 'vi') }}" class="lang-toggle-btn" title="Switch language / Đổi ngôn ngữ">
                         <i class="fa-solid fa-globe"></i> {{ current_lang|upper }}
                     </a>
                     <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển giao diện sáng/tối" aria-label="Toggle dark mode">

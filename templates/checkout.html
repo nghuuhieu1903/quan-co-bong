@@ -290,19 +290,19 @@
 
 {% block content %}
 <!-- Header Section -->
-<section class="page-header" style="background: var(--gradient-accent); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
-    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+<section class="page-head">
+    <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div>
-                <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+                <h1>
                     <i class="fas fa-credit-card"></i> {{ _('checkout_title') }}
                 </h1>
-                <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                <p>
                     {{ _('checkout_subtitle') }}
                 </p>
             </div>
             <div style="display: flex; gap: 1rem;">
-                <a href="{{ url_for('cart') }}" class="btn btn-primary" style="background: white; color: var(--accent-color);">
+                <a href="{{ url_for('public.cart') }}" class="btn btn-primary">
                     <i class="fas fa-arrow-left"></i> Quay lại giỏ hàng
                 </a>
             </div>
@@ -322,7 +322,8 @@
                 </h3>
             </div>
             
-            <form method="POST" action="{{ url_for('process_order') }}">
+            <form method="POST" action="{{ url_for('public.process_order') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="grid grid-cols-2">
                     <div class="form-group">
                         <label class="form-label">
@@ -474,10 +475,10 @@
         </p>
         
         <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-            <a href="{{ url_for('products') }}" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+            <a href="{{ url_for('public.products') }}" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">
                 <i class="fas fa-shopping-bag"></i> Mua sắm ngay
             </a>
-            <a href="{{ url_for('index') }}" class="btn btn-outline" style="padding: 1rem 2rem; font-size: 1.1rem;">
+            <a href="{{ url_for('public.index') }}" class="btn btn-outline" style="padding: 1rem 2rem; font-size: 1.1rem;">
                 <i class="fas fa-home"></i> Về trang chủ
             </a>
         </div>

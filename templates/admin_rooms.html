@@ -125,7 +125,7 @@
                 </p>
             </div>
             <div>
-                <a href="{{ url_for('admin_add_room') }}" class="btn btn-primary" style="background: white; color: var(--accent-color);">
+                <a href="{{ url_for('admin.admin_add_room') }}" class="btn btn-primary" style="background: white; color: var(--accent-color);">
                     <i class="fas fa-plus"></i> Thêm phòng mới
                 </a>
             </div>
@@ -173,17 +173,18 @@
                                 <td>
                                     <div class="action-buttons">
                                         <!-- Toggle Availability -->
-                                        <a href="{{ url_for('admin_toggle_room', room_id=room.id) }}" class="btn btn-outline hide-mobile" title="{% if room.available %}Tắt phòng{% else %}Bật phòng{% endif %}">
+                                        <a href="{{ url_for('admin.admin_toggle_room', room_id=room.id) }}" class="btn btn-outline hide-mobile" title="{% if room.available %}Tắt phòng{% else %}Bật phòng{% endif %}">
                                             <i class="fas {% if room.available %}fa-eye-slash{% else %}fa-eye{% endif %}"></i> Bật/Tắt
                                         </a>
                                         
                                         <!-- Edit Room -->
-                                        <a href="{{ url_for('admin_edit_room', room_id=room.id) }}" class="btn btn-primary" title="Chỉnh sửa" style="background: var(--accent-color); color: white;">
+                                        <a href="{{ url_for('admin.admin_edit_room', room_id=room.id) }}" class="btn btn-primary" title="Chỉnh sửa" style="background: var(--accent-color); color: white;">
                                             <i class="fas fa-edit"></i> Sửa
                                         </a>
                                         
                                         <!-- Delete Room -->
-                                        <form method="POST" action="{{ url_for('admin_delete_room', room_id=room.id) }}" onsubmit="return confirm('Bạn có chắc chắn muốn xóa phòng này?');" class="hide-mobile">
+                                        <form method="POST" action="{{ url_for('admin.admin_delete_room', room_id=room.id) }}" onsubmit="return confirm('Bạn có chắc chắn muốn xóa phòng này?');" class="hide-mobile">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                             <button type="submit" class="btn btn-danger" title="Xóa">
                                                 <i class="fas fa-trash"></i> Xóa
                                             </button>
@@ -203,7 +204,7 @@
             </div>
             <h3 style="color: var(--text-primary); margin-bottom: 0.5rem;">Chưa có phòng nào được tạo</h3>
             <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Bắt đầu quản lý phòng trọ bằng cách tạo phòng đầu tiên.</p>
-            <a href="{{ url_for('admin_add_room') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; width: auto; margin: 0 auto;">
+            <a href="{{ url_for('admin.admin_add_room') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem; width: auto; margin: 0 auto;">
                 <i class="fas fa-plus"></i> Thêm phòng mới
             </a>
         </div>

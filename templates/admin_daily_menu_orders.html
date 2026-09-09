@@ -85,13 +85,15 @@
                         <td>
                             <div class="action-buttons">
                                 {% if order.status != 'completed' %}
-                                <form method="POST" action="{{ url_for('admin_update_daily_menu_order', order_id=order.id) }}" style="margin: 0;">
+                                <form method="POST" action="{{ url_for('admin.admin_update_daily_menu_order', order_id=order.id) }}" style="margin: 0;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <input type="hidden" name="status" value="completed">
                                     <button type="submit" class="btn btn-sm btn-success"><i class="fas fa-check"></i></button>
                                 </form>
                                 {% endif %}
                                 {% if order.status != 'cancelled' %}
-                                <form method="POST" action="{{ url_for('admin_update_daily_menu_order', order_id=order.id) }}" style="margin: 0;">
+                                <form method="POST" action="{{ url_for('admin.admin_update_daily_menu_order', order_id=order.id) }}" style="margin: 0;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <input type="hidden" name="status" value="cancelled">
                                     <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-times"></i></button>
                                 </form>

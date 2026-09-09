@@ -335,16 +335,16 @@
 
 {% block content %}
 <!-- Header Section -->
-<section class="page-header" style="background: var(--gradient-success); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
-    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+<section class="page-head">
+    <div class="container">
         <div style="text-align: center;">
-            <div style="background: rgba(255,255,255,0.2); width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;">
-                <i class="fas fa-check-circle" style="font-size: 3rem; color: white;"></i>
+            <div style="background: color-mix(in srgb, var(--success-color) 14%, transparent); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <i class="fas fa-check-circle" style="font-size: 1.9rem; color: var(--success-color);"></i>
             </div>
-            <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 1rem;">
+            <h1>
                 Đặt hàng thành công!
             </h1>
-            <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+            <p>
                 Cảm ơn bạn đã đặt hàng. Đơn hàng của bạn đang được xử lý.
             </p>
         </div>
@@ -648,13 +648,13 @@
             </h3>
             
             <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                <a href="{{ url_for('products') }}" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                <a href="{{ url_for('public.products') }}" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">
                     <i class="fas fa-shopping-bag"></i> Mua thêm sản phẩm
                 </a>
-                <a href="{{ url_for('index') }}" class="btn btn-outline" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                <a href="{{ url_for('public.index') }}" class="btn btn-outline" style="padding: 1rem 2rem; font-size: 1.1rem;">
                     <i class="fas fa-home"></i> Về trang chủ
                 </a>
-                <a href="{{ url_for('customer_home') }}" class="btn btn-secondary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                <a href="{{ url_for('public.customer_home') }}" class="btn btn-secondary" style="padding: 1rem 2rem; font-size: 1.1rem;">
                     <i class="fas fa-user"></i> Theo dõi đơn hàng
                 </a>
             </div>
