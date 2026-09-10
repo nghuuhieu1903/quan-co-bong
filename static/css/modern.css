@@ -113,7 +113,7 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: background 0.2s ease, color 0.2s ease;
     color: var(--text-primary);
     font-size: 1rem;
 }
@@ -163,7 +163,7 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 14px;
     font-weight: 600;
     box-shadow: var(--shadow-md);
-    transition: all 0.3s ease;
+    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -189,7 +189,7 @@ h1, h2, h3, h4, h5, h6 {
     position: sticky;
     top: 0;
     z-index: 100;
-    transition: all 0.3s ease;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .nav-container {
@@ -264,7 +264,7 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0.5rem;
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border-color);
-    transition: all 0.3s ease;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
     margin-bottom: 2rem;
 }
 
@@ -389,7 +389,7 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 14px;
     background: var(--bg-primary);
     color: var(--text-primary);
-    transition: all 0.3s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .form-control:focus {
@@ -420,7 +420,7 @@ input[type="range"]::-webkit-slider-thumb {
     border-radius: 50%;
     background: var(--gradient-accent);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
@@ -434,7 +434,7 @@ input[type="range"]::-moz-range-thumb {
     border-radius: 50%;
     background: var(--gradient-accent);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* Tables */
@@ -834,7 +834,7 @@ html.show-onboarding body {
     height: 8px;
     border-radius: 50%;
     background: var(--border-color);
-    transition: all 0.3s ease;
+    transition: background 0.2s ease, width 0.2s ease;
 }
 
 .onboarding-dot.active {
@@ -1468,4 +1468,98 @@ html.show-onboarding body {
 
 .site-footer a:hover {
     text-decoration: underline;
+}
+
+/* Touch devices: no hover, real press feedback
+   ===================================================================
+   A phone has no pointer, so tapping something applies :hover and leaves it
+   applied until you tap somewhere else. Every lift-and-shadow hover in this
+   file therefore stuck to whatever you last touched - a button left sitting
+   raised with a drop shadow, which is the "trail" behind taps. The gradient
+   sweep on .btn had the same problem: it ran across on tap and then parked
+   at the far edge.
+
+   So: hover effects are switched off wherever there is no real pointer, and
+   replaced with a press state that ends the moment the finger lifts. */
+@media (hover: none), (pointer: coarse) {
+    .btn:hover,
+    .btn-primary:hover,
+    .btn-secondary:hover,
+    .card:hover,
+    .product-card:hover,
+    .theme-toggle:hover {
+        transform: none;
+    }
+
+    /* Each of these keeps whatever shadow it has at rest. Spelled out rather
+       than `inherit`, which would have pulled in the parent's shadow instead
+       of the element's own. */
+    .card:hover,
+    .product-card:hover,
+    .theme-toggle:hover {
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary:hover {
+        box-shadow: 0 4px 14px rgba(47, 155, 255, 0.32);
+    }
+
+    .product-card:hover .product-image {
+        transform: none;
+    }
+
+    /* the sweep only ever looked right following a mouse across the button */
+    .btn::before,
+    .btn:hover::before {
+        display: none;
+    }
+
+    /* Press feedback instead: it tracks the finger exactly, so nothing is
+       left behind when the tap ends. Scale rather than translate, because a
+       translate leaves a gap the parent has to repaint. */
+    .btn:active,
+    .quick-chip:active,
+    .sw-chip:active,
+    .pos-item:active,
+    .orders-filter:active {
+        transform: scale(0.97);
+        transition-duration: 0.06s;
+    }
+
+    .product-card:active {
+        transform: scale(0.995);
+        transition-duration: 0.06s;
+    }
+
+    /* Android draws its own grey box over anything tapped, on top of the
+       press state above; ours is enough. */
+    a, button, .btn, .pos-item, .product-card, .sw-tab, label {
+        -webkit-tap-highlight-color: transparent;
+    }
+}
+
+/* The entrance animation slides content up 20px on every page load. On a
+   phone that reads as the whole page shuddering into place, and it runs on
+   dozens of cards at once. Keep a plain fade there - no movement to smear. */
+@media (max-width: 768px) {
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to   { opacity: 1; }
+    }
+
+    .fade-in {
+        animation-duration: 0.25s;
+    }
+}
+
+/* Anyone who has asked their phone to reduce motion means it. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
 }
