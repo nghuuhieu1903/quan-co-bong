@@ -47,22 +47,23 @@
       "description": "{{ seo.description }}",
       "url": "{{ seo.site_url }}",
       "image": "{{ seo.image }}",
-      "telephone": "+84917331628",
+      "telephone": "{{ seo.shop.contact_phone }}",
       "servesCuisine": ["Cà phê", "Đồ uống", "Món ăn Việt Nam"],
-      "priceRange": "20.000₫ - 150.000₫",
+      "priceRange": "{{ seo.shop.price_range }}",
+      "openingHours": "{{ seo.shop.opening_hours }}",
       "address": {
         "@type": "PostalAddress",
-        "streetAddress": "Số 78, Đường 54CL",
-        "addressLocality": "Phường Cát Lái, TP. Thủ Đức",
-        "addressRegion": "TP. Hồ Chí Minh",
+        "streetAddress": "{{ seo.shop.street_address }}",
+        "addressLocality": "{{ seo.shop.locality }}",
+        "addressRegion": "{{ seo.shop.region }}",
         "addressCountry": "VN"
       },
       "geo": {
         "@type": "GeoCoordinates",
-        "latitude": 10.7734753,
-        "longitude": 106.7972421
+        "latitude": {{ seo.shop.latitude }},
+        "longitude": {{ seo.shop.longitude }}
       },
-      "hasMap": "https://maps.app.goo.gl/CXc9XrmZKGgiUMX39"
+      "hasMap": "{{ seo.shop.map_url }}"
     }
     </script>
     {% block structured_data %}{% endblock %}
@@ -489,7 +490,8 @@
                  can dial it straight from the page. -->
             <footer class="site-footer">
                 <p>
-                    Liên hệ: <a href="tel:+84917331628">0917331628</a> - cô Bông
+                    Liên hệ:
+                    <a href="tel:{{ seo.shop.contact_phone }}">{{ seo.shop.contact_phone }}</a>{% if seo.shop.contact_label %} - {{ seo.shop.contact_label }}{% endif %}
                 </p>
             </footer>
         </div>

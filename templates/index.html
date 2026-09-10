@@ -115,9 +115,11 @@
 </style>
 {% endblock %}
 
-{% block title %}{{ _('nav_home') }} - Cô Bông Cát Lái{% endblock %}
+{% block title %}{{ seo.shop.home_title or (_('nav_home') ~ ' - ' ~ seo.site_name) }}{% endblock %}
 
-{% block meta_description %}{{ _('home_desc') }} Đặt đồ uống, món ăn hằng ngày và thuê căn hộ dịch vụ tại Cát Lái.{% endblock %}
+{# The home page is the site, so the general description belongs here.
+   Other pages keep their own wording, which is more specific. #}
+{% block meta_description %}{{ seo.shop.home_description or seo.description }}{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->

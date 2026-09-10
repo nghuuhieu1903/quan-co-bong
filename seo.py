@@ -18,9 +18,10 @@ import logging
 import os
 from datetime import datetime
 
-from flask import Blueprint, Response, request, url_for
+from flask import Blueprint, Response, g, request, url_for
 
-from models import Product, Room
+from extensions import db
+from models import Product, Room, SiteSetting
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,71 @@ DEFAULT_DESCRIPTION = (
     'hằng ngày, cùng căn hộ dịch vụ cho thuê ngắn và dài hạn tại Cát Lái, '
     'Thủ Đức, TP.HCM.'
 )
+
+# Every editable setting, with the value the site used before the admin page
+# existed. A key missing from the database falls back to its default, so an
+# empty settings table renders exactly what the hard-coded version did.
+DEFAULTS = {
+    'site_name': SITE_NAME,
+    'site_description': DEFAULT_DESCRIPTION,
+    'contact_phone': '0917331628',
+    'contact_label': 'cô Bông',
+    'street_address': 'Số 78, Đường 54CL',
+    'locality': 'Phường Cát Lái, TP. Thủ Đức',
+    'region': 'TP. Hồ Chí Minh',
+    'price_range': '20.000₫ - 150.000₫',
+    'map_url': 'https://maps.app.goo.gl/CXc9XrmZKGgiUMX39',
+    'latitude': '10.7734753',
+    'longitude': '106.7972421',
+    'opening_hours': 'Mo-Su 06:00-22:00',
+    # per-page overrides; blank means "use the page's own text"
+    'home_title': '',
+    'home_description': '',
+    'drinks_title': '',
+    'drinks_description': '',
+    'food_title': '',
+    'food_description': '',
+    'rooms_title': '',
+    'rooms_description': '',
+}
+
+
+def settings():
+    """All settings, defaults filled in. Read once per request."""
+    cached = getattr(g, '_seo_settings', None)
+    if cached is not None:
+        return cached
+    values = dict(DEFAULTS)
+    try:
+        for row in SiteSetting.query.all():
+            if row.key in DEFAULTS and (row.value or '').strip():
+                values[row.key] = row.value.strip()
+    except Exception:
+        # Before the table exists (first boot) the defaults are correct.
+        logger.exception('Could not read site settings; using defaults')
+    g._seo_settings = values
+    return values
+
+
+def save_settings(new_values):
+    """Write the settings that changed. Blank means 'back to default'."""
+    changed = 0
+    for key, value in new_values.items():
+        if key not in DEFAULTS:
+            continue
+        value = (value or '').strip()
+        row = db.session.get(SiteSetting, key)
+        if row is None:
+            if not value:
+                continue
+            db.session.add(SiteSetting(key=key, value=value))
+            changed += 1
+        elif row.value != value:
+            row.value = value
+            changed += 1
+    db.session.commit()
+    g.pop('_seo_settings', None)
+    return changed
 
 
 def site_url():
@@ -55,11 +121,13 @@ def register(app):
     @app.context_processor
     def inject_seo():
         """Defaults every page gets; templates override with blocks."""
+        cfg = settings()
         return {
             'seo': {
-                'site_name': SITE_NAME,
+                'site_name': cfg['site_name'],
                 'site_url': site_url(),
-                'description': DEFAULT_DESCRIPTION,
+                'description': cfg['site_description'],
+                'shop': cfg,
                 'canonical': absolute(request.path),
                 'image': absolute(url_for('static',
                                           filename='icons/og-image.png')),
@@ -130,10 +198,11 @@ def sitemap():
 @bp.route('/site.webmanifest')
 def webmanifest():
     """Lets Android offer "add to home screen" with the right icon."""
+    cfg = settings()
     data = {
-        'name': SITE_NAME,
-        'short_name': 'Cô Bông',
-        'description': DEFAULT_DESCRIPTION,
+        'name': cfg['site_name'],
+        'short_name': cfg['site_name'].split()[0] if cfg['site_name'] else 'Quán',
+        'description': cfg['site_description'],
         'start_url': '/',
         'display': 'standalone',
         'background_color': '#ffffff',

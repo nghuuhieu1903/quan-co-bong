@@ -225,6 +225,24 @@ class DailyMenuOrder(db.Model):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+class SiteSetting(db.Model):
+    """Editable site text, as key/value rows.
+
+    A key/value table rather than a column per field: the SEO page grows a
+    new setting now and then, and each one would otherwise need a migration.
+    Nothing here is required - seo.py falls back to the built-in defaults for
+    any key that has never been saved, so an empty table behaves exactly like
+    the hard-coded version did.
+    """
+    key = db.Column(db.String(64), primary_key=True)
+    value = db.Column(db.Text)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
 def create_notification(notification_type, message):
     try:
         notification = Notification(type=notification_type, message=message)

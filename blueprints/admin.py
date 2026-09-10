@@ -629,6 +629,28 @@ def pos_create_order():
     return redirect(url_for('admin.order_receipt', order_id=order.id, print=1))
 
 
+@bp.route('/admin/seo', methods=['GET', 'POST'])
+@super_admin_required
+def admin_seo():
+    """Edit the text search engines and social previews use.
+
+    Everything here has a built-in default, so clearing a field restores the
+    original wording rather than blanking the site.
+    """
+    import seo as seo_mod
+
+    if request.method == 'POST':
+        changed = seo_mod.save_settings(request.form.to_dict())
+        flash(f'Đã lưu {changed} thay đổi' if changed else 'Không có gì thay đổi',
+              'success' if changed else 'info')
+        return redirect(url_for('admin.admin_seo'))
+
+    return render_template('admin_seo.html',
+                           cfg=seo_mod.settings(),
+                           defaults=seo_mod.DEFAULTS,
+                           site_url=seo_mod.site_url())
+
+
 @bp.route('/admin/debts')
 @super_admin_required
 def admin_debts():

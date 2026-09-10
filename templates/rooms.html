@@ -1,8 +1,8 @@
 {% extends "modern_base.html" %}
 
-{% block title %}{{ _('nav_rooms') }} - Cô Bông Cát Lái{% endblock %}
+{% block title %}{{ seo.shop.rooms_title or (_('nav_rooms') ~ ' - ' ~ seo.site_name) }}{% endblock %}
 
-{% block meta_description %}{{ _('room_desc') }} Xem giá theo giờ, tiện nghi và đặt phòng trực tuyến.{% endblock %}
+{% block meta_description %}{{ seo.shop.rooms_description or (_('room_desc') ~ ' Xem giá theo giờ, tiện nghi và đặt phòng trực tuyến.') }}{% endblock %}
 
 {% block content %}
 <!-- Header Banner -->

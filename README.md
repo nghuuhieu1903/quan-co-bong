@@ -127,6 +127,25 @@ fetch(url, {
 })
 ```
 
+## 🔎 Editing the SEO text
+
+`/admin/seo` (super admin only) edits the shop details and the title and
+description search engines show, without touching code: name, description,
+phone, address, opening hours, price range, map link and coordinates, plus a
+title/description override per public page.
+
+Every setting has a built-in default in `seo.DEFAULTS`. Clearing a field
+deletes the override and the site falls back to that default, so an empty
+`site_setting` table renders exactly what the hard-coded version did - there
+is no state where the site ends up with a blank name.
+
+The page shows a live preview of the Google result and counts characters
+against the lengths Google truncates at (60 for a title, 160 for a
+description).
+
+The share image is generated, not uploaded - edit `tools/make_icons.py` and
+re-run it.
+
 ## 🔑 Sessions and SECRET_KEY
 
 `SECRET_KEY` signs the session cookie, and the cookie is what says
@@ -198,6 +217,7 @@ python test_flows.py                 # 38 real write paths, end to end
 python test_security.py              # each fix, verified by running the attack
 python test_payments.py              # QR + transfer-content rules
 python test_seo.py                   # metadata, sitemap, icons
+python test_seo_admin.py             # settings page drives the public pages
 ```
 
 The other `test_*.py` scripts are older one-off checks that need a server
