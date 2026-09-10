@@ -311,6 +311,12 @@
                     <i class="fas fa-tachometer-alt"></i> Dashboard
                 </a>
 
+                {# The counter screen is what staff use all day, so it sits at
+                   the top rather than inside a group. #}
+                <a href="{{ url_for('admin.pos') }}" class="sidebar-link {% if current_endpoint == 'pos' %}active{% endif %}" onclick="closeSidebar()">
+                    <i class="fas fa-cash-register"></i> Bán hàng
+                </a>
+
                 <div class="sidebar-group" data-group="rooms"
                      {% if current_endpoint in ['admin_rooms', 'admin_add_room', 'admin_edit_room', 'admin_room_bookings'] %}data-has-current="1"{% endif %}>
                     <button type="button" class="sidebar-group-toggle">

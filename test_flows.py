@@ -326,6 +326,11 @@ def cleanup(ids):
                     db.session.delete(row); removed.append(f'{model.__name__}#{ids[key]}')
         if ids.get('order'):
             for it in models.OrderItem.query.filter_by(order_id=ids['order']).all():
+                # Placing the order decremented stock; deleting the order has
+                # to give it back or repeated runs quietly drain the shop.
+                product = db.session.get(models.Product, it.product_id)
+                if product:
+                    product.stock += it.quantity
                 db.session.delete(it)
             o = db.session.get(models.Order, ids['order'])
             if o:

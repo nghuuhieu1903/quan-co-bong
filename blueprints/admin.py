@@ -23,6 +23,7 @@ from automation import automation_controller, gTTS, laptop_speaker, pyautogui, p
 from decorators import (admin_required, admin_required_api,
                         admin_required_api_success, manager_required,
                         super_admin_required)
+import payments
 from extensions import db
 from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, safe_print as print,
                      save_uploaded_file, save_uploaded_files, send_email)
@@ -527,6 +528,105 @@ def admin_orders():
 
     return render_template('admin_orders.html', orders=orders, counts=counts,
                            total_debt=total_debt, status_filter=status_filter)
+
+
+@bp.route('/admin/order/<int:order_id>/receipt')
+@admin_required
+def order_receipt(order_id):
+    """A receipt sized for thermal paper, for the POS terminal's printer.
+
+    Printing goes through the browser: the page carries @page and print CSS
+    for 80mm roll, so the device's own print service handles it and no driver
+    or app has to be installed on the terminal.
+    """
+    order = Order.query.get_or_404(order_id)
+    items = OrderItem.query.filter_by(order_id=order.id).all()
+    return render_template('receipt.html', order=order, items=items,
+                           payment=(payments.payment_details(order)
+                                    if order.payment_method == 'bank' else None),
+                           order_code=payments.order_code(order.id),
+                           width=request.args.get('w', '80'))
+
+
+@bp.route('/admin/pos')
+@admin_required
+def pos():
+    """Counter screen for the POS terminal: tap items, take payment, print.
+
+    Everything is on one screen because the terminal is held in one hand -
+    there is no room for a multi-step flow.
+    """
+    products = Product.query.filter(Product.stock > 0).order_by(
+        Product.item_type, Product.name).all()
+    return render_template('pos.html', products=products,
+                           bank_enabled=payments.is_configured())
+
+
+@bp.route('/admin/pos/order', methods=['POST'])
+@admin_required
+def pos_create_order():
+    """Create an order from the counter screen.
+
+    Mirrors the customer checkout: stock is verified before anything is
+    written, then decremented, so the two ways of ordering cannot oversell
+    between them.
+    """
+    product_ids = request.form.getlist('product_id')
+    quantities = request.form.getlist('quantity')
+    payment_method = request.form.get('payment_method', 'cash')
+    customer_name = (request.form.get('customer_name') or '').strip()
+    notes = (request.form.get('notes') or '').strip()
+
+    lines = []
+    for pid, qty in zip(product_ids, quantities):
+        try:
+            pid, qty = int(pid), int(qty)
+        except (TypeError, ValueError):
+            continue
+        if qty > 0:
+            lines.append((pid, qty))
+
+    if not lines:
+        flash('Chưa chọn món nào', 'error')
+        return redirect(url_for('admin.pos'))
+
+    total = 0
+    resolved = []
+    for pid, qty in lines:
+        product = db.session.get(Product, pid)
+        if product is None:
+            flash('Một sản phẩm không còn tồn tại, vui lòng chọn lại', 'error')
+            return redirect(url_for('admin.pos'))
+        if qty > product.stock:
+            flash(f'"{product.name}" chỉ còn {product.stock}', 'error')
+            return redirect(url_for('admin.pos'))
+        resolved.append((product, qty))
+        total += product.price * qty
+
+    order = Order(
+        customer_name=customer_name or 'Khách tại quán',
+        customer_phone='Not provided',
+        total_amount=total,
+        payment_method=payment_method,
+        # Paid at the counter in cash means it is settled immediately; a
+        # transfer is only settled once the money actually arrives, so it
+        # stays owed until someone marks it off.
+        status='completed' if payment_method == 'cash' else 'pending',
+        notes=notes or None,
+    )
+    db.session.add(order)
+    db.session.flush()
+
+    for product, qty in resolved:
+        db.session.add(OrderItem(order_id=order.id, product_id=product.id,
+                                 quantity=qty, price=product.price))
+        product.stock -= qty
+
+    create_notification('new_order',
+                        f'Đơn tại quầy #{order.id} - {total:,.0f} VNĐ')
+    db.session.commit()
+
+    return redirect(url_for('admin.order_receipt', order_id=order.id, print=1))
 
 
 @bp.route('/admin/debts')

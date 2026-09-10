@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Hóa đơn #{{ order.id }}</title>
+<style>
+/* Thermal receipt. The roll is 80mm wide by default with roughly 72mm of
+   printable area; ?w=58 switches to the narrower roll. Everything is sized
+   in mm so it comes out the same regardless of the terminal's screen. */
+@page {
+    size: {{ width }}mm auto;
+    margin: 0;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    padding: 3mm;
+    width: {{ width }}mm;
+    /* A monospace face keeps the price column aligned, and thermal heads
+       render it more legibly than a proportional font at this size. */
+    font-family: "DejaVu Sans Mono", "Courier New", monospace;
+    font-size: {{ '11px' if width == '80' else '10px' }};
+    line-height: 1.45;
+    color: #000;
+    background: #fff;
+}
+
+.center { text-align: center; }
+.right  { text-align: right; }
+.bold   { font-weight: 700; }
+
+.shop-name {
+    font-size: {{ '15px' if width == '80' else '13px' }};
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+.shop-meta { font-size: 10px; }
+
+hr {
+    border: 0;
+    border-top: 1px dashed #000;
+    margin: 2mm 0;
+}
+
+table { width: 100%; border-collapse: collapse; }
+
+td { padding: 0.4mm 0; vertical-align: top; }
+
+.qty  { width: 8mm; }
+.amt  { width: 22mm; text-align: right; white-space: nowrap; }
+
+.total-row td {
+    font-size: {{ '14px' if width == '80' else '12px' }};
+    font-weight: 700;
+    padding-top: 1mm;
+}
+
+.qr { margin-top: 2mm; }
+.qr img { width: 38mm; height: auto; }
+
+.footer { margin-top: 3mm; font-size: 10px; }
+
+/* Buttons are for the screen only - they must never reach the paper. */
+.actions {
+    margin-top: 4mm;
+    display: flex;
+    gap: 2mm;
+}
+
+.actions button, .actions a {
+    flex: 1;
+    padding: 3mm 2mm;
+    font: inherit;
+    font-size: 12px;
+    border: 1px solid #000;
+    border-radius: 2mm;
+    background: #fff;
+    color: #000;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.actions .primary { background: #000; color: #fff; }
+
+@media print {
+    .actions { display: none !important; }
+    body { padding: 0 2mm; }
+}
+</style>
+</head>
+<body>
+
+<div class="center">
+    <div class="shop-name">CÔ BÔNG CÁT LÁI</div>
+    <div class="shop-meta">Số 78, Đường 54CL, Cát Lái</div>
+    <div class="shop-meta">ĐT: 0917331628</div>
+</div>
+
+<hr>
+
+<table>
+    <tr>
+        <td>Hóa đơn</td>
+        <td class="right bold">{{ order_code }}</td>
+    </tr>
+    <tr>
+        <td>Ngày</td>
+        <td class="right">{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+    </tr>
+    {% if order.customer_name and order.customer_name != 'Guest Customer' %}
+    <tr>
+        <td>Khách</td>
+        <td class="right">{{ order.customer_name }}</td>
+    </tr>
+    {% endif %}
+    {% if order.customer_phone and order.customer_phone != 'Not provided' %}
+    <tr>
+        <td>ĐT</td>
+        <td class="right">{{ order.customer_phone }}</td>
+    </tr>
+    {% endif %}
+</table>
+
+<hr>
+
+<table>
+    {% for item in items %}
+    <tr>
+        <td colspan="3">{{ item.product.name if item.product else 'Sản phẩm đã xóa' }}</td>
+    </tr>
+    <tr>
+        <td class="qty">{{ item.quantity }}x</td>
+        <td>{{ "{:,.0f}".format(item.price) }}</td>
+        <td class="amt">{{ "{:,.0f}".format(item.price * item.quantity) }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<hr>
+
+<table>
+    <tr class="total-row">
+        <td>TỔNG CỘNG</td>
+        <td class="amt">{{ "{:,.0f}".format(order.total_amount) }}</td>
+    </tr>
+    <tr>
+        <td>Thanh toán</td>
+        <td class="right">
+            {% if order.payment_method == 'bank' %}Chuyển khoản{% else %}Tiền mặt{% endif %}
+        </td>
+    </tr>
+    <tr>
+        <td>Trạng thái</td>
+        <td class="right">
+            {% if order.status == 'completed' %}Đã thanh toán{% else %}Còn nợ{% endif %}
+        </td>
+    </tr>
+</table>
+
+{% if payment %}
+<div class="center qr">
+    <hr>
+    <div>Quét để chuyển khoản</div>
+    <img src="{{ payment.qr_url }}" alt="QR chuyển khoản">
+    <div class="bold">{{ payment.content }}</div>
+</div>
+{% endif %}
+
+<div class="center footer">
+    <hr>
+    Cảm ơn quý khách!<br>
+    Hẹn gặp lại
+</div>
+
+<div class="actions">
+    <button type="button" class="primary" onclick="window.print()">In hóa đơn</button>
+    <a href="{{ url_for('admin.admin_orders') }}">Xong</a>
+</div>
+
+<script>
+    // Terminals open this straight from the order list, so offer the print
+    // dialog immediately - but only when asked, so the page can also be
+    // opened just to look at.
+    if (new URLSearchParams(location.search).get('print') === '1') {
+        window.addEventListener('load', function () { window.print(); });
+    }
+</script>
+</body>
+</html>

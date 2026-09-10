@@ -181,6 +181,10 @@ def main():
     # clean up the order this run created
     with app_module.app.app_context():
         for it in models.OrderItem.query.filter_by(order_id=order_id).all():
+            # give the stock back, or repeated runs drain the shop
+            product = db.session.get(models.Product, it.product_id)
+            if product:
+                product.stock += it.quantity
             db.session.delete(it)
         o = db.session.get(models.Order, order_id)
         if o:

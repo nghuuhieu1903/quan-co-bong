@@ -171,6 +171,7 @@
                     <th style="text-align: right;">Tổng tiền</th>
                     <th>Thanh toán</th>
                     <th>Trạng thái</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -236,10 +237,17 @@
                         </div>
                         {% endif %}
                     </td>
+                    <td>
+                        <a class="btn btn-secondary btn-sm" target="_blank"
+                           href="{{ url_for('admin.order_receipt', order_id=order.id, print=1) }}"
+                           title="In hóa đơn">
+                            <i class="fas fa-print"></i>
+                        </a>
+                    </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="6" class="orders-empty">
+                    <td colspan="7" class="orders-empty">
                         <i class="fas fa-receipt" style="font-size: 2rem; display: block; margin-bottom: 0.75rem; color: var(--text-muted);"></i>
                         Chưa có đơn hàng nào ở mục này.
                     </td>

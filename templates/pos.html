@@ -1,0 +1,382 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Bán hàng - Cô Bông Cát Lái{% endblock %}
+
+{% block head %}
+<style>
+/* Counter screen for the POS terminal.
+   ------------------------------------------------------------------
+   Sized for a handheld terminal held in one hand: two columns on a tablet,
+   stacked on a phone-sized screen, and every tap target at least 44px so it
+   can be hit reliably without a stylus. */
+.pos {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 1rem;
+    align-items: start;
+}
+
+.pos-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.85rem;
+}
+
+.pos-tab {
+    flex: 1;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-btn);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    min-height: 46px;
+}
+
+.pos-tab.active {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    color: #fff;
+}
+
+.pos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+    gap: 0.6rem;
+}
+
+.pos-item {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-btn);
+    background: var(--bg-card);
+    padding: 0.7rem;
+    text-align: left;
+    cursor: pointer;
+    min-height: 76px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0.35rem;
+    font: inherit;
+}
+
+.pos-item:active { background: var(--bg-secondary); }
+
+.pos-item .nm {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    line-height: 1.3;
+}
+
+.pos-item .pr {
+    color: var(--accent-color);
+    font-weight: 700;
+    font-size: 0.85rem;
+}
+
+.pos-item .st {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+/* --- ticket ------------------------------------------------------- */
+.pos-ticket {
+    position: sticky;
+    top: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--admin-radius, 8px);
+    background: var(--bg-card);
+}
+
+.pos-ticket h3 {
+    margin: 0;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.pos-lines {
+    max-height: 44vh;
+    overflow-y: auto;
+    padding: 0.5rem;
+}
+
+.pos-line {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.3rem 0.5rem;
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.pos-line .nm { font-size: 0.85rem; color: var(--text-primary); font-weight: 600; }
+.pos-line .amt { font-weight: 700; font-size: 0.85rem; white-space: nowrap; }
+
+.pos-qty {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.pos-qty button {
+    width: 34px;
+    height: 34px;
+    border: 0;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.pos-qty span {
+    min-width: 34px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.pos-empty {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.pos-foot {
+    border-top: 1px solid var(--border-color);
+    padding: 0.85rem 1rem 1rem;
+}
+
+.pos-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.85rem;
+}
+
+.pos-total .v {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-color);
+}
+
+.pos-foot input {
+    width: 100%;
+    margin-bottom: 0.6rem;
+    padding: 0.6rem 0.7rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font: inherit;
+    font-size: 0.875rem;
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+
+.pos-pay {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.pos-pay button {
+    min-height: 48px;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+.pos-pay button[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+@media (max-width: 900px) {
+    .pos { grid-template-columns: 1fr; }
+    .pos-ticket { position: static; }
+    .pos-lines { max-height: none; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <div>
+            <h1 class="admin-title"><i class="fas fa-cash-register"></i> Bán hàng tại quầy</h1>
+            <p>Chạm để chọn món, chọn hình thức trả tiền, hóa đơn in ngay.</p>
+        </div>
+    </div>
+</section>
+
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem 3rem;">
+    <div class="pos">
+        <div>
+            <div class="pos-tabs">
+                <button type="button" class="pos-tab active" data-type="drink">Đồ uống</button>
+                <button type="button" class="pos-tab" data-type="food">Đồ ăn</button>
+            </div>
+
+            <div class="pos-grid" id="posGrid">
+                {% for p in products %}
+                <button type="button" class="pos-item" data-type="{{ p.item_type }}"
+                        data-id="{{ p.id }}" data-name="{{ p.name }}"
+                        data-price="{{ '%.0f'|format(p.price) }}" data-stock="{{ p.stock }}">
+                    <span class="nm">{{ p.name }}</span>
+                    <span>
+                        <span class="pr">{{ "{:,.0f}".format(p.price) }}</span>
+                        <span class="st">· còn {{ p.stock }}</span>
+                    </span>
+                </button>
+                {% else %}
+                <p class="pos-empty">Chưa có sản phẩm nào còn hàng.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <form class="pos-ticket" method="POST" action="{{ url_for('admin.pos_create_order') }}" id="posForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <h3><i class="fas fa-receipt"></i> Đơn hiện tại</h3>
+
+            <div class="pos-lines" id="posLines">
+                <p class="pos-empty" id="posEmpty">Chạm vào món để thêm vào đơn.</p>
+            </div>
+
+            <div class="pos-foot">
+                <div class="pos-total">
+                    <span>Tổng cộng</span>
+                    <span class="v" id="posTotal">0 VNĐ</span>
+                </div>
+
+                <input type="text" name="customer_name" placeholder="Tên khách (không bắt buộc)"
+                       autocomplete="off">
+                <input type="text" name="notes" placeholder="Ghi chú (không bắt buộc)"
+                       autocomplete="off">
+
+                <div class="pos-pay">
+                    <button type="submit" name="payment_method" value="cash"
+                            class="btn btn-primary" id="payCash" disabled>
+                        <i class="fas fa-money-bill-wave"></i> Tiền mặt · In hóa đơn
+                    </button>
+                    {% if bank_enabled %}
+                    <button type="submit" name="payment_method" value="bank"
+                            class="btn btn-secondary" id="payBank" disabled>
+                        <i class="fas fa-qrcode"></i> Chuyển khoản · In mã QR
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    var lines = {};                       // id -> {name, price, qty, stock}
+    var grid   = document.getElementById('posGrid');
+    var box    = document.getElementById('posLines');
+    var empty  = document.getElementById('posEmpty');
+    var totalEl = document.getElementById('posTotal');
+    var form   = document.getElementById('posForm');
+
+    function money(n) { return n.toLocaleString('vi-VN') + ' VNĐ'; }
+
+    function render() {
+        // rebuild the ticket; also rebuilds the hidden inputs that get posted
+        box.querySelectorAll('.pos-line, .pos-hidden').forEach(function (n) { n.remove(); });
+        form.querySelectorAll('input[name="product_id"], input[name="quantity"]')
+            .forEach(function (n) { n.remove(); });
+
+        var total = 0, any = false;
+        Object.keys(lines).forEach(function (id) {
+            var l = lines[id];
+            if (l.qty <= 0) return;
+            any = true;
+            total += l.price * l.qty;
+
+            var row = document.createElement('div');
+            row.className = 'pos-line';
+            row.innerHTML =
+                '<span class="nm"></span>' +
+                '<span class="amt">' + money(l.price * l.qty) + '</span>' +
+                '<span class="pos-qty">' +
+                  '<button type="button" data-act="dec">−</button>' +
+                  '<span>' + l.qty + '</span>' +
+                  '<button type="button" data-act="inc">+</button>' +
+                '</span>';
+            row.querySelector('.nm').textContent = l.name;   // never innerHTML
+            row.dataset.id = id;
+            box.appendChild(row);
+
+            ['product_id', 'quantity'].forEach(function (field) {
+                var i = document.createElement('input');
+                i.type = 'hidden';
+                i.name = field;
+                i.value = field === 'product_id' ? id : l.qty;
+                form.appendChild(i);
+            });
+        });
+
+        empty.style.display = any ? 'none' : '';
+        totalEl.textContent = money(total);
+        ['payCash', 'payBank'].forEach(function (id) {
+            var b = document.getElementById(id);
+            if (b) b.disabled = !any;
+        });
+    }
+
+    function add(btn, delta) {
+        var id = btn.dataset.id;
+        var stock = parseInt(btn.dataset.stock, 10);
+        if (!lines[id]) {
+            lines[id] = {name: btn.dataset.name,
+                         price: parseInt(btn.dataset.price, 10),
+                         qty: 0, stock: stock};
+        }
+        var next = lines[id].qty + delta;
+        // never let the counter book more than is on the shelf; the server
+        // checks again, but failing here avoids a wasted round trip
+        if (next > lines[id].stock) return;
+        lines[id].qty = Math.max(0, next);
+        if (lines[id].qty === 0) delete lines[id];
+        render();
+    }
+
+    grid.addEventListener('click', function (e) {
+        var item = e.target.closest('.pos-item');
+        if (item) add(item, 1);
+    });
+
+    box.addEventListener('click', function (e) {
+        var b = e.target.closest('button[data-act]');
+        if (!b) return;
+        var id = b.closest('.pos-line').dataset.id;
+        var src = grid.querySelector('.pos-item[data-id="' + id + '"]');
+        if (src) add(src, b.dataset.act === 'inc' ? 1 : -1);
+    });
+
+    document.querySelectorAll('.pos-tab').forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            document.querySelectorAll('.pos-tab').forEach(function (t) {
+                t.classList.remove('active');
+            });
+            this.classList.add('active');
+            var want = this.dataset.type;
+            grid.querySelectorAll('.pos-item').forEach(function (i) {
+                i.style.display = i.dataset.type === want ? '' : 'none';
+            });
+        });
+    });
+
+    // start on the drinks tab
+    grid.querySelectorAll('.pos-item').forEach(function (i) {
+        if (i.dataset.type !== 'drink') i.style.display = 'none';
+    });
+
+    render();
+})();
+</script>
+{% endblock %}
