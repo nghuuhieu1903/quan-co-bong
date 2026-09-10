@@ -132,42 +132,6 @@
     }
     
     /* QR section */
-    #qr-section .grid {
-        grid-template-columns: 1fr !important;
-        gap: 1.5rem !important;
-    }
-    
-    #qr-section h5 {
-        font-size: 1rem !important;
-        text-align: center;
-    }
-    
-    #qr-code-image {
-        width: 150px !important;
-        height: 150px !important;
-        margin: 0 auto;
-    }
-    
-    #qr-section p {
-        font-size: 0.85rem !important;
-        text-align: center;
-    }
-    
-    #qr-section div[style*="padding: 1.5rem"] {
-        padding: 1rem !important;
-    }
-    
-    #qr-section strong {
-        font-size: 0.85rem !important;
-    }
-    
-    #qr-section p[style*="font-size: 1.1rem"] {
-        font-size: 1rem !important;
-    }
-    
-    #qr-section p[style*="font-size: 1.2rem"] {
-        font-size: 1.1rem !important;
-    }
     
     /* Next steps */
     .next-steps .grid {
@@ -269,11 +233,6 @@
         font-size: 0.85rem !important;
     }
     
-    #qr-code-image {
-        width: 120px !important;
-        height: 120px !important;
-    }
-    
     .next-steps .grid {
         grid-template-columns: 1fr !important;
         gap: 1rem !important;
@@ -352,6 +311,58 @@
         </div>
     </div>
 </section>
+
+{% if payment %}
+<!-- Bank transfer: QR with the amount and reference already filled in -->
+<section class="order-confirmation">
+    <div class="card fade-in pay-panel">
+        <div class="card-header">
+            <h3 style="margin: 0; color: var(--text-primary);">
+                <i class="fas fa-qrcode"></i> Quét mã để thanh toán
+            </h3>
+        </div>
+        <div class="pay-panel-body">
+            <div class="pay-qr">
+                <img src="{{ payment.qr_url }}" alt="Mã QR chuyển khoản đơn {{ order_code }}"
+                     loading="lazy" width="300" height="360">
+            </div>
+            <div class="pay-info">
+                <p class="pay-hint">
+                    Mở app ngân hàng, quét mã bên cạnh. Số tiền và nội dung đã
+                    được điền sẵn — bạn không cần nhập tay.
+                </p>
+                <dl class="pay-rows">
+                    <div><dt>Ngân hàng</dt><dd>{{ payment.bank_id }}</dd></div>
+                    <div><dt>Số tài khoản</dt><dd>{{ payment.account_no }}</dd></div>
+                    {% if payment.account_name %}
+                    <div><dt>Chủ tài khoản</dt><dd>{{ payment.account_name }}</dd></div>
+                    {% endif %}
+                    <div><dt>Số tiền</dt>
+                        <dd class="pay-amount">{{ "{:,.0f}".format(payment.amount) }} VNĐ</dd></div>
+                    <div><dt>Nội dung</dt>
+                        <dd><code class="pay-content">{{ payment.content }}</code></dd></div>
+                </dl>
+                <p class="pay-warn">
+                    <i class="fas fa-circle-info"></i>
+                    Giữ đúng nội dung <strong>{{ payment.content }}</strong> để quán
+                    đối chiếu đơn của bạn.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+{% elif order.payment_method == 'bank' %}
+<section class="order-confirmation">
+    <div class="card fade-in" style="border-left: 3px solid var(--warning-color);">
+        <div style="padding: 1.25rem;">
+            <strong>Chưa cấu hình tài khoản nhận chuyển khoản.</strong>
+            <p style="margin: 0.4rem 0 0; color: var(--text-secondary);">
+                Vui lòng liên hệ quán để thanh toán đơn <strong>{{ order_code }}</strong>.
+            </p>
+        </div>
+    </div>
+</section>
+{% endif %}
 
 <!-- Order Details -->
 <section class="order-confirmation">
@@ -450,117 +461,7 @@
     </div>
 </section>
 
-<!-- Payment Selection -->
-<section class="payment-selection" style="margin-top: 2rem;">
-    <div class="card fade-in">
-        <div class="card-header">
-            <h3 style="margin: 0; color: var(--text-primary);">
-                <i class="fas fa-info-circle"></i> Thông tin thanh toán
-            </h3>
-        </div>
-        
-        <div style="padding: 2rem;">
-            <div class="grid grid-cols-2" style="gap: 2rem;">
-                <!-- Cash Payment -->
-                <div class="payment-option" id="cash-option" style="border: 2px solid var(--border-color); border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s ease;" onclick="selectPayment('cash')">
-                    <div style="background: var(--gradient-success); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                        <i class="fas fa-money-bill-wave" style="font-size: 2rem; color: white;"></i>
-                    </div>
-                    <h4 style="margin-bottom: 1rem; color: var(--text-primary);">Thanh toán tiền mặt</h4>
-                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                        Thanh toán trực tiếp
-                    </p>
-                    <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px;">
-                        <i class="fas fa-truck" style="color: var(--success-color); margin-right: 0.5rem;"></i>
-                        Xác nhận thanh toán
-                    </div>
-                </div>
-                
-                <!-- Bank Transfer Payment -->
-                <div class="payment-option" id="transfer-option" style="border: 2px solid var(--border-color); border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s ease;" onclick="selectPayment('transfer')">
-                    <div style="background: var(--gradient-info); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                        <i class="fas fa-qrcode" style="font-size: 2rem; color: white;"></i>
-                    </div>
-                    <h4 style="margin-bottom: 1rem; color: var(--text-primary);">Chuyển khoản ngân hàng</h4>
-                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
-                        Quét mã QR hoặc chuyển khoản trực tiếp
-                    </p>
-                    <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px;">
-                        <i class="fas fa-check-circle" style="color: var(--info-color); margin-right: 0.5rem;"></i>
-                        Xác nhận thanh toán
-                    </div>
-                </div>
-            </div>
-            
-            <!-- QR Code Section (Hidden by default) -->
-            <div id="qr-section" style="display: none; margin-top: 2rem;">
-                <div style="background: var(--bg-secondary); border-radius: 12px; padding: 2rem;">
-                    <div class="grid grid-cols-2" style="gap: 2rem; align-items: center;">
-                        <!-- QR Code -->
-                        <div style="text-align: center;">
-                            <h5 style="margin-bottom: 1rem; color: var(--text-primary);">
-                                <i class="fas fa-qrcode"></i> Quét mã QR để thanh toán
-                            </h5>
-                            <div style="background: white; padding: 2rem; border-radius: 8px; display: inline-block;">
-                                <!-- Placeholder QR Code - Replace with actual QR code image -->
-                                <div id="qr-code-image" style="width: 200px; height: 200px;"></div>
-                            </div>
-                            <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
-                                Sử dụng ứng dụng ngân hàng để quét mã QR
-                            </p>
-                        </div>
-                        
-                        <!-- Bank Transfer Info -->
-                        <div>
-                            <h5 style="margin-bottom: 1rem; color: var(--text-primary);">
-                                <i class="fas fa-university"></i> Thông tin chuyển khoản
-                            </h5>
-                            <div style="padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-primary);">
-                                <div style="margin-bottom: 0.5rem; font-size: 0.95rem;">
-                                    <strong style="color: var(--text-secondary);">Ngân hàng:</strong>
-                                    <span style="color: var(--text-primary); margin-left: 0.25rem;">Vietcombank - Chi nhánh Hà Nội</span>
-                                </div>
-                                <div style="margin-bottom: 0.5rem; font-size: 0.95rem;">
-                                    <strong style="color: var(--text-secondary);">Chủ tài khoản:</strong>
-                                    <span style="color: var(--text-primary); margin-left: 0.25rem;">Cô Bông Cát Lái ABC</span>
-                                </div>
-                                <div style="margin-bottom: 0.5rem; font-size: 0.95rem;">
-                                    <strong style="color: var(--text-secondary);">Số tài khoản:</strong>
-                                    <span style="font-weight: 600; color: var(--accent-color); margin-left: 0.25rem;">1234567890</span>
-                                </div>
-                                <div style="margin-bottom: 0.5rem; font-size: 0.95rem;">
-                                    <strong style="color: var(--text-secondary);">Số tiền:</strong>
-                                    <span style="font-weight: 600; color: var(--accent-color); margin-left: 0.25rem;">{{ "{:,.0f}".format(order.total_amount) }} VNĐ</span>
-                                </div>
-                                <div style="font-size: 0.95rem;">
-                                    <strong style="color: var(--text-secondary);">Nội dung chuyển khoản (ghi đúng nội dung này):</strong>
-                                    <span style="font-weight: bold; color: var(--accent-color); background: rgba(67, 97, 238, 0.1); padding: 0.25rem 0.5rem; border-radius: 4px; border: 1px dashed var(--accent-color); display: inline-block; margin-left: 0.25rem;">DH{{ order.id }} chuyen tien</span>
-                                </div>
-                            </div>
-                            
-                            <div style="margin-top: 1rem; padding: 1rem; background: var(--warning-bg); border-radius: 8px; border-left: 4px solid var(--warning-color);">
-                                <p style="margin: 0; color: var(--warning-color); font-size: 0.9rem;">
-                                    <i class="fas fa-info-circle"></i> 
-                                    Sau khi chuyển khoản thành công, đơn hàng của bạn sẽ được xử lý ngay lập tức.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Payment Confirmation Button -->
-            <div style="margin-top: 2rem; text-align: center;">
-                <button id="confirm-payment-btn" class="btn btn-primary" style="padding: 1rem 3rem; font-size: 1.1rem;" onclick="confirmPayment()" disabled>
-                    <i class="fas fa-check"></i> Tôi đã hiểu thông tin thanh toán
-                </button>
-                <p style="margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
-                    Vui lòng xem thông tin thanh toán để tiếp tục
-                </p>
-            </div>
-        </div>
-    </div>
-</section>
+
 
 <!-- Next Steps -->
 <section class="next-steps" style="margin-top: 2rem;">
@@ -668,33 +569,6 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Set QR code image dynamically using VietQR API
-    const qrCodeImage = document.getElementById('qr-code-image');
-    if (qrCodeImage) {
-        const orderId = "{{ order.id }}";
-        const customerPhone = "{{ order.customer_phone }}";
-        const amount = Math.round(parseFloat("{{ order.total_amount }}"));
-        
-        // Formulate addInfo according to user request (e.g. DH123 chuyen tien)
-        const addInfo = `DH${orderId} chuyen tien`;
-        const encodedAddInfo = encodeURIComponent(addInfo);
-        
-        // Bank details matching the display details above
-        const bankId = "VCB"; // Vietcombank
-        const accountNo = "1234567890";
-        const accountName = encodeURIComponent("CO BONG CAT LAI ABC");
-        
-        // Compact template: qr_only, compact, compact2, print
-        const qrUrl = `https://img.vietqr.io/image/${bankId}-${accountNo}-compact.png?amount=${amount}&addInfo=${encodedAddInfo}&accountName=${accountName}`;
-        
-        // Inject image element inside the container
-        qrCodeImage.style.background = 'none'; // clear background placeholder
-        qrCodeImage.style.display = 'flex';
-        qrCodeImage.style.alignItems = 'center';
-        qrCodeImage.style.justifyContent = 'center';
-        qrCodeImage.innerHTML = `<img src="${qrUrl}" alt="Mã QR Thanh Toán" style="max-width: 100%; max-height: 100%; object-fit: contain;">`;
-    }
-    
     // Add animation on scroll
     const observerOptions = {
         threshold: 0.1,
@@ -726,47 +600,6 @@ document.addEventListener('DOMContentLoaded', function() {
 // Payment selection functionality
 let selectedPayment = null;
 
-function selectPayment(method) {
-    // Remove previous selection
-    document.querySelectorAll('.payment-option').forEach(option => {
-        option.style.borderColor = 'var(--border-color)';
-        option.style.background = 'transparent';
-    });
-    
-    // Add selection to clicked option
-    const selectedOption = document.getElementById(method + '-option');
-    selectedOption.style.borderColor = 'var(--primary-color)';
-    selectedOption.style.background = 'var(--bg-secondary)';
-    
-    // Show/hide QR section
-    const qrSection = document.getElementById('qr-section');
-    if (method === 'transfer') {
-        qrSection.style.display = 'block';
-        // Add animation
-        qrSection.style.opacity = '0';
-        qrSection.style.transform = 'translateY(20px)';
-        setTimeout(() => {
-            qrSection.style.transition = 'all 0.5s ease';
-            qrSection.style.opacity = '1';
-            qrSection.style.transform = 'translateY(0)';
-        }, 100);
-    } else {
-        qrSection.style.display = 'none';
-    }
-    
-    // Enable confirm button
-    selectedPayment = method;
-    const confirmBtn = document.getElementById('confirm-payment-btn');
-    confirmBtn.disabled = false;
-    confirmBtn.style.background = 'var(--gradient-primary)';
-    
-    // Update button text
-    if (method === 'cash') {
-        confirmBtn.innerHTML = '<i class="fas fa-money-bill-wave"></i> Tôi đã hiểu thông tin thanh toán tiền mặt';
-    } else {
-        confirmBtn.innerHTML = '<i class="fas fa-qrcode"></i> Tôi đã hiểu thông tin chuyển khoản';
-    }
-}
 
 function confirmPayment() {
     if (!selectedPayment) {

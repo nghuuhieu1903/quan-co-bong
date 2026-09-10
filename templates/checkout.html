@@ -365,6 +365,30 @@
                     <textarea name="notes" class="form-control" rows="2" placeholder="Ghi chú thêm về đơn hàng"></textarea>
                 </div>
                 
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-wallet"></i> Phương thức thanh toán
+                    </label>
+                    <div class="pay-options">
+                        <label class="pay-option">
+                            <input type="radio" name="payment_method" value="cash" checked>
+                            <span>
+                                <strong><i class="fas fa-money-bill-wave"></i> Tiền mặt</strong>
+                                <small>Thanh toán khi nhận hàng</small>
+                            </span>
+                        </label>
+                        {% if bank_enabled %}
+                        <label class="pay-option">
+                            <input type="radio" name="payment_method" value="bank">
+                            <span>
+                                <strong><i class="fas fa-qrcode"></i> Chuyển khoản QR</strong>
+                                <small>Quét mã sau khi đặt, nội dung điền sẵn</small>
+                            </span>
+                        </label>
+                        {% endif %}
+                    </div>
+                </div>
+
                 <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
                     <i class="fas fa-check-circle"></i> Xác nhận đặt hàng
                 </button>

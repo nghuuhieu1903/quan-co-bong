@@ -26,6 +26,7 @@ from decorators import (admin_required, admin_required_api,
 from extensions import db
 from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, safe_print as print,
                      save_uploaded_file, save_uploaded_files, send_email)
+import payments
 from models import (Admin, Customer, DailyMenuItem, DailyMenuOrder,
                     Notification, Order, OrderItem, Product, ProductImage,
                     Room, RoomBooking, RoomImage, create_notification)
@@ -308,7 +309,7 @@ def checkout():
                 total += product.price * item['quantity']
         
         final_total = total 
-        return render_template('checkout.html', cart_items=products, subtotal=total, total=final_total)
+        return render_template('checkout.html', cart_items=products, subtotal=total, total=final_total, bank_enabled=payments.is_configured())
     
     # Original GET logic
     products = []
@@ -326,7 +327,8 @@ def checkout():
             total += product.price * item['quantity']
     
     final_total = total 
-    return render_template('checkout.html', cart_items=products, subtotal=total,  total=final_total)
+    return render_template('checkout.html', cart_items=products, subtotal=total,
+                           total=final_total, bank_enabled=payments.is_configured())
 
 @bp.route('/process_order', methods=['POST'])
 def process_order():
@@ -455,4 +457,12 @@ def order_confirmation(order_id):
     subtotal = order.total_amount  # Since we removed shipping fee, total_amount = subtotal
     total = order.total_amount
     
-    return render_template('order_confirmation.html', order=order, order_items=order_items, subtotal=subtotal, total=total)
+    # Only build the transfer panel for orders that chose to pay by bank, and
+    # only when an account is actually configured.
+    payment = (payments.payment_details(order)
+               if order.payment_method == 'bank' else None)
+
+    return render_template('order_confirmation.html', order=order,
+                           order_items=order_items, subtotal=subtotal,
+                           total=total, payment=payment,
+                           order_code=payments.order_code(order.id))

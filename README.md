@@ -144,6 +144,33 @@ python -c "import secrets; print(secrets.token_hex(32))"
 The session cookie is `HttpOnly` and `SameSite=Lax`. Set
 `SESSION_COOKIE_SECURE=1` once the site is behind HTTPS.
 
+## 💳 Bank transfer (QR)
+
+Set the shop's account in `.env` and a "Chuyển khoản QR" option appears at
+checkout; leave it blank and cash stays the only method, because showing a
+customer a QR that pays nobody is worse than not offering it at all:
+
+```bash
+SHOP_BANK_ID=970436          # Vietcombank; codes at https://vietqr.io
+SHOP_BANK_ACCOUNT_NO=1234567890
+SHOP_BANK_ACCOUNT_NAME=QUAN CO BONG
+```
+
+The QR comes from VietQR with the amount and description already filled in.
+The description is what the shop matches a payment against:
+
+| Who ordered | Transfer content |
+|---|---|
+| Gave a name | `NGUYEN VAN AN DH25` |
+| Ordered anonymously | `DH25` |
+
+`DH<id>` is the order number, and it is always present - it is the part that
+identifies the payment. Names are folded to unaccented capitals because
+Vietnamese banking apps commonly drop or garble diacritics in a transfer
+description, and the whole string is trimmed to 50 characters, keeping the
+code. Account details live in the environment, not the database, so an admin
+session cannot redirect payments to another account.
+
 ## 🧾 Who can see an order
 
 `/order_confirmation/<id>` shows a customer's name and phone, and order ids
@@ -169,6 +196,8 @@ python test_smoke_routes.py          # report anything that changed
 python test_csrf.py                  # CSRF is on and forms still work
 python test_flows.py                 # 38 real write paths, end to end
 python test_security.py              # each fix, verified by running the attack
+python test_payments.py              # QR + transfer-content rules
+python test_seo.py                   # metadata, sitemap, icons
 ```
 
 The other `test_*.py` scripts are older one-off checks that need a server

@@ -1310,3 +1310,138 @@ html.show-onboarding body {
         max-width: 1440px;
     }
 }
+
+/* Payment method picker (checkout) and the transfer panel (confirmation).
+   ------------------------------------------------------------------ */
+.pay-options {
+    display: grid;
+    gap: 0.6rem;
+}
+
+.pay-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-btn);
+    background: var(--bg-card);
+    cursor: pointer;
+}
+
+.pay-option:hover {
+    border-color: var(--accent-color);
+}
+
+/* the whole row reads as selected, not just the dot */
+.pay-option:has(input:checked) {
+    border-color: var(--accent-color);
+    background: var(--bg-secondary);
+}
+
+.pay-option input {
+    margin-top: 0.2rem;
+    flex: 0 0 auto;
+}
+
+.pay-option strong {
+    display: block;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.pay-option small {
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+}
+
+.pay-panel-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.75rem;
+    padding: 1.5rem;
+    align-items: flex-start;
+}
+
+.pay-qr {
+    flex: 0 0 300px;
+    max-width: 100%;
+}
+
+.pay-qr img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border-color);
+    background: #fff;   /* the QR must stay on white to stay scannable */
+}
+
+.pay-info {
+    flex: 1 1 280px;
+    min-width: 0;
+}
+
+.pay-hint {
+    color: var(--text-secondary);
+    margin: 0 0 1rem;
+    font-size: 0.92rem;
+}
+
+.pay-rows {
+    margin: 0 0 1rem;
+}
+
+.pay-rows > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.pay-rows dt {
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+}
+
+.pay-rows dd {
+    margin: 0;
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: right;
+    word-break: break-word;
+}
+
+.pay-amount {
+    color: var(--accent-color);
+    font-size: 1.05rem;
+}
+
+.pay-content {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 3px 8px;
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+}
+
+.pay-warn {
+    margin: 0;
+    padding: 0.7rem 0.9rem;
+    border-radius: var(--radius-btn);
+    background: color-mix(in srgb, var(--warning-color) 12%, transparent);
+    color: var(--text-primary);
+    font-size: 0.87rem;
+}
+
+@media (max-width: 640px) {
+    .pay-panel-body {
+        padding: 1rem;
+        gap: 1.25rem;
+    }
+
+    .pay-qr {
+        flex-basis: 100%;
+    }
+}
