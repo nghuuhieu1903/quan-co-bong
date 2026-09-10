@@ -36,6 +36,7 @@ from blueprints import all_blueprints
 from db_init import init_database
 from helpers import configure_logging
 from extensions import csrf, db, sess
+import seo
 from translations import TRANSLATIONS
 
 
@@ -137,6 +138,10 @@ def create_app():
     register_translations(app)
     for blueprint in all_blueprints:
         app.register_blueprint(blueprint)
+
+    # robots.txt, sitemap.xml, the web manifest, and the `seo` defaults
+    # every template renders into its <head>.
+    seo.register(app)
 
     # Runs on both local development and a production Gunicorn import.
     with app.app_context():

@@ -5,6 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}Cô Bông Cát Lái{% endblock %}</title>
+
+    {# --- SEO -------------------------------------------------------------
+       Pages override the two blocks below; everything else is derived. The
+       canonical URL uses the SITE_URL origin rather than the request host,
+       so a proxy or a bare-IP visit cannot make search engines index a
+       duplicate of the site under the wrong name. #}
+    <meta name="description" content="{% block meta_description %}{{ seo.description }}{% endblock %}">
+    <link rel="canonical" href="{% block canonical %}{{ seo.canonical }}{% endblock %}">
+    <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
+
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:site_name" content="{{ seo.site_name }}">
+    <meta property="og:locale" content="{{ seo.locale }}">
+    <meta property="og:title" content="{{ self.title() }}">
+    <meta property="og:description" content="{{ self.meta_description() }}">
+    <meta property="og:url" content="{{ self.canonical() }}">
+    <meta property="og:image" content="{% block og_image %}{{ seo.image }}{% endblock %}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ self.title() }}">
+    <meta name="twitter:description" content="{{ self.meta_description() }}">
+    <meta name="twitter:image" content="{{ self.og_image() }}">
+
+    <meta name="theme-color" content="#2F9BFF">
+
+    {# --- Icons ---------------------------------------------------------- #}
+    <link rel="icon" href="{{ url_for('static', filename='icons/favicon.ico') }}" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='icons/favicon-32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='icons/favicon-16.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ url_for('seo.webmanifest') }}">
+
+    {# Structured data. The site-wide block describes the business itself so
+       Google can show the name, address and opening hours; detail pages add
+       a Product/Room block on top via the structured_data override. #}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "CafeOrCoffeeShop",
+      "name": "{{ seo.site_name }}",
+      "description": "{{ seo.description }}",
+      "url": "{{ seo.site_url }}",
+      "image": "{{ seo.image }}",
+      "servesCuisine": ["Cà phê", "Đồ uống", "Món ăn Việt Nam"],
+      "priceRange": "20.000₫ - 150.000₫",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Cát Lái",
+        "addressRegion": "Thủ Đức, TP.HCM",
+        "addressCountry": "VN"
+      }
+    }
+    </script>
+    {% block structured_data %}{% endblock %}
     <script>
     (function() {
         var saved = localStorage.getItem('theme');

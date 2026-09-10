@@ -2,6 +2,27 @@
 
 {% block title %}{{ product.name }} - Chi tiết sản phẩm - Cô Bông Cát Lái{% endblock %}
 
+{% block meta_description %}{{ product.description[:110] }}{% if product.description|length > 110 %}...{% endif %} Giá {{ '{:,.0f}'.format(product.price) }}₫. {% if product.stock > 0 %}Còn hàng{% else %}Tạm hết hàng{% endif %}, đặt online tại Cô Bông Cát Lái.{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ product.name }}",
+  "description": "{{ product.description }}",
+  "image": "{{ seo_absolute(product.image_url) }}",
+  "offers": {
+    "@type": "Offer",
+    "price": "{{ '%.0f'|format(product.price) }}",
+    "priceCurrency": "VND",
+    "availability": "https://schema.org/{{ 'InStock' if product.stock > 0 else 'OutOfStock' }}",
+    "url": "{{ seo.canonical }}"
+  }
+}
+</script>
+{% endblock %}
+
 {% block content %}
 <!-- Back link -->
 <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 2rem 1rem 0 1rem;">

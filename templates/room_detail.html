@@ -2,6 +2,8 @@
 
 {% block title %}{{ room.name }} - Chi tiết & Đặt phòng - Cô Bông Cát Lái{% endblock %}
 
+{% block meta_description %}{{ room.description[:150] }}{% if room.description|length > 150 %}...{% endif %}{% endblock %}
+
 {% block content %}
 <!-- Back link -->
 <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 2rem 1rem 0 1rem;">

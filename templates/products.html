@@ -299,6 +299,13 @@
 
 {% block title %}{{ _('nav_food') if item_type == 'food' else _('nav_products') }} - Cô Bông Cát Lái{% endblock %}
 
+{% block meta_description %}{% if item_type == 'food' %}{{ _('food_desc') }}{% else %}{{ _('prod_desc') }}{% endif %} Giao tận nơi tại Cát Lái, Thủ Đức.{% endblock %}
+
+{# The food and drink listings are different pages with different products.
+   Without the type in the canonical they both point at /products, which tells
+   search engines they are duplicates and only one gets indexed. #}
+{% block canonical %}{{ seo.site_url }}/products{% if item_type == 'food' %}?type=food{% endif %}{% endblock %}
+
 {% block content %}
 <!-- Filter Drawer Overlay -->
 <div id="filter-overlay" onclick="toggleFilter()"></div>

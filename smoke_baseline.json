@@ -45,8 +45,11 @@
   "anon:product_detail_route": 200,
   "anon:products": 200,
   "anon:remove_from_cart": 302,
+  "anon:robots": 200,
   "anon:room_detail": 200,
   "anon:rooms": 200,
+  "anon:sitemap": 200,
+  "anon:webmanifest": 200,
   "api_new_orders": 200,
   "api_order_detail": 200,
   "automation_settings": 200,
@@ -94,6 +97,9 @@
   "product_detail_route": 200,
   "products": 200,
   "remove_from_cart": 302,
+  "robots": 200,
   "room_detail": 200,
-  "rooms": 200
+  "rooms": 200,
+  "sitemap": 200,
+  "webmanifest": 200
 }
