@@ -115,7 +115,7 @@
 </style>
 {% endblock %}
 
-{% block title %}{{ seo.shop.home_title or (_('nav_home') ~ ' - ' ~ seo.site_name) }}{% endblock %}
+{% block title %}{{ seo.shop.home_title or seo.site_name }}{% endblock %}
 
 {# The home page is the site, so the general description belongs here.
    Other pages keep their own wording, which is more specific. #}

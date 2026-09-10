@@ -1,6 +1,6 @@
 {% extends "modern_base.html" %}
 
-{% block title %}{{ seo.shop.rooms_title or (_('nav_rooms') ~ ' - ' ~ seo.site_name) }}{% endblock %}
+{% block title %}{{ seo.shop.rooms_title or seo.site_name }}{% endblock %}
 
 {% block meta_description %}{{ seo.shop.rooms_description or (_('room_desc') ~ ' Xem giá theo giờ, tiện nghi và đặt phòng trực tuyến.') }}{% endblock %}
 

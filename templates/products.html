@@ -297,7 +297,7 @@
 </style>
 {% endblock %}
 
-{% block title %}{% set o = seo.shop.food_title if item_type == 'food' else seo.shop.drinks_title %}{{ o or ((_('nav_food') if item_type == 'food' else _('nav_products')) ~ ' - ' ~ seo.site_name) }}{% endblock %}
+{% block title %}{% set o = seo.shop.food_title if item_type == 'food' else seo.shop.drinks_title %}{{ o or seo.site_name }}{% endblock %}
 
 {% block meta_description %}{% set o = seo.shop.food_description if item_type == 'food' else seo.shop.drinks_description %}{{ o or ((_('food_desc') if item_type == 'food' else _('prod_desc')) ~ ' Giao tận nơi tại Cát Lái, Thủ Đức.') }}{% endblock %}
 

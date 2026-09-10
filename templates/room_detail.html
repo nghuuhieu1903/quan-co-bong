@@ -1,6 +1,6 @@
 {% extends "modern_base.html" %}
 
-{% block title %}{{ room.name }} - Chi tiết & Đặt phòng - Cô Bông Cát Lái{% endblock %}
+{% block title %}{{ seo.site_name }}{% endblock %}
 
 {% block meta_description %}{{ room.description[:150] }}{% if room.description|length > 150 %}...{% endif %}{% endblock %}
 

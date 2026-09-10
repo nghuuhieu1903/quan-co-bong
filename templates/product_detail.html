@@ -1,6 +1,6 @@
 {% extends "modern_base.html" %}
 
-{% block title %}{{ product.name }} - Chi tiết sản phẩm - Cô Bông Cát Lái{% endblock %}
+{% block title %}{{ seo.site_name }}{% endblock %}
 
 {% block meta_description %}{{ product.description[:110] }}{% if product.description|length > 110 %}...{% endif %} Giá {{ '{:,.0f}'.format(product.price) }}₫. {% if product.stock > 0 %}Còn hàng{% else %}Tạm hết hàng{% endif %}, đặt online tại Cô Bông Cát Lái.{% endblock %}
 
