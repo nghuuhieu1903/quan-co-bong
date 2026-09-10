@@ -243,6 +243,28 @@ class SiteSetting(db.Model):
         super().__init__(**kwargs)
 
 
+class MediaFile(db.Model):
+    """An uploaded image, stored in the database rather than on disk.
+
+    The obvious place for these is static/, but that directory is created by
+    git and therefore owned by whoever deploys, while the app runs as someone
+    else - so uploading failed with "permission denied" and the only fix was a
+    shell command. The database is the one place the app is guaranteed to be
+    able to write, it needs no server-side setup, a `git pull` cannot
+    overwrite what is in it, and a database backup now includes the shop's
+    logo. Rows are a few hundred KB at most.
+    """
+    key = db.Column(db.String(64), primary_key=True)
+    content_type = db.Column(db.String(64), nullable=False, default='image/png')
+    # MEDIUMBLOB: a plain BLOB caps at 64KB, which a 512px icon can exceed
+    data = db.Column(db.LargeBinary(length=16_777_215), nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
+                           onupdate=datetime.utcnow)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+
 def create_notification(notification_type, message):
     try:
         notification = Notification(type=notification_type, message=message)

@@ -261,7 +261,7 @@
                     {# cache-bust so a new upload shows immediately instead of
                        the browser's copy of the old one #}
                     <img id="ogPreview"
-                         src="{{ url_for('static', filename='icons/' ~ og_file) }}?v={{ range(100000)|random }}"
+                         src="{{ og_url }}"
                          alt="Ảnh chia sẻ">
 
                     <div class="seo-row" style="margin-top: 0.75rem;">
@@ -290,7 +290,7 @@
                 <div class="card-header">Logo &amp; favicon</div>
                 <div class="body og-preview">
                     <img id="iconPreview" style="width: 96px; height: 96px; margin: 0 auto;"
-                         src="{{ url_for('static', filename='icons/' ~ icon_file) }}?v={{ range(100000)|random }}"
+                         src="{{ icon_url }}"
                          alt="Icon hiện tại">
 
                     <div class="seo-row" style="margin-top: 0.75rem;">

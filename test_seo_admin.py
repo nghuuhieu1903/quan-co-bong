@@ -166,41 +166,48 @@ def main():
         return c.post('/admin/seo', data=data,
                       content_type='multipart/form-data', follow_redirects=True)
 
-    path = seo.og_image_path(app.root_path)
+    def og_row():
+        with app.app_context():
+            return models.MediaFile.query.filter_by(key='og').first()
 
     upload(1000, 1000)                       # square: wrong shape on purpose
-    rep.check(os.path.exists(path), 'upload is stored')
-    rep.check(Image.open(path).size == seo.OG_SIZE,
+    row = og_row()
+    rep.check(row is not None, 'upload is stored in the database')
+    rep.check(Image.open(io.BytesIO(row.data)).size == seo.OG_SIZE,
               'a square upload is cropped to the share-card shape',
-              str(Image.open(path).size))
+              str(Image.open(io.BytesIO(row.data)).size))
 
     upload(400, 900)                         # portrait
-    rep.check(Image.open(path).size == seo.OG_SIZE,
+    rep.check(Image.open(io.BytesIO(og_row().data)).size == seo.OG_SIZE,
               'a portrait upload is cropped to the share-card shape')
 
     html = pub.get('/customer').get_data(as_text=True)
     m = re.search(r'property="og:image" content="([^"]*)"', html)
-    rep.check(m and seo.OG_UPLOAD_NAME in m.group(1),
-              'public pages point at the uploaded image')
+    rep.check(m and '/media/og' in m.group(1),
+              'public pages point at the uploaded image', m.group(1) if m else '-')
 
-    before = os.path.getmtime(path)
+    served = pub.get('/media/og')
+    rep.check(served.status_code == 200 and served.mimetype == 'image/jpeg',
+              'the stored image is served back', f'{served.status_code} {served.mimetype}')
+
+    before = og_row().data
     r = upload(100, 50)                      # too small to be usable
     rep.check('quá nhỏ' in r.get_data(as_text=True),
               'a too-small upload is refused with a reason')
-    rep.check(os.path.getmtime(path) == before,
-              'a refused upload does not overwrite the current image')
+    rep.check(og_row().data == before,
+              'a refused upload does not replace the current image')
 
     r = upload(0, 0, name='fake.png', raw=b'this is not an image at all')
     rep.check('không phải là ảnh' in r.get_data(as_text=True),
               'a non-image with an image extension is refused')
-    rep.check(os.path.getmtime(path) == before,
-              'the refused non-image did not overwrite anything')
+    rep.check(og_row().data == before,
+              'the refused non-image did not replace anything')
 
     page = c.get('/admin/seo').get_data(as_text=True)
     tok = re.search(r'name="csrf_token" value="([^"]+)"', page).group(1)
     c.post('/admin/seo', data={'action': 'reset_og', 'csrf_token': tok},
            follow_redirects=True)
-    rep.check(not os.path.exists(path), 'reset removes the uploaded image')
+    rep.check(og_row() is None, 'reset removes the stored image')
     html = pub.get('/customer').get_data(as_text=True)
     m = re.search(r'property="og:image" content="([^"]*)"', html)
     rep.check(m and 'og-image.png' in m.group(1),
@@ -223,33 +230,42 @@ def main():
         return c.post('/admin/seo', data=data,
                       content_type='multipart/form-data', follow_redirects=True)
 
-    icon_dir = os.path.join(app.root_path, 'static', 'icons')
+    def icon_rows():
+        with app.app_context():
+            return {r.key: r.data for r in
+                    models.MediaFile.query.filter(
+                        models.MediaFile.key.like('icon:%')).all()}
 
     upload_icon(800, 600)                    # wide on purpose: must be squared
-    made = sorted(f for f in os.listdir(icon_dir) if f.startswith(seo.CUSTOM_PREFIX))
-    rep.check(len(made) == len(seo.ICON_SIZES) + 1,
-              'one logo produces the whole icon set', f'{len(made)} files')
+    rows = icon_rows()
+    rep.check(len(rows) == len(seo.ICON_SIZES) + 1,
+              'one logo produces the whole icon set', f'{len(rows)} images')
     for name, size in seo.ICON_SIZES.items():
-        got = Image.open(os.path.join(icon_dir, seo.CUSTOM_PREFIX + name)).size
+        got = Image.open(io.BytesIO(rows['icon:' + name])).size
         if got != (size, size):
             rep.check(False, f'{name} is {size}x{size}', str(got))
             break
     else:
-        rep.check(True, 'every icon is written at its declared size')
+        rep.check(True, 'every icon is stored at its declared size')
 
     html = pub.get('/customer').get_data(as_text=True)
-    rep.check(seo.CUSTOM_PREFIX + 'favicon.ico' in html,
+    rep.check('/media/icon:favicon.ico' in html.replace('&amp;', '&'),
               'public pages link the uploaded favicon')
     admin_html = c.get('/admin/dashboard').get_data(as_text=True)
-    rep.check(seo.CUSTOM_PREFIX in admin_html, 'admin pages link it too')
+    rep.check('/media/icon:' in admin_html, 'admin pages link it too')
     man = json.loads(pub.get('/site.webmanifest').get_data(as_text=True))
-    rep.check(all(seo.CUSTOM_PREFIX in i['src'] for i in man['icons']),
+    rep.check(all('/media/icon:' in i['src'] for i in man['icons']),
               'the manifest points at the uploaded icons')
+
+    served = pub.get('/media/icon:favicon-32.png')
+    rep.check(served.status_code == 200 and served.mimetype == 'image/png',
+              'a stored icon is served back')
+    rep.check('immutable' in (served.headers.get('Cache-Control') or ''),
+              'stored images are cached hard by the browser')
 
     r = upload_icon(40, 40)
     rep.check('quá nhỏ' in r.get_data(as_text=True),
               'a logo smaller than 64px is refused')
-
     r = upload_icon(0, 0, raw=b'not an image')
     rep.check('không phải là ảnh' in r.get_data(as_text=True),
               'a non-image logo is refused')
@@ -258,10 +274,10 @@ def main():
     tok = re.search(r'name="csrf_token" value="([^"]+)"', page).group(1)
     c.post('/admin/seo', data={'action': 'reset_icons', 'csrf_token': tok},
            follow_redirects=True)
-    left = [f for f in os.listdir(icon_dir) if f.startswith(seo.CUSTOM_PREFIX)]
-    rep.check(not left, 'reset deletes the uploaded icon set', str(left))
+    rep.check(not icon_rows(), 'reset deletes the uploaded icon set')
     html = pub.get('/customer').get_data(as_text=True)
-    rep.check('icons/favicon.ico' in html, 'reset returns to the generated icons')
+    rep.check('/static/icons/favicon.ico' in html,
+              'reset returns to the generated icons')
 
     # --- the settings row survives a request boundary ----------------
     with app.app_context():

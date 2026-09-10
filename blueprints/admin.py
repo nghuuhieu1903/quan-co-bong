@@ -643,13 +643,13 @@ def admin_seo():
         # "restore the generated image" is its own button, and must not also
         # save the text fields it happens to be submitted alongside
         if request.form.get('action') == 'reset_og':
-            seo_mod.clear_og_image(current_app.root_path)
+            seo_mod.clear_og_image()
             seo_mod.save_settings({'og_image': ''})
             flash('Đã trở về ảnh chia sẻ mặc định', 'success')
             return redirect(url_for('admin.admin_seo'))
 
         if request.form.get('action') == 'reset_icons':
-            seo_mod.clear_icons(current_app.root_path)
+            seo_mod.clear_icons()
             seo_mod.save_settings({'custom_icons': ''})
             flash('Đã trở về bộ icon mặc định', 'success')
             return redirect(url_for('admin.admin_seo'))
@@ -665,24 +665,20 @@ def admin_seo():
             # failure here becomes a message, and the rest of the form still
             # saves. The traceback goes to the log so the cause is findable.
             try:
-                ok, message = seo_mod.save_og_image(upload, current_app.root_path)
+                ok, message = seo_mod.save_og_image(upload)
             except Exception as exc:
                 logger.exception('Share image upload failed (%s)', upload.filename)
                 ok, message = False, f'Không xử lý được ảnh: {type(exc).__name__}'
             flash(message, 'success' if ok else 'error')
-            if ok:
-                values['og_image'] = seo_mod.OG_UPLOAD_NAME
 
         icon_upload = request.files.get('icon_file')
         if icon_upload and icon_upload.filename:
             try:
-                ok, message = seo_mod.save_icons(icon_upload, current_app.root_path)
+                ok, message = seo_mod.save_icons(icon_upload)
             except Exception as exc:
                 logger.exception('Icon upload failed (%s)', icon_upload.filename)
                 ok, message = False, f'Không xử lý được ảnh: {type(exc).__name__}'
             flash(message, 'success' if ok else 'error')
-            if ok:
-                values['custom_icons'] = '1'
 
         changed = seo_mod.save_settings(values)
         flash(f'Đã lưu {changed} thay đổi' if changed else 'Không có gì thay đổi',
@@ -693,10 +689,11 @@ def admin_seo():
                            cfg=seo_mod.settings(),
                            defaults=seo_mod.DEFAULTS,
                            site_url=seo_mod.site_url(),
-                           og_file=seo_mod.og_image_file(),
-                           og_is_custom=bool(seo_mod.settings().get('og_image')),
-                           icons_custom=seo_mod.settings().get('custom_icons') == '1',
-                           icon_file=seo_mod.icon_file('android-chrome-192.png'))
+                           og_is_custom=seo_mod.has_media('og'),
+                           icons_custom=seo_mod.has_media('icon:favicon.ico'),
+                           og_url=seo_mod.media_url('og', 'icons/og-image.png'),
+                           icon_url=seo_mod.media_url('icon:android-chrome-192.png',
+                                                      'icons/android-chrome-192.png'))
 
 
 @bp.route('/admin/debts')

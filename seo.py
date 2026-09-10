@@ -18,10 +18,10 @@ import logging
 import os
 from datetime import datetime
 
-from flask import Blueprint, Response, g, request, url_for
+from flask import Blueprint, Response, abort, g, request, url_for
 
 from extensions import db
-from models import Product, Room, SiteSetting
+from models import MediaFile, Product, Room, SiteSetting
 
 logger = logging.getLogger(__name__)
 
@@ -54,9 +54,6 @@ DEFAULTS = {
     'opening_hours': 'Mo-Su 06:00-22:00',
     # filename under static/icons of an uploaded share image;
     # blank means use the generated og-image.png
-    'og_image': '',
-    # '1' when a logo has been uploaded and the icon set regenerated from it
-    'custom_icons': '',
     # per-page overrides; blank means "use the page's own text"
     'home_title': '',
     'home_description': '',
@@ -111,20 +108,53 @@ def save_settings(new_values):
 # An image of any other shape gets cropped by them, unpredictably and usually
 # through the middle of the subject, so uploads are fitted here instead.
 OG_SIZE = (1200, 630)
-OG_UPLOAD_NAME = 'og-custom.jpg'
+
+# The icon set, and the sizes browsers ask for.
+ICON_SIZES = {
+    'favicon-16.png': 16,
+    'favicon-32.png': 32,
+    'apple-touch-icon.png': 180,
+    'android-chrome-192.png': 192,
+    'android-chrome-512.png': 512,
+}
 
 
-def og_image_path(app_root):
-    """Where an uploaded share image lives on disk."""
-    return os.path.join(app_root, 'static', 'icons', OG_UPLOAD_NAME)
+def put_media(key, data, content_type):
+    """Store (or replace) one uploaded image row."""
+    row = db.session.get(MediaFile, key)
+    if row is None:
+        db.session.add(MediaFile(key=key, data=data, content_type=content_type))
+    else:
+        row.data, row.content_type = data, content_type
+    db.session.commit()
 
 
-def save_og_image(file_storage, app_root):
-    """Fit an upload to the share-card shape and store it.
+def drop_media(prefix):
+    """Delete every stored image whose key starts with `prefix`."""
+    rows = MediaFile.query.filter(MediaFile.key.like(prefix + '%')).all()
+    for row in rows:
+        db.session.delete(row)
+    db.session.commit()
+    return len(rows)
 
-    Returns (ok, message). The original is never kept: it is cropped to cover
-    1200x630 so nothing is letterboxed, then written as JPEG.
-    """
+
+def has_media(key):
+    try:
+        return db.session.get(MediaFile, key) is not None
+    except Exception:
+        logger.exception('Could not read media %r', key)
+        return False
+
+
+def _encode(img, fmt, **kw):
+    import io as _io
+    buf = _io.BytesIO()
+    img.save(buf, fmt, **kw)
+    return buf.getvalue()
+
+
+def save_og_image(file_storage):
+    """Fit an upload to the share-card shape and store it in the database."""
     from PIL import Image, UnidentifiedImageError
 
     try:
@@ -133,9 +163,7 @@ def save_og_image(file_storage, app_root):
     except (UnidentifiedImageError, OSError):
         return False, 'Tệp không phải là ảnh hợp lệ'
 
-    if img.mode not in ('RGB', 'L'):
-        img = img.convert('RGB')
-    elif img.mode == 'L':
+    if img.mode != 'RGB':
         img = img.convert('RGB')
 
     target_w, target_h = OG_SIZE
@@ -143,63 +171,29 @@ def save_og_image(file_storage, app_root):
     if src_w < 200 or src_h < 100:
         return False, f'Ảnh quá nhỏ ({src_w}x{src_h}), cần ít nhất 600x315'
 
-    # cover: scale so both sides reach the target, then centre-crop
+    # cover: scale until both sides reach the target, then centre-crop
     scale = max(target_w / src_w, target_h / src_h)
     new = img.resize((max(1, round(src_w * scale)), max(1, round(src_h * scale))),
                      Image.LANCZOS)
-    left = (new.width - target_w) // 2
-    top = (new.height - target_h) // 2
+    left, top = (new.width - target_w) // 2, (new.height - target_h) // 2
     new = new.crop((left, top, left + target_w, top + target_h))
 
-    path = og_image_path(app_root)
-    try:
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        new.save(path, 'JPEG', quality=88, optimize=True)
-    except OSError as exc:
-        # Almost always the app user not being able to write into
-        # static/icons on the server; say so instead of failing blankly.
-        logger.exception('Cannot write the share image to %s', path)
-        return False, (f'Không ghi được tệp vào {path} ({exc.strerror or exc}). '
-                       'Kiểm tra quyền ghi của thư mục static/icons.')
+    put_media('og', _encode(new, 'JPEG', quality=88, optimize=True), 'image/jpeg')
     return True, f'Đã cập nhật ảnh chia sẻ ({src_w}x{src_h} → 1200x630)'
 
 
-def clear_og_image(app_root):
-    """Drop the upload so the generated image is used again."""
-    try:
-        os.remove(og_image_path(app_root))
-    except FileNotFoundError:
-        pass
+def clear_og_image():
+    drop_media('og')
 
 
-# The icon set, and the sizes browsers ask for. A custom upload writes the
-# same names with a prefix, so the generated originals are never lost and
-# "use the default again" is just a flag flip.
-ICON_SIZES = {
-    'favicon-16.png': 16,
-    'favicon-32.png': 32,
-    'apple-touch-icon.png': 180,
-    'android-chrome-192.png': 192,
-    'android-chrome-512.png': 512,
-}
-CUSTOM_PREFIX = 'custom-'
-
-
-def icon_file(name):
-    """Filename under static/icons for one icon, custom if one was uploaded."""
-    if settings().get('custom_icons') == '1':
-        return CUSTOM_PREFIX + name
-    return name
-
-
-def save_icons(file_storage, app_root):
+def save_icons(file_storage):
     """Rebuild the whole icon set from one uploaded logo.
 
     Browsers ask for half a dozen sizes and a .ico; uploading each by hand
     would be tedious and easy to get inconsistent, so one square image is
-    resized into all of them. The image is centre-cropped to a square first -
-    a favicon is always square, and letterboxing a wide logo would waste most
-    of the 16 pixels that actually matter.
+    resized into all of them. It is centre-cropped square first - a favicon is
+    always square, and letterboxing a wide logo would waste most of the 16
+    pixels that decide whether it is recognisable in a tab.
     """
     from PIL import Image, UnidentifiedImageError
 
@@ -220,40 +214,35 @@ def save_icons(file_storage, app_root):
     img = img.crop(((w - side) // 2, (h - side) // 2,
                     (w - side) // 2 + side, (h - side) // 2 + side))
 
-    out_dir = os.path.join(app_root, 'static', 'icons')
-    written = []
+    for name, size in ICON_SIZES.items():
+        put_media('icon:' + name,
+                  _encode(img.resize((size, size), Image.LANCZOS), 'PNG'),
+                  'image/png')
+    put_media('icon:favicon.ico',
+              _encode(img.resize((64, 64), Image.LANCZOS), 'ICO',
+                      sizes=[(16, 16), (32, 32), (48, 48), (64, 64)]),
+              'image/x-icon')
+    return True, f'Đã tạo {len(ICON_SIZES) + 1} kích thước icon từ ảnh {w}x{h}'
+
+
+def clear_icons():
+    drop_media('icon:')
+
+def media_url(key, fallback_static):
+    """URL for an uploaded image, or the built-in file when none was uploaded.
+
+    The `v=` stamp is the row's updated_at, so a replaced image appears at
+    once instead of the browser serving its cached copy of the old one.
+    """
+    row = None
     try:
-        os.makedirs(out_dir, exist_ok=True)
-        for name, size in ICON_SIZES.items():
-            img.resize((size, size), Image.LANCZOS).save(
-                os.path.join(out_dir, CUSTOM_PREFIX + name))
-            written.append(name)
-        # multi-resolution .ico for the address bar and older browsers
-        img.resize((64, 64), Image.LANCZOS).save(
-            os.path.join(out_dir, CUSTOM_PREFIX + 'favicon.ico'),
-            sizes=[(16, 16), (32, 32), (48, 48), (64, 64)])
-        written.append('favicon.ico')
-    except OSError as exc:
-        logger.exception('Cannot write icons into %s', out_dir)
-        return False, (f'Không ghi được vào {out_dir} ({exc.strerror or exc}). '
-                       'Kiểm tra quyền ghi của thư mục static/icons.')
-
-    return True, f'Đã tạo {len(written)} kích thước icon từ ảnh {w}x{h}'
-
-
-def clear_icons(app_root):
-    """Delete the uploaded set so the generated icons are used again."""
-    out_dir = os.path.join(app_root, 'static', 'icons')
-    for name in list(ICON_SIZES) + ['favicon.ico']:
-        try:
-            os.remove(os.path.join(out_dir, CUSTOM_PREFIX + name))
-        except FileNotFoundError:
-            pass
-
-
-def og_image_file():
-    """The share image filename under static/icons, upload or generated."""
-    return settings().get('og_image') or 'og-image.png'
+        row = db.session.get(MediaFile, key)
+    except Exception:
+        logger.exception('Could not read media %r', key)
+    if row is None:
+        return url_for('static', filename=fallback_static)
+    stamp = int(row.updated_at.timestamp()) if row.updated_at else 0
+    return url_for('seo.media', key=key, v=stamp)
 
 
 def site_url():
@@ -283,10 +272,9 @@ def register(app):
                 'description': cfg['site_description'],
                 'shop': cfg,
                 'canonical': absolute(request.path),
-                'image': absolute(url_for('static',
-                                          filename='icons/' + og_image_file())),
+                'image': absolute(media_url('og', 'icons/og-image.png')),
                 'locale': 'vi_VN',
-                'icons': {name: icon_file(name)
+                'icons': {name: media_url('icon:' + name, 'icons/' + name)
                           for name in list(ICON_SIZES) + ['favicon.ico']},
             },
             'seo_absolute': absolute,
@@ -364,14 +352,29 @@ def webmanifest():
         'background_color': '#ffffff',
         'theme_color': '#2F9BFF',
         'icons': [
-            {'src': url_for('static',
-                            filename='icons/' + icon_file('android-chrome-192.png')),
+            {'src': media_url('icon:android-chrome-192.png',
+                              'icons/android-chrome-192.png'),
              'sizes': '192x192', 'type': 'image/png'},
-            {'src': url_for('static',
-                            filename='icons/' + icon_file('android-chrome-512.png')),
+            {'src': media_url('icon:android-chrome-512.png',
+                              'icons/android-chrome-512.png'),
              'sizes': '512x512', 'type': 'image/png'},
         ],
     }
     import json
     return Response(json.dumps(data, ensure_ascii=False),
                     mimetype='application/manifest+json')
+
+
+@bp.route('/media/<path:key>')
+def media(key):
+    """Serve an uploaded image out of the database.
+
+    Cached hard by the browser; the URL carries the row's timestamp, so a
+    replacement changes the URL and the old copy is never reused.
+    """
+    row = db.session.get(MediaFile, key)
+    if row is None:
+        abort(404)
+    resp = Response(row.data, mimetype=row.content_type)
+    resp.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    return resp

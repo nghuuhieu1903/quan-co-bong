@@ -154,19 +154,18 @@ still comes from `tools/make_icons.py`.
 The favicon and app icons can be replaced the same way: upload one logo and
 all six sizes plus the `.ico` are generated from it, centre-cropped square.
 
-Uploaded files (`static/icons/og-custom.jpg`, `static/icons/custom-*`) are
-deliberately not tracked in git: they belong to the running site, not the
-source, and this also keeps a `git pull` from overwriting them.
+Uploaded images are stored in the database (`media_file`), not in `static/`,
+and served from `/media/<key>`. That is deliberate. `static/` is created by
+git and owned by whoever deploys, while the app runs as another user, so
+writing there failed with "permission denied" and the only fix was a shell
+command on the server - which is not something the shop can be asked to do.
+The database is the one place the app is always able to write; it needs no
+server-side setup, `git pull` cannot overwrite it, and a database backup now
+includes the shop's own logo. The rows are a few hundred KB.
 
-**The app has to be able to write to `static/icons`.** If it cannot, the page
-says so and nothing is overwritten. On a server where the code was pulled as
-root but the app runs as another user, grant it:
-
-```bash
-cd /www/wwwroot/quan-co-bong
-APPUSER=$(ps -eo user,args | grep "[g]unicorn" | grep quan-co-bong | head -1 | awk '{print $1}')
-chown -R "$APPUSER" static/icons static/images
-```
+The served URL carries the row's timestamp and is cached as immutable, so a
+replacement is visible immediately without the browser holding on to the old
+one.
 
 ## 🔑 Sessions and SECRET_KEY
 
