@@ -574,8 +574,13 @@
                 var btn = form.querySelector('.btn-cart') || form;
                 fly(btn);
 
-                fetch(form.action, {
+                // getAttribute, not form.action - a control named "action" would
+                // shadow the property; keep both handlers consistent.
+                fetch(form.getAttribute('action'), {
                     method: 'POST',
+                    // the session cookie has to ride along, or the server
+                    // builds the cart for a visitor it does not recognise
+                    credentials: 'same-origin',
                     body: new FormData(form),
                     headers: {'X-Requested-With': 'fetch',
                               'X-CSRFToken': csrf.content}

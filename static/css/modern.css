@@ -1631,3 +1631,10 @@ html.show-onboarding body {
     background: var(--danger-color);
     color: #fff;
 }
+
+/* On a phone the toast covers part of a screen that is already tight, and the
+   flying item plus the badge ticking up already say the tap worked. The text
+   is for pointer-sized screens, where there is room for it. */
+@media (max-width: 768px) {
+    .cart-toast { display: none !important; }
+}

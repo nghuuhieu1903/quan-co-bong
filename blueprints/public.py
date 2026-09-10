@@ -266,6 +266,24 @@ def add_to_cart(product_id):
     flash(message, 'success')
     return redirect(next_url or url_for('public.customer_home'))
 
+def cart_state():
+    """Everything the cart page needs to redraw itself after a change."""
+    items, total = [], 0
+    for entry in session.get('cart', []):
+        product = db.session.get(Product, entry['product_id'])
+        if not product:
+            continue
+        line = product.price * entry['quantity']
+        total += line
+        items.append({
+            'product_id': product.id,
+            'quantity': entry['quantity'],
+            'stock': product.stock,
+            'line_total': line,
+        })
+    return {'items': items, 'total': total, 'count': len(items)}
+
+
 @bp.route('/update_cart/<int:product_id>', methods=['POST'])
 def update_cart(product_id):
     cart = session.get('cart', [])
@@ -292,6 +310,8 @@ def update_cart(product_id):
             break
 
     session['cart'] = cart
+    if wants_json():
+        return jsonify(ok=True, **cart_state())
     return redirect(url_for('public.cart'))
 
 @bp.route('/remove_from_cart/<int:product_id>', methods=['POST', 'GET'])
@@ -299,6 +319,8 @@ def remove_from_cart(product_id):
     cart = session.get('cart', [])
     cart = [item for item in cart if item['product_id'] != product_id]
     session['cart'] = cart
+    if wants_json():
+        return jsonify(ok=True, **cart_state())
     return redirect(url_for('public.cart'))
 
 @bp.route('/checkout', methods=['GET', 'POST'])

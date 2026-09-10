@@ -284,6 +284,10 @@
     }
 }
 
+/* the two cart states sit in plain wrappers that must not affect layout */
+[data-cart-filled], [data-cart-empty] { display: contents; }
+[data-cart-filled][hidden], [data-cart-empty][hidden] { display: none; }
+
 /* Better empty cart on mobile */
 @media (max-width: 768px) {
     .empty-cart {
@@ -335,11 +339,10 @@
                     <i class="fas fa-shopping-cart"></i> {{ _('cart_title') }}
                 </h1>
                 <p>
-                    {% if cart_items %}
-                    {{ cart_items|length }} sản phẩm trong giỏ hàng
-                    {% else %}
-                    Giỏ hàng trống
-                    {% endif %}
+                    <span data-head-filled {% if not cart_items %}hidden{% endif %}>
+                        <span data-cart-items>{{ cart_items|length }}</span> sản phẩm trong giỏ hàng
+                    </span>
+                    <span data-head-empty {% if cart_items %}hidden{% endif %}>Giỏ hàng trống</span>
                 </p>
             </div>
             <div style="display: flex; gap: 1rem;">
@@ -351,7 +354,9 @@
     </div>
 </section>
 
-{% if cart_items %}
+{# both states are rendered; the script swaps them so emptying the cart
+   does not need a page load #}
+<div data-cart-filled {% if not cart_items %}hidden{% endif %}>
 <!-- Cart Items -->
 <section class="cart-items">
     <!-- Desktop Table View -->
@@ -360,7 +365,7 @@
             <h3 style="margin: 0; color: var(--text-primary);">
                 <i class="fas fa-list"></i> Sản phẩm trong 
                 {% if cart_items %}
-                <span class="badge badge-info">{{ cart_items|length }} sản phẩm</span>
+                <span class="badge badge-info"><span data-cart-items>{{ cart_items|length }}</span> sản phẩm</span>
                 {% else %}
                 <span class="badge badge-secondary">0 sản phẩm</span>
                 {% endif %}
@@ -381,7 +386,7 @@
                 </thead>
                 <tbody>
                     {% for item in cart_items %}
-                    <tr>
+                    <tr data-cart-row="{{ item.product.id }}">
                         <td>
                             <img src="{{ item.product.image_url }}" 
                                  alt="{{ item.product.name }}" 
@@ -410,7 +415,7 @@
                             </form>
                         </td>
                         <td style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">
-                            {{ "{:,.0f}".format(item.subtotal) }} VNĐ
+                            <span data-line-total>{{ "{:,.0f}".format(item.subtotal) }}</span> VNĐ
                         </td>
                         <td>
                             <form method="POST" action="{{ url_for('public.remove_from_cart', product_id=item.product.id) }}">
@@ -430,7 +435,7 @@
     <!-- Mobile Cards View -->
     <div class="cart-items-mobile fade-in">
         {% for item in cart_items %}
-        <div class="mobile-cart-item-card">
+        <div class="mobile-cart-item-card" data-cart-row="{{ item.product.id }}">
             <!-- Mobile Item Header -->
             <div class="mobile-item-header">
                 <img class="mobile-item-img" src="{{ item.product.image_url }}" alt="{{ item.product.name }}">
@@ -461,7 +466,7 @@
                 
                 <div class="mobile-price-info">
                     <div class="mobile-unit-price">Đơn giá: {{ "{:,.0f}".format(item.product.price) }} VNĐ</div>
-                    <div class="mobile-subtotal">{{ "{:,.0f}".format(item.subtotal) }} VNĐ</div>
+                    <div class="mobile-subtotal"><span data-line-total>{{ "{:,.0f}".format(item.subtotal) }}</span> VNĐ</div>
                 </div>
             </div>
         </div>
@@ -482,7 +487,7 @@
             <div style="margin-bottom: 1.5rem;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
                     <span>Tạm tính:</span>
-                    <span>{{ "{:,.0f}".format(total) }} VNĐ</span>
+                    <span><span data-cart-total>{{ "{:,.0f}".format(total) }}</span> VNĐ</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
                     <span>Phí vận chuyển:</span>
@@ -491,7 +496,7 @@
                 <hr style="border-color: var(--border-color); margin: 1rem 0;">
                 <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 500; color: var(--accent-color);">
                     <span>{{ _('cart_total') }}:</span>
-                    <span>{{ "{:,.0f}".format(total) }} VNĐ</span>
+                    <span><span data-cart-total>{{ "{:,.0f}".format(total) }}</span> VNĐ</span>
                 </div>
             </div>
             
@@ -525,7 +530,8 @@
     </div>
 </section>
 
-{% else %}
+</div>
+<div data-cart-empty {% if cart_items %}hidden{% endif %}>
 <!-- Empty Cart -->
 <section class="empty-cart">
     <div class="card fade-in" style="text-align: center; padding: 4rem;">
@@ -548,36 +554,101 @@
         </div>
     </div>
 </section>
-{% endif %}
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-// Update cart quantity with animation
-document.querySelectorAll('form[action*="update_cart"]').forEach(form => {
-    form.addEventListener('submit', function(e) {
-        const button = e.submitter || this.querySelector('button[type="submit"]');
-        const originalText = button.innerHTML;
-        
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        button.disabled = true;
-        
-        setTimeout(() => {
-            button.innerHTML = originalText;
-            button.disabled = false;
-        }, 1000);
-    });
-});
+// Cart edits without reloading
+// -------------------------------------------------------------------
+// Every +, - and delete reloaded the whole page, so on a phone the list
+// jumped back to the top after each tap. The forms are untouched and still
+// work with JavaScript off; this posts them in the background and redraws
+// only the numbers that changed.
+(function () {
+    var csrf = document.querySelector('meta[name="csrf-token"]');
+    if (!csrf) return;
 
-// Remove from cart with confirmation
-document.querySelectorAll('form[action*="remove_from_cart"]').forEach(form => {
-    form.addEventListener('submit', function(e) {
-        if (!confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
-            e.preventDefault();
+    // en-US grouping, to match the "{:,.0f}" the server renders elsewhere on
+    // the page - vi-VN would flip the separator to a dot mid-edit
+    function money(n) { return Math.round(n).toLocaleString('en-US'); }
+
+    function apply(state) {
+        state.items.forEach(function (it) {
+            document.querySelectorAll('[data-cart-row="' + it.product_id + '"]')
+                .forEach(function (row) {
+                    row.querySelectorAll('input[name="quantity"]').forEach(function (i) {
+                        i.value = it.quantity;
+                    });
+                    row.querySelectorAll('[data-line-total]').forEach(function (el) {
+                        el.textContent = money(it.line_total);
+                    });
+                });
+        });
+
+        // drop rows that are no longer in the cart
+        var live = state.items.map(function (i) { return String(i.product_id); });
+        document.querySelectorAll('[data-cart-row]').forEach(function (row) {
+            if (live.indexOf(row.dataset.cartRow) === -1) row.remove();
+        });
+
+        document.querySelectorAll('[data-cart-total]').forEach(function (el) {
+            el.textContent = money(state.total);
+        });
+        document.querySelectorAll('[data-cart-count]').forEach(function (el) {
+            el.textContent = state.count;
+            el.hidden = !state.count;
+        });
+
+        document.querySelectorAll('[data-cart-items]').forEach(function (el) {
+            el.textContent = state.count;
+        });
+
+        // swap to the empty-cart panel in place instead of reloading
+        var empty = !state.count;
+        document.querySelectorAll('[data-cart-filled], [data-head-filled]')
+            .forEach(function (el) { el.hidden = empty; });
+        document.querySelectorAll('[data-cart-empty], [data-head-empty]')
+            .forEach(function (el) { el.hidden = !empty; });
+    }
+
+    document.addEventListener('submit', function (e) {
+        var form = e.target;
+        if (!form.matches('form[action*="/update_cart/"], form[action*="/remove_from_cart/"]')) {
+            return;
         }
-    });
-});
+        e.preventDefault();
 
+        // ask before deleting - has to live here, not in a separate submit
+        // listener: preventDefault() there would not stop this handler
+        if (form.matches('form[action*="/remove_from_cart/"]') &&
+            !confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+            return;
+        }
+
+        var body = new FormData(form);
+        // a submit button's name/value only reaches FormData if it was the
+        // button that submitted - and that is how + and - tell each other apart
+        if (e.submitter && e.submitter.name) {
+            body.set(e.submitter.name, e.submitter.value);
+        }
+
+        // getAttribute, not form.action: the +/- buttons are named "action",
+        // and a control's name shadows the form property of the same name -
+        // form.action returns the button list, not the URL.
+        fetch(form.getAttribute('action'), {
+            method: 'POST',
+            credentials: 'same-origin',
+            body: body,
+            headers: {'X-Requested-With': 'fetch', 'X-CSRFToken': csrf.content}
+        })
+        .then(function (r) { return r.json(); })
+        .then(apply)
+        .catch(function () { form.submit(); });   // fall back to a real post
+    });
+})();
+</script>
+<script>
 // Add animation on scroll
 const observerOptions = {
     threshold: 0.1,
