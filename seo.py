@@ -55,6 +55,8 @@ DEFAULTS = {
     # filename under static/icons of an uploaded share image;
     # blank means use the generated og-image.png
     'og_image': '',
+    # '1' when a logo has been uploaded and the icon set regenerated from it
+    'custom_icons': '',
     # per-page overrides; blank means "use the page's own text"
     'home_title': '',
     'home_description': '',
@@ -170,6 +172,85 @@ def clear_og_image(app_root):
         pass
 
 
+# The icon set, and the sizes browsers ask for. A custom upload writes the
+# same names with a prefix, so the generated originals are never lost and
+# "use the default again" is just a flag flip.
+ICON_SIZES = {
+    'favicon-16.png': 16,
+    'favicon-32.png': 32,
+    'apple-touch-icon.png': 180,
+    'android-chrome-192.png': 192,
+    'android-chrome-512.png': 512,
+}
+CUSTOM_PREFIX = 'custom-'
+
+
+def icon_file(name):
+    """Filename under static/icons for one icon, custom if one was uploaded."""
+    if settings().get('custom_icons') == '1':
+        return CUSTOM_PREFIX + name
+    return name
+
+
+def save_icons(file_storage, app_root):
+    """Rebuild the whole icon set from one uploaded logo.
+
+    Browsers ask for half a dozen sizes and a .ico; uploading each by hand
+    would be tedious and easy to get inconsistent, so one square image is
+    resized into all of them. The image is centre-cropped to a square first -
+    a favicon is always square, and letterboxing a wide logo would waste most
+    of the 16 pixels that actually matter.
+    """
+    from PIL import Image, UnidentifiedImageError
+
+    try:
+        img = Image.open(file_storage.stream)
+        img.load()
+    except (UnidentifiedImageError, OSError):
+        return False, 'Tệp không phải là ảnh hợp lệ'
+
+    if img.mode != 'RGBA':
+        img = img.convert('RGBA')
+
+    w, h = img.size
+    if min(w, h) < 64:
+        return False, f'Ảnh quá nhỏ ({w}x{h}), cần cạnh ngắn ít nhất 64px'
+
+    side = min(w, h)
+    img = img.crop(((w - side) // 2, (h - side) // 2,
+                    (w - side) // 2 + side, (h - side) // 2 + side))
+
+    out_dir = os.path.join(app_root, 'static', 'icons')
+    written = []
+    try:
+        os.makedirs(out_dir, exist_ok=True)
+        for name, size in ICON_SIZES.items():
+            img.resize((size, size), Image.LANCZOS).save(
+                os.path.join(out_dir, CUSTOM_PREFIX + name))
+            written.append(name)
+        # multi-resolution .ico for the address bar and older browsers
+        img.resize((64, 64), Image.LANCZOS).save(
+            os.path.join(out_dir, CUSTOM_PREFIX + 'favicon.ico'),
+            sizes=[(16, 16), (32, 32), (48, 48), (64, 64)])
+        written.append('favicon.ico')
+    except OSError as exc:
+        logger.exception('Cannot write icons into %s', out_dir)
+        return False, (f'Không ghi được vào {out_dir} ({exc.strerror or exc}). '
+                       'Kiểm tra quyền ghi của thư mục static/icons.')
+
+    return True, f'Đã tạo {len(written)} kích thước icon từ ảnh {w}x{h}'
+
+
+def clear_icons(app_root):
+    """Delete the uploaded set so the generated icons are used again."""
+    out_dir = os.path.join(app_root, 'static', 'icons')
+    for name in list(ICON_SIZES) + ['favicon.ico']:
+        try:
+            os.remove(os.path.join(out_dir, CUSTOM_PREFIX + name))
+        except FileNotFoundError:
+            pass
+
+
 def og_image_file():
     """The share image filename under static/icons, upload or generated."""
     return settings().get('og_image') or 'og-image.png'
@@ -205,6 +286,8 @@ def register(app):
                 'image': absolute(url_for('static',
                                           filename='icons/' + og_image_file())),
                 'locale': 'vi_VN',
+                'icons': {name: icon_file(name)
+                          for name in list(ICON_SIZES) + ['favicon.ico']},
             },
             'seo_absolute': absolute,
         }
@@ -281,9 +364,11 @@ def webmanifest():
         'background_color': '#ffffff',
         'theme_color': '#2F9BFF',
         'icons': [
-            {'src': url_for('static', filename='icons/android-chrome-192.png'),
+            {'src': url_for('static',
+                            filename='icons/' + icon_file('android-chrome-192.png')),
              'sizes': '192x192', 'type': 'image/png'},
-            {'src': url_for('static', filename='icons/android-chrome-512.png'),
+            {'src': url_for('static',
+                            filename='icons/' + icon_file('android-chrome-512.png')),
              'sizes': '512x512', 'type': 'image/png'},
         ],
     }

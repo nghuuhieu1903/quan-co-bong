@@ -30,10 +30,10 @@
     <meta name="theme-color" content="#2F9BFF">
 
     {# --- Icons ---------------------------------------------------------- #}
-    <link rel="icon" href="{{ url_for('static', filename='icons/favicon.ico') }}" sizes="any">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='icons/favicon-32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='icons/favicon-16.png') }}">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
+    <link rel="icon" href="{{ url_for('static', filename='icons/' ~ seo.icons['favicon.ico'] ~ '') }}" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='icons/' ~ seo.icons['favicon-32.png'] ~ '') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='icons/' ~ seo.icons['favicon-16.png'] ~ '') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/' ~ seo.icons['apple-touch-icon.png'] ~ '') }}">
     <link rel="manifest" href="{{ url_for('seo.webmanifest') }}">
 
     {# Structured data. The site-wide block describes the business itself so

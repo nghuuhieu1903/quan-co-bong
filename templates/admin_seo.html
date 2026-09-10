@@ -287,6 +287,36 @@
             </div>
 
             <div class="card seo-section">
+                <div class="card-header">Logo &amp; favicon</div>
+                <div class="body og-preview">
+                    <img id="iconPreview" style="width: 96px; height: 96px; margin: 0 auto;"
+                         src="{{ url_for('static', filename='icons/' ~ icon_file) }}?v={{ range(100000)|random }}"
+                         alt="Icon hiện tại">
+
+                    <div class="seo-row" style="margin-top: 0.75rem;">
+                        <label for="icon_file">Chọn logo mới</label>
+                        <input type="file" id="icon_file" name="icon_file"
+                               accept="image/png, image/jpeg, image/webp">
+                        <div class="seo-hint">
+                            Một ảnh sẽ tạo ra đủ 6 kích thước (tab trình duyệt,
+                            màn hình chính iPhone/Android). Ảnh sẽ được cắt vuông,
+                            nên chọn ảnh vuông, hình đơn giản, nền tương phản —
+                            trên tab trình duyệt nó chỉ còn 16 pixel.
+                        </div>
+                    </div>
+
+                    {% if icons_custom %}
+                    <button type="submit" name="action" value="reset_icons"
+                            class="btn btn-secondary" style="width: 100%;" formnovalidate>
+                        <i class="fas fa-rotate-left"></i> Dùng lại icon mặc định
+                    </button>
+                    {% else %}
+                    <div class="seo-hint">Đang dùng icon mặc định do hệ thống tạo.</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card seo-section">
                 <div class="card-header">Kiểm tra</div>
                 <div class="body seo-links">
                     <a href="{{ url_for('seo.robots') }}" target="_blank">
@@ -348,9 +378,10 @@
 
     // Show the chosen file straight away, so you can see the framing before
     // saving rather than after.
-    var picker = document.getElementById('og_image_file');
-    var preview = document.getElementById('ogPreview');
-    if (picker && preview) {
+    [['og_image_file', 'ogPreview'], ['icon_file', 'iconPreview']].forEach(function (pair) {
+        var picker = document.getElementById(pair[0]);
+        var preview = document.getElementById(pair[1]);
+        if (!picker || !preview) return;
         picker.addEventListener('change', function () {
             var f = this.files && this.files[0];
             if (!f) return;
@@ -360,7 +391,7 @@
                 URL.revokeObjectURL(url);
             }, {once: true});
         });
-    }
+    });
 })();
 </script>
 {% endblock %}

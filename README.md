@@ -151,8 +151,22 @@ than 600x315, is refused and the current image is left alone. "Dùng lại ảnh
 mặc định" deletes the upload and falls back to the generated card, which
 still comes from `tools/make_icons.py`.
 
-The uploaded file (`static/icons/og-custom.jpg`) is deliberately not tracked
-in git: it belongs to the running site, not the source.
+The favicon and app icons can be replaced the same way: upload one logo and
+all six sizes plus the `.ico` are generated from it, centre-cropped square.
+
+Uploaded files (`static/icons/og-custom.jpg`, `static/icons/custom-*`) are
+deliberately not tracked in git: they belong to the running site, not the
+source, and this also keeps a `git pull` from overwriting them.
+
+**The app has to be able to write to `static/icons`.** If it cannot, the page
+says so and nothing is overwritten. On a server where the code was pulled as
+root but the app runs as another user, grant it:
+
+```bash
+cd /www/wwwroot/quan-co-bong
+APPUSER=$(ps -eo user,args | grep "[g]unicorn" | grep quan-co-bong | head -1 | awk '{print $1}')
+chown -R "$APPUSER" static/icons static/images
+```
 
 ## 🔑 Sessions and SECRET_KEY
 

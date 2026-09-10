@@ -206,6 +206,63 @@ def main():
     rep.check(m and 'og-image.png' in m.group(1),
               'reset falls back to the generated image')
 
+    # --- icon set from one uploaded logo ------------------------------
+    def upload_icon(w, h, raw=None, name='logo.png'):
+        page = c.get('/admin/seo').get_data(as_text=True)
+        tok = re.search(r'name="csrf_token" value="([^"]+)"', page).group(1)
+        if raw is None:
+            buf = io.BytesIO()
+            Image.new('RGB', (w, h), (30, 140, 220)).save(buf, 'PNG')
+            buf.seek(0)
+        else:
+            buf = io.BytesIO(raw)
+        data = {k: v for k, v in seo.DEFAULTS.items()
+                if k not in ('og_image', 'custom_icons')}
+        data['csrf_token'] = tok
+        data['icon_file'] = (buf, name)
+        return c.post('/admin/seo', data=data,
+                      content_type='multipart/form-data', follow_redirects=True)
+
+    icon_dir = os.path.join(app.root_path, 'static', 'icons')
+
+    upload_icon(800, 600)                    # wide on purpose: must be squared
+    made = sorted(f for f in os.listdir(icon_dir) if f.startswith(seo.CUSTOM_PREFIX))
+    rep.check(len(made) == len(seo.ICON_SIZES) + 1,
+              'one logo produces the whole icon set', f'{len(made)} files')
+    for name, size in seo.ICON_SIZES.items():
+        got = Image.open(os.path.join(icon_dir, seo.CUSTOM_PREFIX + name)).size
+        if got != (size, size):
+            rep.check(False, f'{name} is {size}x{size}', str(got))
+            break
+    else:
+        rep.check(True, 'every icon is written at its declared size')
+
+    html = pub.get('/customer').get_data(as_text=True)
+    rep.check(seo.CUSTOM_PREFIX + 'favicon.ico' in html,
+              'public pages link the uploaded favicon')
+    admin_html = c.get('/admin/dashboard').get_data(as_text=True)
+    rep.check(seo.CUSTOM_PREFIX in admin_html, 'admin pages link it too')
+    man = json.loads(pub.get('/site.webmanifest').get_data(as_text=True))
+    rep.check(all(seo.CUSTOM_PREFIX in i['src'] for i in man['icons']),
+              'the manifest points at the uploaded icons')
+
+    r = upload_icon(40, 40)
+    rep.check('quá nhỏ' in r.get_data(as_text=True),
+              'a logo smaller than 64px is refused')
+
+    r = upload_icon(0, 0, raw=b'not an image')
+    rep.check('không phải là ảnh' in r.get_data(as_text=True),
+              'a non-image logo is refused')
+
+    page = c.get('/admin/seo').get_data(as_text=True)
+    tok = re.search(r'name="csrf_token" value="([^"]+)"', page).group(1)
+    c.post('/admin/seo', data={'action': 'reset_icons', 'csrf_token': tok},
+           follow_redirects=True)
+    left = [f for f in os.listdir(icon_dir) if f.startswith(seo.CUSTOM_PREFIX)]
+    rep.check(not left, 'reset deletes the uploaded icon set', str(left))
+    html = pub.get('/customer').get_data(as_text=True)
+    rep.check('icons/favicon.ico' in html, 'reset returns to the generated icons')
+
     # --- the settings row survives a request boundary ----------------
     with app.app_context():
         n = models.SiteSetting.query.count()

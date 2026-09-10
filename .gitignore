@@ -20,3 +20,4 @@ img/
 
 # uploaded share image - belongs to the site, not the repo
 static/icons/og-custom.jpg
+static/icons/custom-*

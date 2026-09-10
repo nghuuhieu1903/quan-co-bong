@@ -11,9 +11,9 @@
        what they found. #}
     <meta name="robots" content="noindex, nofollow">
 
-    <link rel="icon" href="{{ url_for('static', filename='icons/favicon.ico') }}" sizes="any">
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='icons/favicon-32.png') }}">
-    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/apple-touch-icon.png') }}">
+    <link rel="icon" href="{{ url_for('static', filename='icons/' ~ seo.icons['favicon.ico'] ~ '') }}" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='icons/' ~ seo.icons['favicon-32.png'] ~ '') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/' ~ seo.icons['apple-touch-icon.png'] ~ '') }}">
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
