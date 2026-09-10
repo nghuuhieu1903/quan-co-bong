@@ -332,7 +332,7 @@
 
                 <div class="sidebar-group" data-group="products"
                      {% if current_endpoint in ['manage_products', 'add_product', 'edit_product',
-                                                'admin_debts', 'admin_daily_menu_orders',
+                                                'admin_debts', 'admin_daily_menu_orders', 'admin_orders',
                                                 'daily_menu_manage'] %}data-has-current="1"{% endif %}>
                     <button type="button" class="sidebar-group-toggle">
                         <span><i class="fas fa-box"></i> Quản lý sản phẩm</span>
@@ -345,7 +345,7 @@
                         <a href="{{ url_for('admin.add_product') }}" class="sidebar-sublink {% if current_endpoint == 'add_product' %}active{% endif %}" onclick="closeSidebar()">
                             <i class="fas fa-plus-circle"></i> Thêm sản phẩm
                         </a>
-                        <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-sublink" onclick="closeSidebar()">
+                        <a href="{{ url_for('admin.admin_orders') }}" class="sidebar-sublink {% if current_endpoint == 'admin_orders' %}active{% endif %}" onclick="closeSidebar()">
                             <i class="fas fa-receipt"></i> Đơn hàng
                         </a>
                         <a href="{{ url_for('admin.admin_daily_menu_orders') }}" class="sidebar-sublink {% if current_endpoint == 'admin_daily_menu_orders' %}active{% endif %}" onclick="closeSidebar()">

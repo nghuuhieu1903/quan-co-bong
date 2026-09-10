@@ -1,0 +1,252 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Đơn hàng - Cô Bông Cát Lái{% endblock %}
+
+{% block head %}
+<style>
+.orders-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.orders-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.orders-filter:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+.orders-filter.active {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+    background: var(--bg-secondary);
+}
+
+.orders-filter .n {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-pill);
+    padding: 0 0.45rem;
+    font-size: 0.75rem;
+}
+
+.orders-filter.active .n {
+    background: var(--accent-color);
+    color: #fff;
+}
+
+.debt-total {
+    margin-left: auto;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.debt-total strong {
+    color: var(--danger-color);
+    font-size: 1.05rem;
+}
+
+/* The state control: two halves, the current one filled in. Each half is its
+   own tiny form, so a click is one request and needs no JavaScript. */
+.state-switch {
+    display: inline-flex;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-btn);
+    overflow: hidden;
+}
+
+.state-switch form {
+    margin: 0;
+}
+
+.state-switch button {
+    border: 0;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.state-switch button:hover {
+    background: var(--bg-secondary);
+}
+
+.state-switch .is-on-debt {
+    background: color-mix(in srgb, var(--warning-color) 18%, transparent);
+    color: var(--warning-color);
+    cursor: default;
+}
+
+.state-switch .is-on-done {
+    background: color-mix(in srgb, var(--success-color) 16%, transparent);
+    color: var(--success-color);
+    cursor: default;
+}
+
+.order-items {
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.order-when {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+}
+
+.orders-empty {
+    padding: 3rem 1rem;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .debt-total {
+        margin-left: 0;
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 class="admin-title"><i class="fas fa-receipt"></i> Đơn hàng</h1>
+                <p>Đánh dấu đơn đã hoàn thành hoặc còn nợ.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem 3rem;">
+
+    <div class="orders-toolbar">
+        {% for key, label in [('all', 'Tất cả'), ('debt', 'Còn nợ'),
+                              ('completed', 'Hoàn thành'), ('cancelled', 'Đã hủy')] %}
+        <a class="orders-filter {% if status_filter == key %}active{% endif %}"
+           href="{{ url_for('admin.admin_orders', status=key) }}">
+            {{ label }} <span class="n">{{ counts[key] }}</span>
+        </a>
+        {% endfor %}
+
+        {% if total_debt %}
+        <div class="debt-total">
+            Tổng còn nợ: <strong>{{ "{:,.0f}".format(total_debt) }} VNĐ</strong>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="orders-table table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Đơn</th>
+                    <th>Khách hàng</th>
+                    <th>Món</th>
+                    <th style="text-align: right;">Tổng tiền</th>
+                    <th>Thanh toán</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>
+                        <strong>#{{ order.id }}</strong>
+                        <div class="order-when">{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
+                    </td>
+                    <td>
+                        {{ order.customer_name }}
+                        {% if order.customer_phone and order.customer_phone != 'Not provided' %}
+                        <div class="order-when">
+                            <a href="tel:{{ order.customer_phone }}">{{ order.customer_phone }}</a>
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td class="order-items">
+                        {% for item in order.items %}
+                        {{ item.product.name if item.product else 'Sản phẩm đã xóa' }} × {{ item.quantity }}{% if not loop.last %},{% endif %}
+                        {% endfor %}
+                        {% if order.notes %}
+                        <div style="margin-top: 0.25rem;"><em>{{ order.notes }}</em></div>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right; font-weight: 600; white-space: nowrap;">
+                        {{ "{:,.0f}".format(order.total_amount) }} VNĐ
+                    </td>
+                    <td>
+                        {% if order.payment_method == 'bank' %}
+                        <span class="badge badge-info">Chuyển khoản</span>
+                        {% else %}
+                        <span class="badge badge-warning">Tiền mặt</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if order.status == 'cancelled' %}
+                        <span class="badge badge-danger">Đã hủy</span>
+                        {% else %}
+                        {% set is_done = order.status == 'completed' %}
+                        <div class="state-switch">
+                            {% if is_done %}
+                            <button type="button" class="is-on-done" disabled>
+                                <i class="fas fa-check"></i> Hoàn thành
+                            </button>
+                            <form method="POST" action="{{ url_for('admin.update_order_status', order_id=order.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="status" value="pending">
+                                <input type="hidden" name="next" value="orders">
+                                <button type="submit" title="Chuyển về còn nợ">Nợ</button>
+                            </form>
+                            {% else %}
+                            <form method="POST" action="{{ url_for('admin.update_order_status', order_id=order.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="status" value="completed">
+                                <input type="hidden" name="next" value="orders">
+                                <button type="submit" title="Đánh dấu đã hoàn thành">Hoàn thành</button>
+                            </form>
+                            <button type="button" class="is-on-debt" disabled>
+                                <i class="fas fa-clock"></i> Còn nợ
+                            </button>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="orders-empty">
+                        <i class="fas fa-receipt" style="font-size: 2rem; display: block; margin-bottom: 0.75rem; color: var(--text-muted);"></i>
+                        Chưa có đơn hàng nào ở mục này.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

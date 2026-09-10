@@ -483,9 +483,51 @@ def update_order_status(order_id):
     new_status = request.form.get('status')
     order.status = new_status
     db.session.commit()
-    
-    flash('Trạng thái đơn hàng đã cập nhật', 'success')
+
+    flash(f'Đơn #{order.id}: {"đã hoàn thành" if new_status == "completed" else "ghi nợ"}',
+          'success')
+    # Return to the page the change was made on. Only our own endpoints are
+    # accepted, so this cannot be used to bounce an admin off-site.
+    nxt = request.form.get('next')
+    if nxt in ('orders', 'debts'):
+        return redirect(url_for(f'admin.admin_{nxt}'))
     return redirect(url_for('admin.admin_dashboard'))
+
+@bp.route('/admin/orders')
+@admin_required
+def admin_orders():
+    """Orders on their own page, separate from the dashboard.
+
+    The dashboard mixes orders with revenue, stock and room figures; this is
+    just the list, with the one control that matters day to day - whether an
+    order is still owed or settled.
+    """
+    status_filter = request.args.get('status', 'all')
+
+    query = Order.query
+    if status_filter == 'debt':
+        query = query.filter(Order.status.notin_(['completed', 'cancelled']))
+    elif status_filter in ('completed', 'cancelled'):
+        query = query.filter(Order.status == status_filter)
+
+    orders = query.order_by(Order.created_at.desc()).all()
+
+    # counts for the filter chips, always over every order not just the
+    # filtered set, so the numbers do not change as you click around
+    all_orders = Order.query.all()
+    counts = {
+        'all': len(all_orders),
+        'debt': len([o for o in all_orders
+                     if o.status not in ('completed', 'cancelled')]),
+        'completed': len([o for o in all_orders if o.status == 'completed']),
+        'cancelled': len([o for o in all_orders if o.status == 'cancelled']),
+    }
+    total_debt = sum(o.total_amount for o in all_orders
+                     if o.status not in ('completed', 'cancelled'))
+
+    return render_template('admin_orders.html', orders=orders, counts=counts,
+                           total_debt=total_debt, status_filter=status_filter)
+
 
 @bp.route('/admin/debts')
 @super_admin_required
