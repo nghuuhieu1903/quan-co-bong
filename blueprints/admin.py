@@ -640,7 +640,26 @@ def admin_seo():
     import seo as seo_mod
 
     if request.method == 'POST':
-        changed = seo_mod.save_settings(request.form.to_dict())
+        # "restore the generated image" is its own button, and must not also
+        # save the text fields it happens to be submitted alongside
+        if request.form.get('action') == 'reset_og':
+            seo_mod.clear_og_image(current_app.root_path)
+            seo_mod.save_settings({'og_image': ''})
+            flash('Đã trở về ảnh chia sẻ mặc định', 'success')
+            return redirect(url_for('admin.admin_seo'))
+
+        values = request.form.to_dict()
+        # the filename is set by the upload below, never typed in
+        values.pop('og_image', None)
+
+        upload = request.files.get('og_image_file')
+        if upload and upload.filename:
+            ok, message = seo_mod.save_og_image(upload, current_app.root_path)
+            flash(message, 'success' if ok else 'error')
+            if ok:
+                values['og_image'] = seo_mod.OG_UPLOAD_NAME
+
+        changed = seo_mod.save_settings(values)
         flash(f'Đã lưu {changed} thay đổi' if changed else 'Không có gì thay đổi',
               'success' if changed else 'info')
         return redirect(url_for('admin.admin_seo'))
@@ -648,7 +667,9 @@ def admin_seo():
     return render_template('admin_seo.html',
                            cfg=seo_mod.settings(),
                            defaults=seo_mod.DEFAULTS,
-                           site_url=seo_mod.site_url())
+                           site_url=seo_mod.site_url(),
+                           og_file=seo_mod.og_image_file(),
+                           og_is_custom=bool(seo_mod.settings().get('og_image')))
 
 
 @bp.route('/admin/debts')

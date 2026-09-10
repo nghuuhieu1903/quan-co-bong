@@ -143,8 +143,16 @@ The page shows a live preview of the Google result and counts characters
 against the lengths Google truncates at (60 for a title, 160 for a
 description).
 
-The share image is generated, not uploaded - edit `tools/make_icons.py` and
-re-run it.
+The share image can be uploaded from the same page. Uploads are cropped to
+cover 1200x630 - the shape Facebook and Zalo render a link preview at - so a
+square or portrait photo is centre-cropped here rather than being cut
+unpredictably by each platform. A file that is not an image, or is smaller
+than 600x315, is refused and the current image is left alone. "Dùng lại ảnh
+mặc định" deletes the upload and falls back to the generated card, which
+still comes from `tools/make_icons.py`.
+
+The uploaded file (`static/icons/og-custom.jpg`) is deliberately not tracked
+in git: it belongs to the running site, not the source.
 
 ## 🔑 Sessions and SECRET_KEY
 

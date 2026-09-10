@@ -52,6 +52,9 @@ DEFAULTS = {
     'latitude': '10.7734753',
     'longitude': '106.7972421',
     'opening_hours': 'Mo-Su 06:00-22:00',
+    # filename under static/icons of an uploaded share image;
+    # blank means use the generated og-image.png
+    'og_image': '',
     # per-page overrides; blank means "use the page's own text"
     'home_title': '',
     'home_description': '',
@@ -102,6 +105,69 @@ def save_settings(new_values):
     return changed
 
 
+# Facebook, Zalo and Twitter all render the share card at roughly 1.91:1.
+# An image of any other shape gets cropped by them, unpredictably and usually
+# through the middle of the subject, so uploads are fitted here instead.
+OG_SIZE = (1200, 630)
+OG_UPLOAD_NAME = 'og-custom.jpg'
+
+
+def og_image_path(app_root):
+    """Where an uploaded share image lives on disk."""
+    return os.path.join(app_root, 'static', 'icons', OG_UPLOAD_NAME)
+
+
+def save_og_image(file_storage, app_root):
+    """Fit an upload to the share-card shape and store it.
+
+    Returns (ok, message). The original is never kept: it is cropped to cover
+    1200x630 so nothing is letterboxed, then written as JPEG.
+    """
+    from PIL import Image, UnidentifiedImageError
+
+    try:
+        img = Image.open(file_storage.stream)
+        img.load()
+    except (UnidentifiedImageError, OSError):
+        return False, 'Tệp không phải là ảnh hợp lệ'
+
+    if img.mode not in ('RGB', 'L'):
+        img = img.convert('RGB')
+    elif img.mode == 'L':
+        img = img.convert('RGB')
+
+    target_w, target_h = OG_SIZE
+    src_w, src_h = img.size
+    if src_w < 200 or src_h < 100:
+        return False, f'Ảnh quá nhỏ ({src_w}x{src_h}), cần ít nhất 600x315'
+
+    # cover: scale so both sides reach the target, then centre-crop
+    scale = max(target_w / src_w, target_h / src_h)
+    new = img.resize((max(1, round(src_w * scale)), max(1, round(src_h * scale))),
+                     Image.LANCZOS)
+    left = (new.width - target_w) // 2
+    top = (new.height - target_h) // 2
+    new = new.crop((left, top, left + target_w, top + target_h))
+
+    path = og_image_path(app_root)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    new.save(path, 'JPEG', quality=88, optimize=True)
+    return True, f'Đã cập nhật ảnh chia sẻ ({src_w}x{src_h} → 1200x630)'
+
+
+def clear_og_image(app_root):
+    """Drop the upload so the generated image is used again."""
+    try:
+        os.remove(og_image_path(app_root))
+    except FileNotFoundError:
+        pass
+
+
+def og_image_file():
+    """The share image filename under static/icons, upload or generated."""
+    return settings().get('og_image') or 'og-image.png'
+
+
 def site_url():
     return os.environ.get('SITE_URL', DEFAULT_SITE_URL).rstrip('/')
 
@@ -130,7 +196,7 @@ def register(app):
                 'shop': cfg,
                 'canonical': absolute(request.path),
                 'image': absolute(url_for('static',
-                                          filename='icons/og-image.png')),
+                                          filename='icons/' + og_image_file())),
                 'locale': 'vi_VN',
             },
             'seo_absolute': absolute,

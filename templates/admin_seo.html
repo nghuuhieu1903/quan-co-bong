@@ -118,7 +118,7 @@
 </section>
 
 <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem 3rem;">
-<form method="POST" id="seoForm">
+<form method="POST" id="seoForm" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <div class="seo-grid">
@@ -258,11 +258,31 @@
             <div class="card seo-section">
                 <div class="card-header">Ảnh khi chia sẻ link</div>
                 <div class="body og-preview">
-                    <img src="{{ url_for('static', filename='icons/og-image.png') }}"
+                    {# cache-bust so a new upload shows immediately instead of
+                       the browser's copy of the old one #}
+                    <img id="ogPreview"
+                         src="{{ url_for('static', filename='icons/' ~ og_file) }}?v={{ range(100000)|random }}"
                          alt="Ảnh chia sẻ">
-                    <div class="seo-hint" style="margin-top: 0.5rem;">
-                        Sửa ảnh này bằng <code>tools/make_icons.py</code>.
+
+                    <div class="seo-row" style="margin-top: 0.75rem;">
+                        <label for="og_image_file">Chọn ảnh mới</label>
+                        <input type="file" id="og_image_file" name="og_image_file"
+                               accept="image/png, image/jpeg, image/webp">
+                        <div class="seo-hint">
+                            Ảnh sẽ được tự cắt về khổ 1200×630 (tỉ lệ Facebook/Zalo
+                            dùng). Nên chọn ảnh ngang, chủ thể ở giữa.
+                        </div>
                     </div>
+
+                    {% if og_is_custom %}
+                    <button type="submit" name="action" value="reset_og"
+                            class="btn btn-secondary" style="width: 100%;"
+                            formnovalidate>
+                        <i class="fas fa-rotate-left"></i> Dùng lại ảnh mặc định
+                    </button>
+                    {% else %}
+                    <div class="seo-hint">Đang dùng ảnh mặc định do hệ thống tạo.</div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -325,6 +345,22 @@
     }
     name.addEventListener('input', sync);
     desc.addEventListener('input', sync);
+
+    // Show the chosen file straight away, so you can see the framing before
+    // saving rather than after.
+    var picker = document.getElementById('og_image_file');
+    var preview = document.getElementById('ogPreview');
+    if (picker && preview) {
+        picker.addEventListener('change', function () {
+            var f = this.files && this.files[0];
+            if (!f) return;
+            var url = URL.createObjectURL(f);
+            preview.src = url;
+            preview.addEventListener('load', function () {
+                URL.revokeObjectURL(url);
+            }, {once: true});
+        });
+    }
 })();
 </script>
 {% endblock %}

@@ -6,7 +6,9 @@ original wording rather than blanking the site.
     python test_seo_admin.py
 """
 
+import io
 import json
+import os
 import re
 import sys
 
@@ -145,6 +147,64 @@ def main():
     rep.check(seo.DEFAULTS['site_name'] in title_of(html),
               'cleared page override falls back to the page default',
               title_of(html))
+
+    # --- share image upload ------------------------------------------
+    from PIL import Image
+
+    def upload(w, h, name='anh.png', fmt='PNG', raw=None):
+        page = c.get('/admin/seo').get_data(as_text=True)
+        tok = re.search(r'name="csrf_token" value="([^"]+)"', page).group(1)
+        if raw is None:
+            buf = io.BytesIO()
+            Image.new('RGB', (w, h), (180, 60, 60)).save(buf, fmt)
+            buf.seek(0)
+        else:
+            buf = io.BytesIO(raw)
+        data = {k: v for k, v in seo.DEFAULTS.items() if k != 'og_image'}
+        data['csrf_token'] = tok
+        data['og_image_file'] = (buf, name)
+        return c.post('/admin/seo', data=data,
+                      content_type='multipart/form-data', follow_redirects=True)
+
+    path = seo.og_image_path(app.root_path)
+
+    upload(1000, 1000)                       # square: wrong shape on purpose
+    rep.check(os.path.exists(path), 'upload is stored')
+    rep.check(Image.open(path).size == seo.OG_SIZE,
+              'a square upload is cropped to the share-card shape',
+              str(Image.open(path).size))
+
+    upload(400, 900)                         # portrait
+    rep.check(Image.open(path).size == seo.OG_SIZE,
+              'a portrait upload is cropped to the share-card shape')
+
+    html = pub.get('/customer').get_data(as_text=True)
+    m = re.search(r'property="og:image" content="([^"]*)"', html)
+    rep.check(m and seo.OG_UPLOAD_NAME in m.group(1),
+              'public pages point at the uploaded image')
+
+    before = os.path.getmtime(path)
+    r = upload(100, 50)                      # too small to be usable
+    rep.check('quá nhỏ' in r.get_data(as_text=True),
+              'a too-small upload is refused with a reason')
+    rep.check(os.path.getmtime(path) == before,
+              'a refused upload does not overwrite the current image')
+
+    r = upload(0, 0, name='fake.png', raw=b'this is not an image at all')
+    rep.check('không phải là ảnh' in r.get_data(as_text=True),
+              'a non-image with an image extension is refused')
+    rep.check(os.path.getmtime(path) == before,
+              'the refused non-image did not overwrite anything')
+
+    page = c.get('/admin/seo').get_data(as_text=True)
+    tok = re.search(r'name="csrf_token" value="([^"]+)"', page).group(1)
+    c.post('/admin/seo', data={'action': 'reset_og', 'csrf_token': tok},
+           follow_redirects=True)
+    rep.check(not os.path.exists(path), 'reset removes the uploaded image')
+    html = pub.get('/customer').get_data(as_text=True)
+    m = re.search(r'property="og:image" content="([^"]*)"', html)
+    rep.check(m and 'og-image.png' in m.group(1),
+              'reset falls back to the generated image')
 
     # --- the settings row survives a request boundary ----------------
     with app.app_context():

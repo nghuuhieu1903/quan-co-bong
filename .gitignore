@@ -17,3 +17,6 @@ img/
 .DS_Store
 .env.*
 !.env.example
+
+# uploaded share image - belongs to the site, not the repo
+static/icons/og-custom.jpg
