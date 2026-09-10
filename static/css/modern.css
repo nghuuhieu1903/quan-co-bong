@@ -710,41 +710,22 @@ input[type="range"]::-moz-range-thumb {
 
 html.show-onboarding .onboarding-overlay {
     display: block;
+    cursor: pointer;
 }
 
 html.show-onboarding body {
     overflow: hidden;
 }
 
-.onboarding-skip {
-    position: absolute;
-    top: 1.25rem;
-    right: 1.25rem;
-    z-index: 10;
-    background: rgba(130,130,130,0.16);
-    border: none;
-    color: var(--text-secondary);
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius-pill);
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    backdrop-filter: blur(6px);
-}
 
-.onboarding-track {
-    display: flex;
-    height: 100%;
-    width: 400%;
-    transition: transform 0.45s cubic-bezier(.4,0,.2,1);
-}
 
+/* Was one of four panels inside a sliding track; now the only thing on
+   screen, so it fills it. */
 .onboarding-slide {
-    width: 25%;
+    width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
-    flex-shrink: 0;
 }
 
 .onboarding-slide-cover {
@@ -769,13 +750,6 @@ html.show-onboarding body {
     color: #7ec8ff;
 }
 
-.onboarding-cover-tap {
-    margin-top: 1.25rem;
-    color: rgba(255,255,255,0.6);
-    font-size: 0.85rem;
-    text-align: center;
-    animation: onboardingPulse 2s infinite;
-}
 
 @keyframes onboardingPulse {
     0%, 100% { opacity: 0.5; }
@@ -792,83 +766,18 @@ html.show-onboarding body {
     font-size: 0.75rem;
 }
 
-.onboarding-art {
-    flex: 1 1 55%;
-    margin: 1.25rem 1.25rem 0.5rem;
-    border-radius: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--gradient-primary);
-    position: relative;
-    overflow: hidden;
-}
 
-.onboarding-art i {
-    font-size: 5rem;
-    color: rgba(255,255,255,0.92);
-}
 
-.onboarding-art-2 {
-    background: linear-gradient(135deg, #2178dd 0%, #07264a 100%);
-}
 
-.onboarding-art-3 {
-    background: linear-gradient(135deg, #07264a 0%, #4db5ff 100%);
-}
 
-.onboarding-body {
-    padding: 1.5rem 2rem 2.5rem;
-    text-align: center;
-}
 
-.onboarding-dots {
-    display: flex;
-    gap: 0.4rem;
-    justify-content: center;
-    margin-bottom: 1.25rem;
-}
 
-.onboarding-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--border-color);
-    transition: background 0.2s ease, width 0.2s ease;
-}
 
-.onboarding-dot.active {
-    width: 22px;
-    background: var(--accent-color);
-}
 
-.onboarding-body h2 {
-    font-size: 1.5rem;
-    margin-bottom: 0.6rem;
-    color: var(--text-primary);
-}
 
-.onboarding-body p {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-    margin-bottom: 1.75rem;
-    line-height: 1.6;
-    max-width: 26rem;
-    margin-left: auto;
-    margin-right: auto;
-}
 
-.onboarding-next {
-    width: 100%;
-    max-width: 22rem;
-    justify-content: center;
-}
 
 @media (min-width: 700px) {
-    .onboarding-body {
-        max-width: 30rem;
-        margin: 0 auto;
-    }
 }
 
 /* Product card call-to-action pair ("thêm giỏ" + "mua ngay")
@@ -955,11 +864,26 @@ html.show-onboarding body {
         width: 38px;
     }
 
-    /* The catalogue hides the stepper on phones to keep its two-up cards
-       short, so the cart button and the primary action share one row again
-       instead of the primary action dropping to a line of its own. */
+    /* The stepper is on the card at every width now, so the primary action
+       keeps its own full-width row underneath it. */
     .product-cta .btn-buy {
-        flex: 1 1 auto;
+        flex: 1 0 100%;
+    }
+
+    /* At two cards per row there is about 150px to share between the stepper
+       and the cart button, so both shrink to fit rather than wrapping. */
+    .product-cta .btn-cart {
+        flex: 0 0 34px;
+        width: 34px;
+    }
+
+    .product-cta .quantity-btn {
+        width: 26px;
+        flex: 0 0 26px;
+    }
+
+    .product-cta .quantity-input {
+        font-size: 0.8rem;
     }
 }
 
@@ -1147,10 +1071,18 @@ html.show-onboarding body {
     color: var(--accent-color);
 }
 
+/* The selected chip is filled rather than ticked: at this size a check mark
+   crowds the label and shifts the text, while a solid fill reads instantly. */
 .sw-chip.active {
     border-color: var(--accent-color);
-    color: var(--accent-color);
-    background: var(--bg-secondary);
+    background: var(--accent-color);
+    color: #fff;
+}
+
+.sw-chip.active:hover {
+    border-color: var(--accent-hover);
+    background: var(--accent-hover);
+    color: #fff;
 }
 
 .sw-result-count {
@@ -1562,4 +1494,140 @@ html.show-onboarding body {
         transition-duration: 0.01ms !important;
         scroll-behavior: auto !important;
     }
+}
+
+/* Splash spinner. The overlay used to be the cover of an intro carousel with
+   a "tap to start" prompt; now it dismisses itself, so it shows progress
+   instead of asking for a tap. */
+.onboarding-cover-spinner {
+    width: 34px;
+    height: 34px;
+    margin: 1.5rem auto 0;
+    border: 3px solid rgba(255, 255, 255, 0.25);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: splash-spin 0.8s linear infinite;
+}
+
+@keyframes splash-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .onboarding-cover-spinner { animation-duration: 2.4s; }
+}
+
+/* Brand mark in the sidebar and mobile bar. It is the uploaded icon rather
+   than a fixed glyph, so changing the logo on /admin/seo changes the header
+   too - otherwise the tab and the header would show different marks. */
+.brand-logo {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    object-fit: cover;
+    vertical-align: -6px;
+    flex-shrink: 0;
+}
+
+/* Fly-to-cart
+   ------------------------------------------------------------------
+   The cart link is in the sidebar, which on a phone is a closed drawer, so
+   there is nothing on screen to fly to. The badge in the mobile bar is the
+   visible stand-in; when neither is on screen the animation is skipped and
+   only the badge count updates - a shape flying to nowhere is worse than no
+   animation. */
+.fly-item {
+    position: fixed;
+    z-index: 5000;
+    pointer-events: none;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    background: var(--gradient-accent);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    box-shadow: var(--shadow-md);
+    /* the curve makes it lift away first and drop into the cart, rather than
+       sliding in a straight line */
+    transition: transform 0.62s cubic-bezier(0.55, -0.35, 0.35, 1),
+                opacity 0.62s ease;
+}
+
+.cart-bump {
+    animation: cart-bump 0.42s ease;
+}
+
+@keyframes cart-bump {
+    0%   { transform: scale(1); }
+    35%  { transform: scale(1.28); }
+    60%  { transform: scale(0.94); }
+    100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fly-item { transition-duration: 0.01ms; }
+    .cart-bump { animation: none; }
+}
+
+/* Cart button in the mobile bar. */
+.topbar-cart {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.topbar-cart .cart-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: var(--danger-color);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+    border: 2px solid var(--bg-card);
+}
+
+/* Confirmation for an add that no longer reloads the page. */
+.cart-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translate(-50%, 16px);
+    z-index: 5200;
+    max-width: min(90vw, 420px);
+    padding: 0.7rem 1.1rem;
+    border-radius: var(--radius-pill);
+    background: var(--text-primary);
+    color: var(--bg-card);
+    font-size: 0.875rem;
+    font-weight: 600;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.cart-toast.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.cart-toast.is-error {
+    background: var(--danger-color);
+    color: #fff;
 }

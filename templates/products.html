@@ -125,10 +125,7 @@
         margin-bottom: 0.5rem !important;
     }
     
-    .quantity-selector {
-        display: none !important; /* Hide quantity selector to save space */
-    }
-    
+
     .product-actions {
         margin-top: auto;
     }
@@ -367,7 +364,7 @@
         {% for value, label in [('', 'Tất cả'), ('newest', 'Mới nhất'), ('price_low', 'Giá thấp đến cao'), ('price_high', 'Giá cao đến thấp'), ('name', 'Tên A-Z')] %}
         <a class="sw-chip {% if current_sort == value %}active{% endif %}"
            href="{{ url_for('public.products', type=item_type, sort=value or None, search=request.args.get('search') or None, price_range=request.args.get('price_range') or None) }}">
-            {% if current_sort == value %}<i class="fas fa-check"></i>{% endif %}{{ label }}
+            {{ label }}
         </a>
         {% endfor %}
     </div>
@@ -481,7 +478,7 @@
                                             <button type="button" class="quantity-btn" onclick="increaseQuantity(this)">+</button>
                                         </div>
                                     </div>
-                                    <button type="submit" onclick="this.form.querySelector('.next-redirect').value='';" class="btn btn-outline btn-cart" aria-label="{ _('prod_add_to_cart') }" title="{ _('prod_add_to_cart') }">
+                                    <button type="submit" onclick="this.form.querySelector('.next-redirect').value='';" class="btn btn-outline btn-cart" aria-label="{{ _('prod_add_to_cart') }}" title="{{ _('prod_add_to_cart') }}">
                                         <i class="fas fa-cart-plus"></i>
                                     </button>
                                     <button type="submit" onclick="this.form.querySelector('.next-redirect').value=this.dataset.redirect;" data-redirect="{{ url_for('public.checkout') }}" class="btn btn-primary btn-buy">

@@ -331,59 +331,19 @@
     {% block head %}{% endblock %}
 </head>
 <body>
-    <!-- Onboarding welcome flow (first visit only) -->
-    <div class="onboarding-overlay" id="onboarding-overlay" role="dialog" aria-modal="true" aria-label="Chào mừng">
-        <button type="button" class="onboarding-skip" onclick="finishOnboarding()">Bỏ qua</button>
-        <div class="onboarding-track" id="onboarding-track">
-            <div class="onboarding-slide onboarding-slide-cover" onclick="goToOnboardingSlide(1)">
-                <div>
-                    <div class="onboarding-cover-brand"><i class="fa-solid fa-mug-saucer"></i> Cô Bông <span>Cát Lái</span></div>
-                    <div class="onboarding-cover-tap">Chạm để bắt đầu</div>
+    {# Splash screen, first visit only. It used to be the cover of a
+       three-step intro carousel; the steps are gone and this dismisses
+       itself, or on a tap if you are quicker than the timer. #}
+    <div class="onboarding-overlay" id="onboarding-overlay" role="status"
+         aria-label="Đang mở {{ seo.site_name }}" onclick="finishOnboarding()">
+        <div class="onboarding-slide onboarding-slide-cover">
+            <div>
+                <div class="onboarding-cover-brand">
+                    <img src="{{ seo.icons['apple-touch-icon.png'] }}" alt="" class="brand-logo"> {{ seo.site_name }}
                 </div>
-                <div class="onboarding-cover-version">Phiên bản 1.0</div>
+                <div class="onboarding-cover-spinner" aria-hidden="true"></div>
             </div>
-
-            <div class="onboarding-slide">
-                <div class="onboarding-art onboarding-art-1"><i class="fa-solid fa-mug-hot"></i></div>
-                <div class="onboarding-body">
-                    <div class="onboarding-dots">
-                        <span class="onboarding-dot" data-slide="1"></span>
-                        <span class="onboarding-dot" data-slide="2"></span>
-                        <span class="onboarding-dot" data-slide="3"></span>
-                    </div>
-                    <h2>Khám phá các loại cà phê</h2>
-                    <p>Đa dạng hương vị cà phê và đồ uống, chỉ với vài thao tác đơn giản là có thể đặt món yêu thích.</p>
-                    <button type="button" class="btn btn-primary onboarding-next" onclick="goToOnboardingSlide(2)">Tiếp theo</button>
-                </div>
-            </div>
-
-            <div class="onboarding-slide">
-                <div class="onboarding-art onboarding-art-2"><i class="fa-solid fa-house-chimney"></i></div>
-                <div class="onboarding-body">
-                    <div class="onboarding-dots">
-                        <span class="onboarding-dot" data-slide="1"></span>
-                        <span class="onboarding-dot" data-slide="2"></span>
-                        <span class="onboarding-dot" data-slide="3"></span>
-                    </div>
-                    <h2>Theo dõi và đặt phòng trọ</h2>
-                    <p>Xem tình trạng phòng, tiện nghi và đặt lịch ghé thăm chỉ với vài cú chạm.</p>
-                    <button type="button" class="btn btn-primary onboarding-next" onclick="goToOnboardingSlide(3)">Tiếp theo</button>
-                </div>
-            </div>
-
-            <div class="onboarding-slide">
-                <div class="onboarding-art onboarding-art-3"><i class="fa-solid fa-star"></i></div>
-                <div class="onboarding-body">
-                    <div class="onboarding-dots">
-                        <span class="onboarding-dot" data-slide="1"></span>
-                        <span class="onboarding-dot" data-slide="2"></span>
-                        <span class="onboarding-dot" data-slide="3"></span>
-                    </div>
-                    <h2>Sẵn sàng cho trải nghiệm mới</h2>
-                    <p>Bắt đầu ngay để khám phá cà phê thơm ngon và phòng trọ tiện nghi tại Cát Lái.</p>
-                    <button type="button" class="btn btn-primary onboarding-next" onclick="finishOnboarding()">Bắt đầu ngay</button>
-                </div>
-            </div>
+            <div class="onboarding-cover-version">Phiên bản 1.0</div>
         </div>
     </div>
 
@@ -391,7 +351,7 @@
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <a href="{{ url_for('public.index') }}" class="sidebar-brand">
-                <i class="fa-solid fa-mug-saucer"></i> Cô Bông Cát Lái
+                <img src="{{ seo.icons['apple-touch-icon.png'] }}" alt="" class="brand-logo"> {{ seo.site_name }}
             </a>
 
             <nav class="sidebar-nav">
@@ -409,9 +369,8 @@
                 </a>
                 <a href="{{ url_for('public.cart') }}" class="sidebar-link {% if current_endpoint == 'cart' %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-shopping-cart"></i> {{ _('nav_cart') }}
-                    {% if session.get('cart', []) %}
-                        <span class="badge badge-info">{{ session.get('cart', [])|length }}</span>
-                    {% endif %}
+                    <span class="badge badge-info cart-count" data-cart-count
+                          {% if not session.get('cart', []) %}hidden{% endif %}>{{ session.get('cart', [])|length }}</span>
                 </a>
                 {% if session.get('customer_logged_in') %}
                 <a href="javascript:void(0)" class="sidebar-link">
@@ -452,7 +411,7 @@
             <!-- Mobile top bar -->
             <div class="mobile-topbar">
                 <a href="{{ url_for('public.index') }}" class="mobile-topbar-brand">
-                    <i class="fa-solid fa-mug-saucer"></i> Cô Bông Cát Lái
+                    <img src="{{ seo.icons['apple-touch-icon.png'] }}" alt="" class="brand-logo"> {{ seo.site_name }}
                 </a>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <a href="{{ url_for('public.change_lang', lang='en' if current_lang == 'vi' else 'vi') }}" class="lang-toggle-btn" title="Switch language / Đổi ngôn ngữ">
@@ -461,6 +420,15 @@
                     <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" title="Chuyển giao diện sáng/tối" aria-label="Toggle dark mode">
                         <i class="fas fa-moon" id="theme-toggle-icon-mobile"></i>
                     </button>
+                    {# The cart lives in the sidebar, which is a closed drawer
+                       on a phone. This is the visible one: the count updates in
+                       place and the fly-to-cart animation aims at it. #}
+                    <a href="{{ url_for('public.cart') }}" class="topbar-cart"
+                       id="topbarCart" aria-label="{{ _('nav_cart') }}">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count" data-cart-count
+                              {% if not session.get('cart', []) %}hidden{% endif %}>{{ session.get('cart', [])|length }}</span>
+                    </a>
                     <button class="mobile-menu-btn" onclick="toggleSidebar()">
                         <i class="fas fa-bars" id="mobile-menu-icon"></i>
                     </button>
@@ -502,42 +470,128 @@
         // Onboarding welcome flow
         var onboardingIndex = 0;
         var onboardingTotalSlides = 4;
-        var onboardingAutoTimer = null;
-
-        function renderOnboardingDots() {
-            document.querySelectorAll('.onboarding-dot').forEach(function(dot) {
-                dot.classList.toggle('active', parseInt(dot.dataset.slide, 10) === onboardingIndex);
-            });
-        }
-
-        function goToOnboardingSlide(i) {
-            onboardingIndex = i;
-            var track = document.getElementById('onboarding-track');
-            if (track) {
-                track.style.transform = 'translateX(-' + (i * 100 / onboardingTotalSlides) + '%)';
-            }
-            renderOnboardingDots();
-            if (onboardingAutoTimer) {
-                clearTimeout(onboardingAutoTimer);
-                onboardingAutoTimer = null;
-            }
-        }
-
         function finishOnboarding() {
             localStorage.setItem('onboarding_seen', '1');
             var overlay = document.getElementById('onboarding-overlay');
             document.documentElement.classList.remove('show-onboarding');
-            if (overlay) {
-                overlay.style.opacity = '0';
-                setTimeout(function() {
-                    overlay.style.display = 'none';
-                }, 300);
-            }
+            if (!overlay || overlay.dataset.done) return;
+            overlay.dataset.done = '1';
+            overlay.style.opacity = '0';
+            setTimeout(function () { overlay.style.display = 'none'; }, 300);
         }
 
+        // Dismiss once the page is ready, with a short floor so the brand is
+        // legible rather than flashing past on a fast connection.
         if (document.documentElement.classList.contains('show-onboarding')) {
-            onboardingAutoTimer = setTimeout(function() { goToOnboardingSlide(1); }, 1800);
+            var splashShown = Date.now();
+            window.addEventListener('load', function () {
+                var waited = Date.now() - splashShown;
+                setTimeout(finishOnboarding, Math.max(0, 1200 - waited));
+            });
+            // never leave it stuck if something on the page fails to load
+            setTimeout(finishOnboarding, 4000);
         }
+
+        // Add to cart without reloading the page
+        // ---------------------------------------------------------------
+        // Every "thêm giỏ" used to post the form and reload, which threw away
+        // the scroll position and made the page flash on every tap. The form
+        // is still there and still works with JavaScript off; this intercepts
+        // it, posts in the background, and moves the count itself.
+        (function () {
+            var csrf = document.querySelector('meta[name="csrf-token"]');
+
+            function cartTarget() {
+                // whichever cart icon is actually on screen
+                var candidates = [document.getElementById('topbarCart'),
+                                  document.querySelector('.sidebar-link .cart-count')];
+                for (var i = 0; i < candidates.length; i++) {
+                    var el = candidates[i];
+                    if (!el) continue;
+                    var r = el.getBoundingClientRect();
+                    if (r.width > 0 && r.height > 0 &&
+                        r.top >= 0 && r.top < window.innerHeight) return el;
+                }
+                return null;
+            }
+
+            function setCount(n) {
+                document.querySelectorAll('[data-cart-count]').forEach(function (el) {
+                    el.textContent = n;
+                    el.hidden = !n;
+                });
+                var t = cartTarget();
+                if (t) {
+                    t.classList.remove('cart-bump');
+                    void t.offsetWidth;          // restart the animation
+                    t.classList.add('cart-bump');
+                }
+            }
+
+            function fly(fromEl) {
+                var target = cartTarget();
+                if (!target) return;             // nothing visible to fly to
+                var a = fromEl.getBoundingClientRect();
+                var b = target.getBoundingClientRect();
+
+                var dot = document.createElement('div');
+                dot.className = 'fly-item';
+                dot.innerHTML = '<i class="fas fa-cart-plus"></i>';
+                dot.style.left = (a.left + a.width / 2 - 11) + 'px';
+                dot.style.top = (a.top + a.height / 2 - 11) + 'px';
+                document.body.appendChild(dot);
+
+                requestAnimationFrame(function () {
+                    dot.style.transform =
+                        'translate(' + (b.left + b.width / 2 - a.left - a.width / 2) + 'px,' +
+                        (b.top + b.height / 2 - a.top - a.height / 2) + 'px) scale(0.4)';
+                    dot.style.opacity = '0.2';
+                });
+                setTimeout(function () { dot.remove(); }, 700);
+            }
+
+            function toast(message, ok) {
+                var el = document.createElement('div');
+                el.className = 'cart-toast' + (ok ? '' : ' is-error');
+                el.textContent = message;
+                document.body.appendChild(el);
+                requestAnimationFrame(function () { el.classList.add('show'); });
+                setTimeout(function () {
+                    el.classList.remove('show');
+                    setTimeout(function () { el.remove(); }, 300);
+                }, 2200);
+            }
+
+            document.addEventListener('submit', function (e) {
+                var form = e.target;
+                if (!form.matches('form[action*="/add_to_cart/"]')) return;
+                // "Mua ngay" sets a redirect target - let that one navigate
+                var next = form.querySelector('.next-redirect');
+                if (next && next.value) return;
+                if (!csrf) return;               // no token: fall back to a normal post
+
+                e.preventDefault();
+                var btn = form.querySelector('.btn-cart') || form;
+                fly(btn);
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: {'X-Requested-With': 'fetch',
+                              'X-CSRFToken': csrf.content}
+                })
+                .then(function (r) { return r.json().then(function (d) {
+                    return {ok: r.ok, data: d}; }); })
+                .then(function (res) {
+                    setCount(res.data.count);
+                    toast(res.data.message, res.data.ok);
+                })
+                .catch(function () {
+                    // network trouble: do the thing that definitely works
+                    form.submit();
+                });
+            });
+        })();
 
         // Dark/Light Theme Toggle
         function updateThemeIcon() {

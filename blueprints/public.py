@@ -205,12 +205,29 @@ def cart():
     
     return render_template('cart.html', cart_items=products, products=products, subtotal=total, total=final_total)
 
+def wants_json():
+    """True when the caller asked for JSON rather than a redirect.
+
+    The cart forms still work with JavaScript off - they post and the browser
+    follows the redirect as before. The script sets this header instead, so
+    the same view serves both without a second endpoint to keep in step.
+    """
+    return request.headers.get('X-Requested-With') == 'fetch'
+
+
+def cart_count():
+    return len(session.get('cart', []))
+
+
 @bp.route('/add_to_cart/<int:product_id>', methods=['POST'])
 def add_to_cart(product_id):
     product = Product.query.get_or_404(product_id)
     next_url = request.form.get('next') or request.referrer
     
     if product.stock <= 0:
+        if wants_json():
+            return jsonify(ok=False, message='Sản phẩm đã hết hàng',
+                           count=cart_count()), 409
         flash('Sản phẩm đã hết hàng', 'error')
         return redirect(next_url or url_for('public.customer_home'))
     
@@ -219,6 +236,10 @@ def add_to_cart(product_id):
     
     # Validate quantity
     if quantity < 1 or quantity > product.stock:
+        if wants_json():
+            return jsonify(ok=False,
+                           message=f'Chỉ còn {product.stock} sản phẩm',
+                           count=cart_count()), 409
         flash('Số lượng không hợp lệ', 'error')
         return redirect(next_url or url_for('public.customer_home'))
     
@@ -239,7 +260,10 @@ def add_to_cart(product_id):
         cart.append({'product_id': product_id, 'quantity': quantity})
     
     session['cart'] = cart
-    flash(f'{quantity} {"sản phẩm" if quantity == 1 else "sản phẩm"} đã thêm vào giỏ hàng', 'success')
+    message = f'Đã thêm {quantity} {product.name} vào giỏ'
+    if wants_json():
+        return jsonify(ok=True, message=message, count=cart_count())
+    flash(message, 'success')
     return redirect(next_url or url_for('public.customer_home'))
 
 @bp.route('/update_cart/<int:product_id>', methods=['POST'])

@@ -303,7 +303,7 @@
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <a href="{{ url_for('admin.admin_dashboard') }}" class="sidebar-brand">
-                <i class="fa-solid fa-mug-saucer"></i> Cô Bông Cát Lái
+                <img src="{{ seo.icons['apple-touch-icon.png'] }}" alt="" class="brand-logo"> {{ seo.site_name }}
             </a>
 
             <nav class="sidebar-nav">
@@ -402,7 +402,7 @@
             <!-- Mobile top bar -->
             <div class="mobile-topbar">
                 <a href="{{ url_for('admin.admin_dashboard') }}" class="mobile-topbar-brand">
-                    <i class="fa-solid fa-mug-saucer"></i> Cô Bông Cát Lái
+                    <img src="{{ seo.icons['apple-touch-icon.png'] }}" alt="" class="brand-logo"> {{ seo.site_name }}
                 </a>
                 <button class="mobile-menu-btn" onclick="toggleSidebar()">
                     <i class="fas fa-bars" id="mobile-menu-icon"></i>
