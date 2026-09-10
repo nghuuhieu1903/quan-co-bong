@@ -654,7 +654,14 @@ def admin_seo():
 
         upload = request.files.get('og_image_file')
         if upload and upload.filename:
-            ok, message = seo_mod.save_og_image(upload, current_app.root_path)
+            # An admin picking an odd file must never take the page down: any
+            # failure here becomes a message, and the rest of the form still
+            # saves. The traceback goes to the log so the cause is findable.
+            try:
+                ok, message = seo_mod.save_og_image(upload, current_app.root_path)
+            except Exception as exc:
+                logger.exception('Share image upload failed (%s)', upload.filename)
+                ok, message = False, f'Không xử lý được ảnh: {type(exc).__name__}'
             flash(message, 'success' if ok else 'error')
             if ok:
                 values['og_image'] = seo_mod.OG_UPLOAD_NAME

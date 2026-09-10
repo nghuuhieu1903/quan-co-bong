@@ -150,8 +150,15 @@ def save_og_image(file_storage, app_root):
     new = new.crop((left, top, left + target_w, top + target_h))
 
     path = og_image_path(app_root)
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    new.save(path, 'JPEG', quality=88, optimize=True)
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        new.save(path, 'JPEG', quality=88, optimize=True)
+    except OSError as exc:
+        # Almost always the app user not being able to write into
+        # static/icons on the server; say so instead of failing blankly.
+        logger.exception('Cannot write the share image to %s', path)
+        return False, (f'Không ghi được tệp vào {path} ({exc.strerror or exc}). '
+                       'Kiểm tra quyền ghi của thư mục static/icons.')
     return True, f'Đã cập nhật ảnh chia sẻ ({src_w}x{src_h} → 1200x630)'
 
 
