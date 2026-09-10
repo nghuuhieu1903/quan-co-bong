@@ -47,6 +47,7 @@
       "description": "{{ seo.description }}",
       "url": "{{ seo.site_url }}",
       "image": "{{ seo.image }}",
+      "telephone": "+84917331628",
       "servesCuisine": ["Cà phê", "Đồ uống", "Món ăn Việt Nam"],
       "priceRange": "20.000₫ - 150.000₫",
       "address": {
@@ -389,11 +390,11 @@
                 <a href="{{ url_for('public.index') }}" class="sidebar-link {% if current_endpoint in ['index', 'customer_home'] %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-home"></i> {{ _('nav_home') }}
                 </a>
-                <a href="{{ url_for('public.products') }}" class="sidebar-link {% if current_endpoint in ['products', 'product_detail_route'] and request.args.get('type', 'drink') == 'drink' %}active{% endif %}" onclick="closeSidebar()">
-                    <i class="fas fa-mug-hot"></i> {{ _('nav_products') }}
-                </a>
-                <a href="{{ url_for('public.products', type='food') }}" class="sidebar-link {% if current_endpoint in ['products', 'product_detail_route'] and request.args.get('type') == 'food' %}active{% endif %}" onclick="closeSidebar()">
-                    <i class="fas fa-utensils"></i> {{ _('nav_food') }}
+                {# One entry for the whole catalogue. Food and drink are tabs
+                   inside the page, so two sidebar rows pointing at the same
+                   page only made it ambiguous which one was current. #}
+                <a href="{{ url_for('public.products') }}" class="sidebar-link {% if current_endpoint in ['products', 'product_detail_route'] %}active{% endif %}" onclick="closeSidebar()">
+                    <i class="fas fa-bag-shopping"></i> {{ _('nav_catalogue') }}
                 </a>
                 <a href="{{ url_for('public.rooms') }}" class="sidebar-link {% if current_endpoint in ['rooms', 'room_detail'] %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-house-user"></i> {{ _('nav_rooms') }}
@@ -477,11 +478,11 @@
                 {% block content %}{% endblock %}
             </main>
 
-            <!-- Footer -->
-            <footer class="container" style="margin-top: auto; padding: 2rem; border-top: 1px solid var(--border-color); text-align: center; color: var(--text-secondary);">
-                <p>&copy; 2024 Cô Bông Cát Lái. Đã đăng ký bản quyền.</p>
-                <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-                    Made with <i class="fas fa-heart" style="color: var(--danger-color);"></i> using Flask & Modern CSS
+            <!-- Footer: contact only. The number is a tel: link so a phone
+                 can dial it straight from the page. -->
+            <footer class="site-footer">
+                <p>
+                    Liên hệ: <a href="tel:+84917331628">0917331628</a> - cô Bông
                 </p>
             </footer>
         </div>

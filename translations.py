@@ -6,6 +6,8 @@ TRANSLATIONS = {
         'nav_home': 'Trang chủ',
         'nav_products': 'Đồ uống',
         'nav_food': 'Đồ ăn',
+        # one sidebar entry covering both; the two tabs live inside it
+        'nav_catalogue': 'Sản phẩm',
         'nav_rooms': 'Căn hộ dịch vụ',
         'nav_cart': 'Giỏ hàng',
         'nav_login': 'Đăng nhập',
@@ -53,6 +55,7 @@ TRANSLATIONS = {
         'nav_home': 'Home',
         'nav_products': 'Drinks',
         'nav_food': 'Food',
+        'nav_catalogue': 'Products',
         'nav_rooms': 'Serviced Apartments',
         'nav_cart': 'Cart',
         'nav_login': 'Login',
