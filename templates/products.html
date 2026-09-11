@@ -291,6 +291,30 @@
         font-size: 0.9rem !important;
     }
 }
+
+/* Filter swap: the new cards ease in instead of the grid blinking.
+   Each card starts a hair later than the one before it, which reads as the
+   list settling rather than the page reloading. */
+#productsGrid.sw-enter .product-card {
+    animation: sw-card-in 220ms ease-out both;
+}
+
+#productsGrid.sw-enter .product-card:nth-child(2) { animation-delay: 25ms; }
+#productsGrid.sw-enter .product-card:nth-child(3) { animation-delay: 50ms; }
+#productsGrid.sw-enter .product-card:nth-child(4) { animation-delay: 75ms; }
+#productsGrid.sw-enter .product-card:nth-child(n+5) { animation-delay: 100ms; }
+
+@keyframes sw-card-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+}
+
+/* the chips must never move or flash - only their colour changes */
+.sw-chip { transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease; }
+
+@media (prefers-reduced-motion: reduce) {
+    #productsGrid.sw-enter .product-card { animation: none; }
+}
 </style>
 {% endblock %}
 
@@ -570,18 +594,31 @@ const observer = new IntersectionObserver(function(entries) {
         if (entry.isIntersecting) {
             entry.target.style.opacity = '1';
             entry.target.style.transform = 'translateY(0)';
+            observer.unobserve(entry.target);
         }
     });
 }, observerOptions);
 
 document.addEventListener('DOMContentLoaded', function() {
     const fadeElements = document.querySelectorAll('.fade-in');
+
+    // Same guard as the cart: never hide the catalogue unless we know we can
+    // bring it back, and show it regardless after a moment.
+    if (!('IntersectionObserver' in window)) return;
+
     fadeElements.forEach(el => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(20px)';
         el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
         observer.observe(el);
     });
+
+    setTimeout(function () {
+        fadeElements.forEach(function (el) {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        });
+    }, 1200);
 });
 
 // Quantity selector functions
@@ -650,18 +687,24 @@ function toggleFilter() {
         });
 
         history.pushState({}, '', url);
-        grid.scrollIntoView({block: 'nearest'});
+
+        // let the new cards ease in; replay by removing and re-adding so a
+        // quick second click still animates
+        grid.classList.remove('sw-enter');
+        void grid.offsetWidth;
+        grid.classList.add('sw-enter');
     }
 
     function load(url) {
         if (busy) return;
         busy = true;
-        grid.style.opacity = '0.45';
+        // no dimming while we wait: the response is quick, and fading the
+        // grid out and back in is exactly the blink this was meant to avoid
         fetch(url, {credentials: 'same-origin', headers: {'X-Requested-With': 'fetch'}})
             .then(function (r) { return r.text(); })
             .then(function (html) { swap(html, url); })
             .catch(function () { window.location.href = url; })
-            .then(function () { busy = false; grid.style.opacity = ''; });
+            .then(function () { busy = false; });
     }
 
     // chips are replaced on every swap, so listen on the container

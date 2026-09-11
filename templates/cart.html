@@ -318,6 +318,140 @@
     grid-column: 3;
 }
 
+/* Cart table
+   ------------------------------------------------------------------
+   Every column used to carry a hard pixel width, so "Hình ảnh" broke across
+   two lines and "45.000 VNĐ" wrapped after the number. Money columns are
+   sized by their content and never wrap; only the product column flexes. */
+.ct-title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.ct-count {
+    padding: 0.15rem 0.6rem;
+    border-radius: var(--radius-pill);
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.cart-items-desktop .table { table-layout: auto; }
+
+.cart-items-desktop th {
+    white-space: nowrap;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--text-secondary);
+}
+
+.cart-items-desktop td { vertical-align: middle; }
+
+th.ct-img, td.ct-img { width: 76px; }
+
+.ct-img img {
+    display: block;
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.ct-name { width: auto; }
+
+.ct-name h4 {
+    margin: 0 0 0.2rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.ct-name p {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.45;
+    color: var(--text-secondary);
+}
+
+/* money: sized to content, one line, right aligned so the digits line up */
+th.ct-price, td.ct-price,
+th.ct-total, td.ct-total {
+    width: 1%;
+    white-space: nowrap;
+    text-align: right;
+}
+
+td.ct-price {
+    color: var(--text-secondary);
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+td.ct-total {
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+th.ct-qty, td.ct-qty { width: 1%; white-space: nowrap; }
+
+.ct-stepper {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+}
+
+.ct-stepper .form-control {
+    width: 52px;
+    text-align: center;
+    padding: 0.35rem 0.25rem;
+}
+
+th.ct-del, td.ct-del { width: 1%; }
+
+/* a quiet icon button - the red block competed with the order button */
+.ct-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-card);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease;
+}
+
+.ct-remove:hover {
+    color: var(--danger-color);
+    border-color: var(--danger-color);
+    background: color-mix(in srgb, var(--danger-color) 8%, transparent);
+}
+
+/* label kept for screen readers where the column header is an icon only */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 /* Order summary
    ------------------------------------------------------------------
    The old card leaned on solid Font Awesome glyphs beside every label,
@@ -487,13 +621,9 @@
     <!-- Desktop Table View -->
     <div class="card fade-in cart-items-desktop">
         <div class="card-header">
-            <h3 style="margin: 0; color: var(--text-primary);">
-                <i class="fas fa-list"></i> Sản phẩm trong 
-                {% if cart_items %}
-                <span class="badge badge-info"><span data-cart-items>{{ cart_items|length }}</span> sản phẩm</span>
-                {% else %}
-                <span class="badge badge-secondary">0 sản phẩm</span>
-                {% endif %}
+            <h3 class="ct-title">
+                Sản phẩm trong giỏ
+                <span class="ct-count"><span data-cart-items>{{ cart_items|length }}</span> món</span>
             </h3>
         </div>
         
@@ -501,33 +631,27 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th style="width: 80px;">Hình ảnh</th>
-                        <th>Sản phẩm</th>
-                        <th style="width: 120px;">Đơn giá</th>
-                        <th style="width: 150px;">Số lượng</th>
-                        <th style="width: 120px;">Thành tiền</th>
-                        <th style="width: 80px;">Xóa</th>
+                        <th class="ct-img"><span class="sr-only">Hình ảnh</span></th>
+                        <th class="ct-name">Sản phẩm</th>
+                        <th class="ct-price">Đơn giá</th>
+                        <th class="ct-qty">Số lượng</th>
+                        <th class="ct-total">Thành tiền</th>
+                        <th class="ct-del"><span class="sr-only">Xóa</span></th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in cart_items %}
                     <tr data-cart-row="{{ item.product.id }}">
-                        <td>
-                            <img src="{{ item.product.image_url }}" 
-                                 alt="{{ item.product.name }}" 
-                                  style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+                        <td class="ct-img">
+                            <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}">
                         </td>
-                        <td>
-                            <h4 style="margin: 0 0 0.5rem 0; color: var(--text-primary);">{{ item.product.name }}</h4>
-                            <p style="margin: 0; color: var(--text-secondary); font-size: 0.9rem;">
-                                {{ item.product.description[:100] }}{% if item.product.description|length > 100 %}...{% endif %}
-                            </p>
+                        <td class="ct-name">
+                            <h4>{{ item.product.name }}</h4>
+                            <p>{{ item.product.description[:100] }}{% if item.product.description|length > 100 %}...{% endif %}</p>
                         </td>
-                        <td style="color: var(--accent-color); font-weight: 600;">
-                            {{ item.product.price|vnd }} VNĐ
-                        </td>
-                        <td>
-                            <form method="POST" action="{{ url_for('public.update_cart', product_id=item.product.id) }}" style="display: flex; align-items: center; gap: 0.5rem;">
+                        <td class="ct-price">{{ item.product.price|vnd }} VNĐ</td>
+                        <td class="ct-qty">
+                            <form method="POST" action="{{ url_for('public.update_cart', product_id=item.product.id) }}" class="ct-stepper">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline" style="padding: 0.25rem 0.5rem;">
                                     <i class="fas fa-minus"></i>
@@ -539,13 +663,13 @@
                                 </button>
                             </form>
                         </td>
-                        <td style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">
+                        <td class="ct-total">
                             <span data-line-total>{{ item.subtotal|vnd }}</span> VNĐ
                         </td>
-                        <td>
+                        <td class="ct-del">
                             <form method="POST" action="{{ url_for('public.remove_from_cart', product_id=item.product.id) }}">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
+                                <button type="submit" class="ct-remove" title="Xóa" aria-label="Xóa {{ item.product.name }}">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
