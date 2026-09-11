@@ -29,7 +29,7 @@
                 <!-- Price -->
                 <div class="form-group" style="margin: 0;">
                     <label class="form-label" for="price_per_hour" style="font-weight: 600;">Giá thuê (VNĐ) *</label>
-                    <input type="number" id="price_per_hour" name="price_per_hour" class="form-control" value="{{ room.price_per_hour|int }}" min="0" required>
+                    <input type="text" inputmode="numeric" data-money id="price_per_hour" name="price_per_hour" class="form-control" value="{{ room.price_per_hour|vnd }}" required>
                 </div>
 
                 <!-- Price Unit -->

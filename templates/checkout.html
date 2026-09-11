@@ -415,7 +415,7 @@
                     </div>
                     <div style="text-align: right;">
                         <p style="margin: 0; color: var(--accent-color); font-weight: 600;">
-                            {{ "{:,.0f}".format(product.price * item.quantity) }} VNĐ
+                            {{ (product.price * item.quantity)|vnd }} VNĐ
                         </p>
                     </div>
                 </div>
@@ -425,7 +425,7 @@
             <div style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
                     <span>Tạm tính:</span>
-                    <span>{{ "{:,.0f}".format(total) }} VNĐ</span>
+                    <span>{{ total|vnd }} VNĐ</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
                     <span>Phí vận chuyển:</span>
@@ -434,7 +434,7 @@
                 <hr style="border-color: var(--border-color); margin: 1rem 0;">
                 <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 500; color: var(--accent-color);">
                     <span>Tổng cộng:</span>
-                    <span>{{ "{:,.0f}".format(total) }} VNĐ</span>
+                    <span>{{ total|vnd }} VNĐ</span>
                 </div>
             </div>
             

@@ -22,7 +22,7 @@ from decorators import (admin_required, admin_required_api,
                         admin_required_api_success, manager_required,
                         super_admin_required)
 from extensions import db
-from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, safe_print as print,
+from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, parse_vnd, safe_print as print,
                      save_uploaded_file, save_uploaded_files, send_email)
 from models import (Admin, Customer, DailyMenuItem, DailyMenuOrder,
                     Notification, Order, OrderItem, Product, ProductImage,
@@ -86,9 +86,8 @@ def daily_menu_add():
         flash('Vui lòng nhập tên món và giá', 'error')
         return redirect(url_for('menu.daily_menu_manage'))
 
-    try:
-        price = float(price_raw)
-    except ValueError:
+    price = parse_vnd(price_raw)
+    if price is None:
         flash('Giá không hợp lệ', 'error')
         return redirect(url_for('menu.daily_menu_manage'))
 

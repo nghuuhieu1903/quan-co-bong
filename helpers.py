@@ -3,6 +3,7 @@
 import builtins
 import logging
 import os
+import re
 import smtplib
 import sys
 import time
@@ -98,3 +99,43 @@ def save_uploaded_files(files, prefix='detail_'):
     """Save multiple uploaded files, returning the list of saved filenames (skips invalid entries)."""
     return [name for name in (save_uploaded_file(f, prefix=prefix) for f in files) if name]
 
+
+
+def format_vnd(value):
+    """Vietnamese money: a dot every three digits, no decimals.
+
+    Vietnamese uses the dot as the thousands separator, which is the opposite
+    of Python's "{:,}". Registered as the "vnd" Jinja filter so every screen
+    formats money the same way.
+    """
+    try:
+        number = round(float(value or 0))
+    except (TypeError, ValueError):
+        return value
+    return f'{number:,.0f}'.replace(',', '.')
+
+
+def parse_vnd(raw):
+    """Read a money field back: accepts 45000, "45.000" or "45 000".
+
+    The price boxes show a dot every three digits, so what posts back is not a
+    bare number. Anything that is not plainly an amount returns None so the
+    caller can show a message instead of raising and returning a 500.
+
+    Separators are only accepted where they really group thousands: "45.000"
+    is 45000, but "45,5" is rejected rather than silently read as 455, which
+    would be ten times the intended price.
+    """
+    text = str(raw if raw is not None else '')
+    for junk in ('VN\u0110', 'VND', 'vnd', '\u0111', '\u0110', ' ', '\xa0', '\u202f'):
+        text = text.replace(junk, '')
+    text = text.strip()
+
+    if text.isdigit():
+        return float(text)
+    # one separator, repeated, with exact groups of three
+    if re.fullmatch(r'\d{1,3}(\.\d{3})+', text):
+        return float(text.replace('.', ''))
+    if re.fullmatch(r'\d{1,3}(,\d{3})+', text):
+        return float(text.replace(',', ''))
+    return None

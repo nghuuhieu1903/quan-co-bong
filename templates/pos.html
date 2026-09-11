@@ -225,7 +225,7 @@
                         data-price="{{ '%.0f'|format(p.price) }}" data-stock="{{ p.stock }}">
                     <span class="nm">{{ p.name }}</span>
                     <span>
-                        <span class="pr">{{ "{:,.0f}".format(p.price) }}</span>
+                        <span class="pr">{{ p.price|vnd }}</span>
                         <span class="st">· còn {{ p.stock }}</span>
                     </span>
                 </button>
@@ -282,7 +282,7 @@
     var totalEl = document.getElementById('posTotal');
     var form   = document.getElementById('posForm');
 
-    function money(n) { return n.toLocaleString('vi-VN') + ' VNĐ'; }
+    function money(n) { return VND.format(n) + ' VNĐ'; }
 
     function render() {
         // rebuild the ticket; also rebuilds the hidden inputs that get posted

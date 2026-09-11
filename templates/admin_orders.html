@@ -156,7 +156,7 @@
 
         {% if total_debt %}
         <div class="debt-total">
-            Tổng còn nợ: <strong>{{ "{:,.0f}".format(total_debt) }} VNĐ</strong>
+            Tổng còn nợ: <strong>{{ total_debt|vnd }} VNĐ</strong>
         </div>
         {% endif %}
     </div>
@@ -198,7 +198,7 @@
                         {% endif %}
                     </td>
                     <td style="text-align: right; font-weight: 600; white-space: nowrap;">
-                        {{ "{:,.0f}".format(order.total_amount) }} VNĐ
+                        {{ order.total_amount|vnd }} VNĐ
                     </td>
                     <td>
                         {% if order.payment_method == 'bank' %}

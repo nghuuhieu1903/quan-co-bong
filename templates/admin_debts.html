@@ -91,7 +91,7 @@
             <div>
                 <strong style="color: var(--text-primary);">Tổng số nợ:</strong>
                 <span style="color: var(--danger-color); font-weight: 700; font-size: 1.2rem;">
-                    {{ "{:,.0f}".format(total_debt) }} VNĐ
+                    {{ total_debt|vnd }} VNĐ
                 </span>
                 <span style="color: var(--text-secondary); margin-left: 0.5rem;">({{ debt_orders|length }} đơn)</span>
             </div>
@@ -134,7 +134,7 @@
                                     {% endfor %}
                                 </td>
                                 <td style="color: var(--danger-color); font-weight: 600;">
-                                    {{ "{:,.0f}".format(order.total_amount) }} VNĐ
+                                    {{ order.total_amount|vnd }} VNĐ
                                 </td>
                                 <td style="font-size: 0.9rem; color: var(--text-secondary);">
                                     {{ order.created_at.strftime('%d/%m/%Y %H:%M') if order.created_at else 'N/A' }}

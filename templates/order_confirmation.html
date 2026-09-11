@@ -338,7 +338,7 @@
                     <div><dt>Chủ tài khoản</dt><dd>{{ payment.account_name }}</dd></div>
                     {% endif %}
                     <div><dt>Số tiền</dt>
-                        <dd class="pay-amount">{{ "{:,.0f}".format(payment.amount) }} VNĐ</dd></div>
+                        <dd class="pay-amount">{{ payment.amount|vnd }} VNĐ</dd></div>
                     <div><dt>Nội dung</dt>
                         <dd><code class="pay-content">{{ payment.content }}</code></dd></div>
                 </dl>
@@ -429,9 +429,9 @@
                                 {% endif %}
                             </td>
                             <td>{{ item.quantity }}</td>
-                            <td>{{ "{:,.0f}".format(item.price) }} VNĐ</td>
+                            <td>{{ item.price|vnd }} VNĐ</td>
                             <td style="color: var(--accent-color); font-weight: 600;">
-                                {{ "{:,.0f}".format(item.price * item.quantity) }} VNĐ
+                                {{ (item.price * item.quantity)|vnd }} VNĐ
                             </td>
                         </tr>
                         {% endfor %}
@@ -445,7 +445,7 @@
             <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 8px; display: inline-block; min-width: 300px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
                     <span>Tạm tính:</span>
-                    <span>{{ "{:,.0f}".format(order.total_amount) }} VNĐ</span>
+                    <span>{{ order.total_amount|vnd }} VNĐ</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
                     <span>Phí vận chuyển:</span>
@@ -454,7 +454,7 @@
                 <hr style="border-color: var(--border-color); margin: 1rem 0;">
                 <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 500; color: var(--accent-color);">
                     <span>Tổng cộng:</span>
-                    <span>{{ "{:,.0f}".format(order.total_amount) }} VNĐ</span>
+                    <span>{{ order.total_amount|vnd }} VNĐ</span>
                 </div>
             </div>
         </div>

@@ -369,28 +369,28 @@ body, .modal-content, .table, .dropdown-menu {
         <div class="stat-card fade-in" style="--stat-gradient: var(--gradient-success);">
             <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
             <div class="stat-info">
-                <div class="stat-value">{{ "{:,.0f}".format(stats.today_revenue) }} <span class="stat-unit">VNĐ</span></div>
+                <div class="stat-value">{{ stats.today_revenue|vnd }} <span class="stat-unit">VNĐ</span></div>
                 <div class="stat-label">Doanh thu hôm nay</div>
             </div>
         </div>
         <div class="stat-card fade-in" style="--stat-gradient: var(--gradient-accent);">
             <div class="stat-icon"><i class="fas fa-calendar-alt"></i></div>
             <div class="stat-info">
-                <div class="stat-value">{{ "{:,.0f}".format(stats.month_revenue) }} <span class="stat-unit">VNĐ</span></div>
+                <div class="stat-value">{{ stats.month_revenue|vnd }} <span class="stat-unit">VNĐ</span></div>
                 <div class="stat-label">Doanh thu tháng này</div>
             </div>
         </div>
         <div class="stat-card fade-in" style="--stat-gradient: var(--gradient-primary);">
             <div class="stat-icon"><i class="fas fa-coins"></i></div>
             <div class="stat-info">
-                <div class="stat-value">{{ "{:,.0f}".format(stats.total_revenue) }} <span class="stat-unit">VNĐ</span></div>
+                <div class="stat-value">{{ stats.total_revenue|vnd }} <span class="stat-unit">VNĐ</span></div>
                 <div class="stat-label">Tổng doanh thu (đã hoàn thành)</div>
             </div>
         </div>
         <{% if session.admin_role == 'super_admin' %}a href="{{ url_for('admin.admin_debts') }}"{% else %}div{% endif %} class="stat-card fade-in" style="--stat-gradient: var(--gradient-danger);">
             <div class="stat-icon"><i class="fas fa-hand-holding-usd"></i></div>
             <div class="stat-info">
-                <div class="stat-value">{{ "{:,.0f}".format(stats.total_debt) }} <span class="stat-unit">VNĐ</span></div>
+                <div class="stat-value">{{ stats.total_debt|vnd }} <span class="stat-unit">VNĐ</span></div>
                 <div class="stat-label">Tổng nợ ({{ stats.debt_orders_count }} đơn chưa thu)</div>
             </div>
         </{% if session.admin_role == 'super_admin' %}a{% else %}div{% endif %}>
@@ -522,7 +522,7 @@ body, .modal-content, .table, .dropdown-menu {
                         </td>
                         <td>{{ order.customer_name }}</td>
                         <td style="color: var(--accent-color); font-weight: 600;">
-                            {{ "{:,.0f}".format(order.total_amount) }} VNĐ
+                            {{ order.total_amount|vnd }} VNĐ
                         </td>
                         <td class="hide-mobile">
                             {% if order.status == 'pending' %}

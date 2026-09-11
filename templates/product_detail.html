@@ -2,7 +2,7 @@
 
 {% block title %}{{ seo.site_name }}{% endblock %}
 
-{% block meta_description %}{{ product.description[:110] }}{% if product.description|length > 110 %}...{% endif %} Giá {{ '{:,.0f}'.format(product.price) }}₫. {% if product.stock > 0 %}Còn hàng{% else %}Tạm hết hàng{% endif %}, đặt online tại Cô Bông Cát Lái.{% endblock %}
+{% block meta_description %}{{ product.description[:110] }}{% if product.description|length > 110 %}...{% endif %} Giá {{ product.price|vnd }}₫. {% if product.stock > 0 %}Còn hàng{% else %}Tạm hết hàng{% endif %}, đặt online tại Cô Bông Cát Lái.{% endblock %}
 
 {% block structured_data %}
 <script type="application/ld+json">
@@ -92,7 +92,7 @@
                 <div style="margin-bottom: 2rem; padding: 1.2rem 1.5rem; background: var(--bg-body); border-radius: 12px; border: 1px solid var(--border-color);">
                     <span style="font-size: 0.9rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">Giá bán lẻ</span>
                     <span style="font-size: 2.2rem; font-weight: 600; color: var(--accent-color); display: inline-block;">
-                        {{ "{:,.0f}".format(product.price) }} <span style="font-size: 1.4rem;">VNĐ</span>
+                        {{ product.price|vnd }} <span style="font-size: 1.4rem;">VNĐ</span>
                     </span>
                 </div>
                 

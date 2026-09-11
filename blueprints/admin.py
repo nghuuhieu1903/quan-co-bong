@@ -25,7 +25,7 @@ from decorators import (admin_required, admin_required_api,
                         super_admin_required)
 import payments
 from extensions import db
-from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, safe_print as print,
+from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, parse_vnd, safe_print as print,
                      save_uploaded_file, save_uploaded_files, send_email)
 from models import (Admin, Customer, DailyMenuItem, DailyMenuOrder,
                     Notification, Order, OrderItem, Product, ProductImage,
@@ -155,7 +155,10 @@ def admin_add_room():
     if request.method == 'POST':
         name = request.form.get('name')
         description = request.form.get('description')
-        price_per_hour = float(request.form.get('price_per_hour'))
+        price_per_hour = parse_vnd(request.form.get('price_per_hour'))
+        if price_per_hour is None:
+            flash('Giá thuê không hợp lệ', 'error')
+            return redirect(url_for('admin.admin_add_room'))
         capacity = int(request.form.get('capacity'))
         amenities_raw = request.form.get('amenities', '')
         amenities_list = [item.strip() for item in amenities_raw.split(',') if item.strip()]
@@ -228,7 +231,11 @@ def admin_edit_room(room_id):
 
         room.name = request.form.get('name')
         room.description = request.form.get('description')
-        room.price_per_hour = float(request.form.get('price_per_hour'))
+        new_price = parse_vnd(request.form.get('price_per_hour'))
+        if new_price is None:
+            flash('Giá thuê không hợp lệ', 'error')
+            return redirect(url_for('admin.admin_edit_room', room_id=room.id))
+        room.price_per_hour = new_price
         room.price_unit = request.form.get('price_unit', 'giờ')
         room.capacity = int(request.form.get('capacity'))
         amenities_raw = request.form.get('amenities', '')
@@ -314,7 +321,10 @@ def add_product():
     if request.method == 'POST':
         name = request.form.get('name')
         description = request.form.get('description')
-        price = float(request.form.get('price'))
+        price = parse_vnd(request.form.get('price'))
+        if price is None:
+            flash('Giá không hợp lệ', 'error')
+            return redirect(url_for('admin.add_product'))
         stock = int(request.form.get('stock'))
         category = request.form.get('category')
         item_type = request.form.get('item_type', 'drink')
@@ -350,7 +360,11 @@ def edit_product(product_id):
         # Update product details
         product.name = request.form.get('name')
         product.description = request.form.get('description')
-        product.price = float(request.form.get('price'))
+        new_price = parse_vnd(request.form.get('price'))
+        if new_price is None:
+            flash('Giá không hợp lệ', 'error')
+            return redirect(url_for('admin.edit_product', product_id=product.id))
+        product.price = new_price
         product.stock = int(request.form.get('stock'))
         product.category = request.form.get('category')
         item_type = request.form.get('item_type', 'drink')
@@ -776,7 +790,9 @@ def generate_bank_qr():
         bank_id = request.form.get('bank_id', 'VCB')
         account_no = request.form.get('account_no', '')
         account_name = request.form.get('account_name', '')
-        amount = request.form.get('amount', '')
+        # the box shows "1.500.000"; VietQR needs bare digits in the URL
+        amount_value = parse_vnd(request.form.get('amount', ''))
+        amount = '' if amount_value is None else f'{amount_value:.0f}'
         add_info = request.form.get('add_info', '')
         template = request.form.get('template', 'print')
         

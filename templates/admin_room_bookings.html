@@ -145,7 +145,7 @@
                                     <strong>Giờ:</strong> {{ booking.start_time.strftime('%H:%M') }} - {{ booking.end_time.strftime('%H:%M') }} ({{ booking.total_hours }}h)
                                 </td>
                                 <td class="hide-mobile" style="color: var(--accent-color); font-weight: 600;">
-                                    {{ "{:,.0f}".format(booking.total_price) }} VNĐ
+                                    {{ booking.total_price|vnd }} VNĐ
                                 </td>
                                 <td class="hide-mobile">
                                     {% if booking.status == 'confirmed' %}
@@ -197,7 +197,7 @@
                                             data-customer-phone="{{ booking.customer_phone }}"
                                             data-date="{{ booking.booking_date.strftime('%d/%m/%Y') }}"
                                             data-time="{{ booking.start_time.strftime('%H:%M') }} - {{ booking.end_time.strftime('%H:%M') }} ({{ booking.total_hours }}h)"
-                                            data-total-price="{{ '{:,.0f}'.format(booking.total_price) }} VNĐ"
+                                            data-total-price="{{ booking.total_price|vnd }} VNĐ"
                                             data-status="{{ booking.status }}"
                                             data-confirm-url="{{ url_for('admin.admin_update_room_booking', booking_id=booking.id) }}"
                                             data-cancel-url="{{ url_for('admin.admin_update_room_booking', booking_id=booking.id) }}"

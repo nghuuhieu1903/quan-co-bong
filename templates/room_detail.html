@@ -61,7 +61,7 @@
                         <div>
                             <span style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;">Giá thuê theo {{ room.price_unit or 'giờ' }}</span>
                             <span style="font-size: 1.5rem; font-weight: 600; color: var(--accent-color);">
-                                {{ "{:,.0f}".format(room.price_per_hour)|replace(',', '.') }} VNĐ / {{ room.price_unit or 'giờ' }}
+                                {{ room.price_per_hour|vnd }} VNĐ / {{ room.price_unit or 'giờ' }}
                             </span>
                         </div>
                         <div style="border-left: 1px solid var(--border-color); padding-left: 2rem;">
@@ -90,7 +90,7 @@
                                     </div>
                                     <span style="font-size: 1.25rem; color: #202124; font-weight: 500;">Giá phòng</span>
                                 </div>
-                                <span style="font-size: 1.4rem; font-weight: 700; color: #111827;">{{ "{:,.0f}".format(room.price_per_hour)|replace(',', '.') }} VNĐ/{{ room.price_unit or 'giờ' }}</span>
+                                <span style="font-size: 1.4rem; font-weight: 700; color: #111827;">{{ room.price_per_hour|vnd }} VNĐ/{{ room.price_unit or 'giờ' }}</span>
                             </div>
                             
                             <!-- Dynamic Costs -->

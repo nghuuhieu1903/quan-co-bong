@@ -34,7 +34,7 @@ except ImportError:
 
 from blueprints import all_blueprints
 from db_init import init_database
-from helpers import configure_logging
+from helpers import configure_logging, format_vnd
 from extensions import csrf, db, sess
 import seo
 from translations import TRANSLATIONS
@@ -134,6 +134,10 @@ def create_app():
     # token from the csrf_token() global; the two fetch() callers send it in
     # an X-CSRFToken header (see modern_base.html / admin_base.html).
     csrf.init_app(app)
+
+    # Money is written the Vietnamese way (1.500.000) everywhere; see
+    # helpers.format_vnd.
+    app.jinja_env.filters['vnd'] = format_vnd
 
     register_translations(app)
     for blueprint in all_blueprints:

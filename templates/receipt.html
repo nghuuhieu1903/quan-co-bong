@@ -136,8 +136,8 @@ td { padding: 0.4mm 0; vertical-align: top; }
     </tr>
     <tr>
         <td class="qty">{{ item.quantity }}x</td>
-        <td>{{ "{:,.0f}".format(item.price) }}</td>
-        <td class="amt">{{ "{:,.0f}".format(item.price * item.quantity) }}</td>
+        <td>{{ item.price|vnd }}</td>
+        <td class="amt">{{ (item.price * item.quantity)|vnd }}</td>
     </tr>
     {% endfor %}
 </table>
@@ -147,7 +147,7 @@ td { padding: 0.4mm 0; vertical-align: top; }
 <table>
     <tr class="total-row">
         <td>TỔNG CỘNG</td>
-        <td class="amt">{{ "{:,.0f}".format(order.total_amount) }}</td>
+        <td class="amt">{{ order.total_amount|vnd }}</td>
     </tr>
     <tr>
         <td>Thanh toán</td>

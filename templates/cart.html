@@ -399,7 +399,7 @@
                             </p>
                         </td>
                         <td style="color: var(--accent-color); font-weight: 600;">
-                            {{ "{:,.0f}".format(item.product.price) }} VNĐ
+                            {{ item.product.price|vnd }} VNĐ
                         </td>
                         <td>
                             <form method="POST" action="{{ url_for('public.update_cart', product_id=item.product.id) }}" style="display: flex; align-items: center; gap: 0.5rem;">
@@ -415,7 +415,7 @@
                             </form>
                         </td>
                         <td style="color: var(--accent-color); font-weight: 600; font-size: 1.1rem;">
-                            <span data-line-total>{{ "{:,.0f}".format(item.subtotal) }}</span> VNĐ
+                            <span data-line-total>{{ item.subtotal|vnd }}</span> VNĐ
                         </td>
                         <td>
                             <form method="POST" action="{{ url_for('public.remove_from_cart', product_id=item.product.id) }}">
@@ -465,8 +465,8 @@
                 </form>
                 
                 <div class="mobile-price-info">
-                    <div class="mobile-unit-price">Đơn giá: {{ "{:,.0f}".format(item.product.price) }} VNĐ</div>
-                    <div class="mobile-subtotal"><span data-line-total>{{ "{:,.0f}".format(item.subtotal) }}</span> VNĐ</div>
+                    <div class="mobile-unit-price">Đơn giá: {{ item.product.price|vnd }} VNĐ</div>
+                    <div class="mobile-subtotal"><span data-line-total>{{ item.subtotal|vnd }}</span> VNĐ</div>
                 </div>
             </div>
         </div>
@@ -487,7 +487,7 @@
             <div style="margin-bottom: 1.5rem;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
                     <span>Tạm tính:</span>
-                    <span><span data-cart-total>{{ "{:,.0f}".format(total) }}</span> VNĐ</span>
+                    <span><span data-cart-total>{{ total|vnd }}</span> VNĐ</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
                     <span>Phí vận chuyển:</span>
@@ -496,7 +496,7 @@
                 <hr style="border-color: var(--border-color); margin: 1rem 0;">
                 <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 500; color: var(--accent-color);">
                     <span>{{ _('cart_total') }}:</span>
-                    <span><span data-cart-total>{{ "{:,.0f}".format(total) }}</span> VNĐ</span>
+                    <span><span data-cart-total>{{ total|vnd }}</span> VNĐ</span>
                 </div>
             </div>
             
@@ -569,9 +569,7 @@
     var csrf = document.querySelector('meta[name="csrf-token"]');
     if (!csrf) return;
 
-    // en-US grouping, to match the "{:,.0f}" the server renders elsewhere on
-    // the page - vi-VN would flip the separator to a dot mid-edit
-    function money(n) { return Math.round(n).toLocaleString('en-US'); }
+    var money = VND.format;   // same dots the server renders
 
     function apply(state) {
         state.items.forEach(function (it) {

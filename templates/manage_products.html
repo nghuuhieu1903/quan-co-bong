@@ -320,7 +320,7 @@
                     {% endif %}
                 </td>
                 <td>
-                    <strong style="color: var(--accent-color);">{{ "{:,.0f}".format(product.price) }} VNĐ</strong>
+                    <strong style="color: var(--accent-color);">{{ product.price|vnd }} VNĐ</strong>
                 </td>
                 <td class="hide-mobile">
                     {% if product.stock > 10 %}

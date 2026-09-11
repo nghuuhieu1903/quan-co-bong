@@ -460,7 +460,7 @@
                         <div style="display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 1rem;">
     
     <div class="product-price" style="margin-bottom: 5px;">
-        {{ "{:,.0f}".format(product.price) }} VNĐ
+        {{ product.price|vnd }} VNĐ
     </div>
 
 </div>

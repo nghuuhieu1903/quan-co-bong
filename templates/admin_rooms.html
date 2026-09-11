@@ -158,7 +158,7 @@
                                     <strong>{{ room.name }}</strong>
                                 </td>
                                 <td>
-                                    <strong style="color: var(--accent-color);">{{ "{:,.0f}".format(room.price_per_hour) }} VNĐ/h</strong>
+                                    <strong style="color: var(--accent-color);">{{ room.price_per_hour|vnd }} VNĐ/h</strong>
                                 </td>
                                 <td class="hide-mobile">
                                     {{ room.capacity }} người
