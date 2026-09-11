@@ -139,3 +139,46 @@ def parse_vnd(raw):
     if re.fullmatch(r'\d{1,3}(,\d{3})+', text):
         return float(text.replace(',', ''))
     return None
+
+
+def _relative_luminance(hex_colour):
+    """WCAG relative luminance of #rrggbb, 0 (black) to 1 (white)."""
+    value = (hex_colour or '').strip().lstrip('#')
+    if len(value) == 3:
+        value = ''.join(ch * 2 for ch in value)
+    if len(value) != 6:
+        raise ValueError(f'not a colour: {hex_colour!r}')
+    channels = []
+    for i in (0, 2, 4):
+        c = int(value[i:i + 2], 16) / 255
+        channels.append(c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4)
+    return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2]
+
+
+def contrast_ratio(colour_a, colour_b):
+    """How far apart two colours are, 1:1 (identical) to 21:1 (black/white)."""
+    a, b = _relative_luminance(colour_a), _relative_luminance(colour_b)
+    high, low = max(a, b), min(a, b)
+    return (high + 0.05) / (low + 0.05)
+
+
+# Below this a printed code stops being reliable for a phone camera, even
+# though a software decoder reading the exact pixels still manages.
+MIN_QR_CONTRAST = 4.0
+
+
+def check_qr_colours(background, foreground):
+    """Return an error message for a colour pair a scanner would struggle with."""
+    try:
+        ratio = contrast_ratio(background, foreground)
+    except ValueError:
+        return 'Màu không hợp lệ.'
+
+    if _relative_luminance(foreground) >= _relative_luminance(background):
+        return ('Ô vuông phải đậm hơn nền. Mã ngược màu (ô sáng trên nền tối) '
+                'nhiều máy quét không đọc được.')
+    if ratio < MIN_QR_CONTRAST:
+        return (f'Hai màu quá giống nhau (độ tương phản {ratio:.1f}:1, '
+                f'cần ít nhất {MIN_QR_CONTRAST:.0f}:1). '
+                'Camera điện thoại sẽ không quét nổi, nhất là khi in ra.')
+    return None

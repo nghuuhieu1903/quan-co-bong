@@ -41,7 +41,7 @@
                     <label class="form-label">
                         <i class="fas fa-link"></i> URL cho mã QR *
                     </label>
-                    <input type="url" name="url" class="form-control" value="{{ request.form.get('url', 'http://localhost:5000') }}" placeholder="https://example.com" required>
+                    <input type="url" name="url" class="form-control" value="{{ qr_url }}" placeholder="https://example.com" required>
                     <small style="color: var(--text-muted);">URL mà mã QR sẽ trỏ đến</small>
                 </div>
                 
@@ -50,10 +50,10 @@
                         <i class="fas fa-text-height"></i> Kích thước mã QR
                     </label>
                     <select name="size" class="form-control">
-                        <option value="10">Nhỏ (10x10)</option>
-                        <option value="15" selected>Vừa phải (15x15)</option>
-                        <option value="20">Lớn (20x20)</option>
-                        <option value="25">Rất lớn (25x25)</option>
+                        {% for value, label in [(10, 'Nhỏ'), (15, 'Vừa phải'),
+                                               (20, 'Lớn'), (25, 'Rất lớn')] %}
+                        <option value="{{ value }}" {% if qr_size == value %}selected{% endif %}>{{ label }} ({{ value }}x{{ value }})</option>
+                        {% endfor %}
                     </select>
                 </div>
                 
@@ -64,11 +64,11 @@
                     <div class="grid grid-cols-2">
                         <div>
                             <label class="form-label" style="font-size: 0.9rem;">Màu nền</label>
-                            <input type="color" name="bg_color" class="form-control" value="#ffffff" style="height: 40px;">
+                            <input type="color" name="bg_color" class="form-control" value="{{ qr_bg }}" style="height: 40px;">
                         </div>
                         <div>
-                            <label class="form-label" style="font-size: 0.9rem;">Màu foreground</label>
-                            <input type="color" name="fg_color" class="form-control" value="#000000" style="height: 40px;">
+                            <label class="form-label" style="font-size: 0.9rem;">Màu ô vuông</label>
+                            <input type="color" name="fg_color" class="form-control" value="{{ qr_fg }}" style="height: 40px;">
                         </div>
                     </div>
                 </div>
@@ -78,10 +78,11 @@
                         <i class="fas fa-border-style"></i> Viền (border)
                     </label>
                     <select name="border" class="form-control">
-                        <option value="0">Không có viền</option>
-                        <option value="1" selected>Vừa phải</option>
-                        <option value="2">Rộng</option>
-                        <option value="4">Rất rộng</option>
+                        {# 4 modules is the quiet zone the QR standard asks for;
+                           anything less and scanners start missing the code #}
+                        {% for value, label in [(4, 'Tiêu chuẩn'), (6, 'Rộng'), (8, 'Rất rộng')] %}
+                        <option value="{{ value }}" {% if qr_border == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
                     </select>
                 </div>
                 
@@ -108,10 +109,10 @@
                 <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
                     <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Thông tin mã QR</h4>
                     <p style="margin: 0.25rem 0; color: var(--text-secondary); font-size: 0.9rem;">
-                        <strong>URL:</strong> {{ request.form.get('url', 'http://localhost:5000') }}
+                        <strong>URL:</strong> {{ qr_url }}
                     </p>
                     <p style="margin: 0.25rem 0; color: var(--text-secondary); font-size: 0.9rem;">
-                        <strong>Kích thước:</strong> {{ request.form.get('size', 15) }}x{{ request.form.get('size', 15) }}
+                        <strong>Kích thước:</strong> {{ qr_size }}x{{ qr_size }}
                     </p>
                 </div>
                 
@@ -184,11 +185,11 @@
         <div class="grid grid-cols-4">
             <form method="POST" action="{{ url_for('admin.generate_qr') }}" style="text-align: center;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="hidden" name="url" value="http://localhost:5000">
+                <input type="hidden" name="url" value="{{ qr_url }}">
                 <input type="hidden" name="size" value="15">
                 <input type="hidden" name="bg_color" value="#ffffff">
                 <input type="hidden" name="fg_color" value="#000000">
-                <input type="hidden" name="border" value="1">
+                <input type="hidden" name="border" value="4">
                 
                 <div style="background: var(--gradient-primary); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
                     <i class="fas fa-home" style="font-size: 1.5rem; color: white;"></i>
@@ -200,11 +201,11 @@
             
             <form method="POST" action="{{ url_for('admin.generate_qr') }}" style="text-align: center;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="hidden" name="url" value="http://localhost:5000/products">
+                <input type="hidden" name="url" value="{{ seo.site_url }}/products">
                 <input type="hidden" name="size" value="15">
                 <input type="hidden" name="bg_color" value="#ffffff">
                 <input type="hidden" name="fg_color" value="#000000">
-                <input type="hidden" name="border" value="1">
+                <input type="hidden" name="border" value="4">
                 
                 <div style="background: var(--gradient-info); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
                     <i class="fas fa-box" style="font-size: 1.5rem; color: white;"></i>
@@ -216,11 +217,11 @@
             
             <form method="POST" action="{{ url_for('admin.generate_qr') }}" style="text-align: center;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="hidden" name="url" value="http://localhost:5000/login">
+                <input type="hidden" name="url" value="{{ seo.site_url }}/customer/login">
                 <input type="hidden" name="size" value="15">
                 <input type="hidden" name="bg_color" value="#ffffff">
                 <input type="hidden" name="fg_color" value="#000000">
-                <input type="hidden" name="border" value="1">
+                <input type="hidden" name="border" value="4">
                 
                 <div style="background: var(--gradient-success); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
                     <i class="fas fa-user" style="font-size: 1.5rem; color: white;"></i>
@@ -232,11 +233,11 @@
             
             <form method="POST" action="{{ url_for('admin.generate_qr') }}" style="text-align: center;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="hidden" name="url" value="http://localhost:5000/cart">
+                <input type="hidden" name="url" value="{{ seo.site_url }}/cart">
                 <input type="hidden" name="size" value="15">
                 <input type="hidden" name="bg_color" value="#ffffff">
                 <input type="hidden" name="fg_color" value="#000000">
-                <input type="hidden" name="border" value="1">
+                <input type="hidden" name="border" value="4">
                 
                 <div style="background: var(--gradient-warning); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
                     <i class="fas fa-shopping-cart" style="font-size: 1.5rem; color: white;"></i>

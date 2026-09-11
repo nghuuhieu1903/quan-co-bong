@@ -26,7 +26,8 @@ from extensions import db
 from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, safe_print as print,
                      save_uploaded_file, save_uploaded_files, send_email)
 import payments
-from models import (Admin, Customer,                     Notification, Order, OrderItem, Product, ProductImage,
+from models import (Admin, Customer, Notification, Order, OrderItem,
+                    Product, ProductImage,
                     Room, RoomImage, create_notification)
 
 logger = logging.getLogger(__name__)

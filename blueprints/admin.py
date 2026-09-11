@@ -23,10 +23,13 @@ from decorators import (admin_required, admin_required_api,
                         admin_required_api_success, manager_required,
                         super_admin_required)
 import payments
+import seo
 from extensions import db
-from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, parse_vnd, safe_print as print,
+from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, check_qr_colours, parse_vnd,
+                     safe_print as print,
                      save_uploaded_file, save_uploaded_files, send_email)
-from models import (Admin, Customer,                     Notification, Order, OrderItem, Product, ProductImage,
+from models import (Admin, Customer, Notification, Order, OrderItem,
+                    Product, ProductImage,
                     Room, RoomBooking, RoomImage, create_notification)
 
 logger = logging.getLogger(__name__)
@@ -729,33 +732,39 @@ def admin_debts_bulk_pay():
 @bp.route('/admin/generate_qr', methods=['GET', 'POST'])
 @admin_required
 def generate_qr():
+    # Where the shop's own menu lives, so the default code is worth printing
+    default_url = seo.absolute('/products')
+
+    url = default_url
+    bg_color, fg_color = '#ffffff', '#000000'
+    size, border = 10, 4
+
     if request.method == 'POST':
-        # Get form data
-        url = request.form.get('url', 'http://localhost:5000')
-        size = int(request.form.get('size', 15))
+        url = request.form.get('url', '').strip() or default_url
         bg_color = request.form.get('bg_color', '#ffffff')
         fg_color = request.form.get('fg_color', '#000000')
-        border = int(request.form.get('border', 1))
-        
-        # Generate QR code with custom parameters
-        qr = qrcode.QRCode(
-            version=1,
-            box_size=size,
-            border=border
-        )
-        qr.add_data(url)
-        qr.make(fit=True)
-        
-        # Create image with custom colors
-        img = qr.make_image(fill_color=fg_color, back_color=bg_color)
-    else:
-        # Default QR code for GET request
-        qr = qrcode.QRCode(version=1, box_size=10, border=5)
-        # Use localhost instead of hardcoded IP
-        qr.add_data(f'http://localhost:5000/customer')
-        qr.make(fit=True)
-        
-        img = qr.make_image(fill_color="white", back_color="black")
+        try:
+            size = max(1, min(40, int(request.form.get('size', 10))))
+            # 4 is the quiet zone the QR standard requires; going below it
+            # is what makes a code "sometimes" scan
+            border = max(4, min(10, int(request.form.get('border', 4))))
+        except ValueError:
+            size, border = 10, 4
+
+        # A code nobody can scan is worse than no code: refuse the pair
+        # rather than hand back a picture that only looks like a QR.
+        problem = check_qr_colours(bg_color, fg_color)
+        if problem:
+            flash(problem, 'error')
+            return redirect(url_for('admin.generate_qr'))
+
+    qr = qrcode.QRCode(version=1, box_size=size, border=border)
+    qr.add_data(url)
+    qr.make(fit=True)
+    # fill_color is the squares, back_color the paper behind them. These were
+    # the wrong way round on first load, which produced a white-on-black code
+    # - readable to a lenient decoder, unreliable to a phone.
+    img = qr.make_image(fill_color=fg_color, back_color=bg_color)
     
     # Convert to base64 for display
     img_buffer = io.BytesIO()
@@ -763,7 +772,9 @@ def generate_qr():
     img_buffer.seek(0)
     img_base64 = base64.b64encode(img_buffer.getvalue()).decode()
     
-    return render_template('qr_code.html', qr_code=img_base64)
+    return render_template('qr_code.html', qr_code=img_base64,
+                           qr_url=url, qr_bg=bg_color, qr_fg=fg_color,
+                           qr_size=size, qr_border=border)
 
 @bp.route('/admin/generate_bank_qr', methods=['GET', 'POST'])
 @admin_required

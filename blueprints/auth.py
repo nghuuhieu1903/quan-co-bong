@@ -25,7 +25,8 @@ from decorators import (admin_required, admin_required_api,
 from extensions import db
 from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, safe_print as print,
                      save_uploaded_file, save_uploaded_files, send_email)
-from models import (Admin, Customer,                     Notification, Order, OrderItem, Product, ProductImage,
+from models import (Admin, Customer, Notification, Order, OrderItem,
+                    Product, ProductImage,
                     Room, RoomBooking, RoomImage, create_notification)
 
 logger = logging.getLogger(__name__)
