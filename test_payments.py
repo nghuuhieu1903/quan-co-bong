@@ -126,7 +126,7 @@ def post(client, path, data, from_page):
     return client.post(path, data=data)
 
 
-def place_order(client, name, method):
+def place_order(client, name, method, expect_order=True):
     app = app_module.app
     with app.app_context():
         pid = models.Product.query.first().id
@@ -134,7 +134,9 @@ def place_order(client, name, method):
     data = {'payment_method': method}
     if name:
         data['name'] = name
-    post(client, '/process_order', data, '/checkout')
+    r = post(client, '/process_order', data, '/checkout')
+    if not expect_order:
+        return r
     with app.app_context():
         return models.Order.query.order_by(models.Order.id.desc()).first().id
 
@@ -167,16 +169,24 @@ def check_end_to_end(rep, created):
         rep.check(f'NGUYEN VAN AN DH{oid}' in page,
                   'named order prints name + code as the content')
 
-        # an anonymous order shows the code alone
+        # A name is now required - there is no delivery, so it is the only
+        # way the shop knows who a ready order belongs to. An order placed
+        # with no name is refused, not silently filed under "Guest Customer".
         c2 = app.test_client()
-        oid2 = place_order(c2, None, 'bank'); created.append(oid2)
-        page = c2.get(f'/order_confirmation/{oid2}').get_data(as_text=True)
-        rep.check('pay-panel' in page and 'img.vietqr.io' in page,
-                  'guest order shows a QR')
-        rep.check(f'>DH{oid2}<' in page or f'DH{oid2}' in page,
-                  'guest order prints the code')
-        rep.check('GUEST CUSTOMER' not in page.upper().replace('GUEST CUSTOMER</', 'X'),
-                  'guest order does not print a placeholder name in the content')
+        with app.app_context():
+            before = models.Order.query.count()
+        place_order(c2, None, 'bank', expect_order=False)
+        with app.app_context():
+            after = models.Order.query.count()
+        rep.check(after == before, 'an order with no name is not created',
+                  f'{before} -> {after}')
+        rep.check('Vui lòng nhập tên' in c2.get('/checkout').get_data(as_text=True),
+                  'and the customer is told why')
+
+        # transfer_content()'s "code alone, no placeholder name" behaviour for
+        # a blank/guest name is exercised directly in check_transfer_content()
+        # above - it stays correct defensively even though this route can no
+        # longer produce that order in practice.
 
         # even an order posted with payment_method=cash is stored as a
         # transfer and still gets its QR - the form no longer sends one, and

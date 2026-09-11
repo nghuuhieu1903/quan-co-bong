@@ -913,10 +913,6 @@ th.ct-pick, td.ct-pick { width: 1%; text-align: center; }
                     <span>Tạm tính</span>
                     <span><span data-cart-total>{{ total|vnd }}</span> VNĐ</span>
                 </div>
-                <div class="sum-row">
-                    <span>Phí vận chuyển</span>
-                    <span class="sum-free">Miễn phí</span>
-                </div>
             </div>
 
             <div class="sum-total">
@@ -928,11 +924,9 @@ th.ct-pick, td.ct-pick { width: 1%; text-align: center; }
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 <div class="sum-field">
-                    <label class="sum-label" for="sumName">
-                        Tên khách hàng <span class="sum-opt">không bắt buộc</span>
-                    </label>
+                    <label class="sum-label" for="sumName">Tên khách hàng *</label>
                     <input type="text" id="sumName" name="name" class="form-control"
-                           placeholder="Nhập tên của bạn" autocomplete="off">
+                           placeholder="Nhập tên của bạn" autocomplete="off" required>
                 </div>
 
                 <div class="sum-field">

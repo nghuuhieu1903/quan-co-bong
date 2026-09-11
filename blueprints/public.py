@@ -316,8 +316,13 @@ def checkout():
         customer_name = request.form.get('name', '').strip()
         customer_phone = request.form.get('phone', '').strip()
         
-        # Store in session for checkout page
-        session['customer_name'] = customer_name if customer_name else "Guest Customer"
+        # Store in session for checkout page. Leaving the name blank here used
+        # to pre-fill the checkout form's name box with the placeholder text
+        # "Guest Customer" - which reads as a real name, passes a "did they
+        # type something" check, and tells the shop nothing about who the
+        # order is for. Store nothing rather than a fake name.
+        if customer_name:
+            session['customer_name'] = customer_name
         session['customer_phone'] = customer_phone if customer_phone else "Not provided"
         
         # Redirect to checkout page
@@ -368,7 +373,12 @@ def process_order():
         return redirect(url_for('public.customer_home'))
     
     # Get form data
-    customer_name = request.form.get('name', '').strip() or "Guest Customer"
+    customer_name = request.form.get('name', '').strip()
+    if not customer_name:
+        # No delivery here, so a name is the only way to know who a
+        # ready order belongs to - the shop needs it, not just wants it.
+        flash('Vui lòng nhập tên để chúng tôi biết giao món cho ai.', 'error')
+        return redirect(url_for('public.checkout'))
     customer_phone = request.form.get('phone', '').strip() or "Not provided"
     # Customers pay by transfer: the confirmation page shows a QR with the
     # amount and reference filled in. Cash is still a thing at the counter,
