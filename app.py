@@ -86,7 +86,22 @@ def configure(app):
     # understand this option, so skip it for local SQLite/dev databases.
     if db_url.startswith('mysql'):
         app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-            'connect_args': {'charset': 'utf8mb4'}}
+            'connect_args': {'charset': 'utf8mb4'},
+            # SQLAlchemy's default (pool_size=5, max_overflow=10) opens up to
+            # 15 MySQL connections per worker process - with gunicorn's 3
+            # workers (see gunicorn.conf.py) that is 45 at peak, generous for
+            # a shop that expects around 20 people at once. Trimmed to a
+            # smaller, explicit ceiling. pool_recycle keeps a connection MySQL
+            # closed for being idle too long from surfacing as a mid-request
+            # "MySQL server has gone away"; pool_pre_ping checks a connection
+            # is alive before handing it to a request, at the cost of one
+            # tiny query, rather than letting a customer's checkout fail on a
+            # connection that died while nobody was using it.
+            'pool_size': 5,
+            'max_overflow': 5,
+            'pool_recycle': 280,
+            'pool_pre_ping': True,
+        }
 
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SESSION_TYPE'] = 'filesystem'
