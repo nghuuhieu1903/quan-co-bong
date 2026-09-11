@@ -36,8 +36,8 @@
                 <div class="form-group" style="margin: 0;">
                     <label class="form-label" for="price_unit" style="font-weight: 600;">Đơn vị tính *</label>
                     <select id="price_unit" name="price_unit" class="form-control" style="padding: 0.5rem; height: auto;" required>
-                        <option value="giờ" {% if not room or room.price_unit == 'giờ' %}selected{% endif %}>Theo giờ</option>
-                        <option value="tháng" {% if room and room.price_unit == 'tháng' %}selected{% endif %}>Theo tháng</option>
+                        <option value="tháng" {% if not room or room.price_unit in (None, '', 'tháng') %}selected{% endif %}>Theo tháng</option>
+                        <option value="giờ" {% if room and room.price_unit == 'giờ' %}selected{% endif %}>Theo giờ</option>
                         <option value="năm" {% if room and room.price_unit == 'năm' %}selected{% endif %}>Theo năm</option>
                     </select>
                 </div>

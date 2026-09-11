@@ -27,7 +27,7 @@
                     <div style="position: relative; height: 200px; width: 100%; overflow: hidden; background: var(--gradient-secondary);">
                         <img src="{{ room.image_url }}" alt="{{ room.name }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                         <div style="position: absolute; top: 1rem; right: 1rem; background: var(--accent-color); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-weight: 600; font-size: 0.9rem;">
-                            {{ room.price_per_hour|vnd }}đ / {{ room.price_unit or 'giờ' }}
+                            {{ room.price_per_hour|vnd }}đ / {{ room.price_unit or 'tháng' }}
                         </div>
                     </div>
                     

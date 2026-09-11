@@ -112,7 +112,8 @@ class Room(db.Model):
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
     price_per_hour = db.Column(db.Float, nullable=False)
-    price_unit = db.Column(db.String(50), default='giờ')
+    # serviced apartments here are let by the month; hourly is the exception
+    price_unit = db.Column(db.String(50), default='tháng')
     capacity = db.Column(db.Integer, nullable=False)
     image = db.Column(db.String(200), default='pngtree.png')
     amenities = db.Column(db.Text)  # JSON string of amenities
