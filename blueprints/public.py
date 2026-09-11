@@ -26,8 +26,7 @@ from extensions import db
 from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, safe_print as print,
                      save_uploaded_file, save_uploaded_files, send_email)
 import payments
-from models import (Admin, Customer, DailyMenuItem, DailyMenuOrder,
-                    Notification, Order, OrderItem, Product, ProductImage,
+from models import (Admin, Customer,                     Notification, Order, OrderItem, Product, ProductImage,
                     Room, RoomImage, create_notification)
 
 logger = logging.getLogger(__name__)
@@ -49,8 +48,7 @@ def index():
 @bp.route('/customer')
 def customer_home():
     products = Product.query.all()  # Hiển thị tất cả sản phẩm kể cả hết hàng
-    daily_items = DailyMenuItem.query.filter_by(available=True).order_by(DailyMenuItem.created_at.desc()).all()
-    return render_template('index.html', products=products, daily_items=daily_items)
+    return render_template('index.html', products=products)
 
 @bp.route('/products')
 def products():
@@ -112,6 +110,9 @@ def products():
                                 Product.name.asc()))
     elif sort == 'newest':
         query = query.order_by(Product.created_at.desc(), Product.id.desc())
+    else:
+        # No sort chosen: today's dishes lead, snacks and the rest follow.
+        query = query.order_by(Product.is_daily.desc(), Product.id.asc())
 
     # Get filtered products
     products = query.all()

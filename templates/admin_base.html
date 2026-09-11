@@ -354,12 +354,6 @@
                         <a href="{{ url_for('admin.admin_orders') }}" class="sidebar-sublink {% if current_endpoint == 'admin_orders' %}active{% endif %}" onclick="closeSidebar()">
                             <i class="fas fa-receipt"></i> Đơn hàng
                         </a>
-                        <a href="{{ url_for('admin.admin_daily_menu_orders') }}" class="sidebar-sublink {% if current_endpoint == 'admin_daily_menu_orders' %}active{% endif %}" onclick="closeSidebar()">
-                            <i class="fas fa-utensils"></i> Đơn món ăn hôm nay
-                        </a>
-                        <a href="{{ url_for('menu.daily_menu_manage') }}" class="sidebar-sublink {% if current_endpoint == 'daily_menu_manage' %}active{% endif %}" onclick="closeSidebar()">
-                            <i class="fas fa-plus-circle"></i> Thêm món ăn hôm nay
-                        </a>
                         {% if session.admin_role == 'super_admin' %}
                         <a href="{{ url_for('admin.admin_debts') }}" class="sidebar-sublink {% if current_endpoint == 'admin_debts' %}active{% endif %}" onclick="closeSidebar()">
                             <i class="fas fa-book"></i> Sổ nợ khách hàng
@@ -370,6 +364,15 @@
                         {% endif %}
                     </div>
                 </div>
+
+                {# these two were only reachable from the dashboard's quick
+                   access strip before #}
+                <a href="{{ url_for('admin.generate_bank_qr') }}" class="sidebar-link {% if current_endpoint == 'generate_bank_qr' %}active{% endif %}" onclick="closeSidebar()">
+                    <i class="fas fa-building-columns"></i> QR ngân hàng
+                </a>
+                <a href="{{ url_for('admin.generate_qr') }}" class="sidebar-link {% if current_endpoint == 'generate_qr' %}active{% endif %}" onclick="closeSidebar()">
+                    <i class="fas fa-qrcode"></i> Tạo mã QR
+                </a>
 
                 {% if session.admin_role == 'super_admin' %}
                 <a href="{{ url_for('admin.admin_seo') }}" class="sidebar-link {% if current_endpoint == 'admin_seo' %}active{% endif %}" onclick="closeSidebar()">

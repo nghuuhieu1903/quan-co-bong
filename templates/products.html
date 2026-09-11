@@ -315,6 +315,15 @@
 @media (prefers-reduced-motion: reduce) {
     #productsGrid.sw-enter .product-card { animation: none; }
 }
+
+/* today's dishes lead the food tab; this badge says why. The stock badge
+   already sits bottom-left, so this one takes the top-left corner instead of
+   landing on top of it. */
+.sw-media .sw-badge.is-daily {
+    top: 0.6rem;
+    bottom: auto;
+    background: var(--warning-color);
+}
 </style>
 {% endblock %}
 
@@ -474,6 +483,9 @@
                 <div class="product-card fade-in">
                     <a href="{{ url_for('public.product_detail_route', product_id=product.id) }}" class="sw-media">
                         <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image">
+                        {% if product.is_daily %}
+                        <span class="sw-badge is-daily">Món hôm nay</span>
+                        {% endif %}
                         <span class="sw-badge {% if product.stock <= 0 %}is-out{% endif %}">
                             {% if product.stock > 0 %}{{ _('prod_in_stock') }}{% else %}{{ _('prod_out_of_stock') }}{% endif %}
                         </span>

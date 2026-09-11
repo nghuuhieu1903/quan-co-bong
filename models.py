@@ -22,6 +22,9 @@ class Product(db.Model):
     image = db.Column(db.String(200), default='pngtree.png')
     category = db.Column(db.String(50), nullable=False)
     item_type = db.Column(db.String(20), nullable=False, default='drink')  # 'drink' or 'food'
+    # A dish the shop is serving today. These sort to the top of the food tab;
+    # snacks and everything else follow.
+    is_daily = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     images = db.relationship('ProductImage', backref='product', lazy=True, cascade="all, delete-orphan")
 
@@ -184,44 +187,6 @@ class RoomBooking(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     room = db.relationship('Room', backref='bookings')
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-class DailyMenuItem(db.Model):
-    """A dish a manager posts as available today. Ordered directly (like a room),
-    not through the shopping cart."""
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(150), nullable=False)
-    description = db.Column(db.Text)
-    price = db.Column(db.Float, nullable=False)
-    image = db.Column(db.String(200), default='pngtree.png')
-    available = db.Column(db.Boolean, default=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    created_by_id = db.Column(db.Integer, db.ForeignKey('customer.id'))
-
-    created_by = db.relationship('Customer')
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-    @property
-    def image_url(self):
-        if self.image and self.image not in ('pngtree.png', 'default_placeholder.png'):
-            return url_for('static', filename=f'images/{self.image}')
-        return url_for('static', filename='images/default_placeholder.png')
-
-class DailyMenuOrder(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    item_id = db.Column(db.Integer, db.ForeignKey('daily_menu_item.id'), nullable=False)
-    customer_name = db.Column(db.String(100), nullable=False)
-    customer_phone = db.Column(db.String(20), nullable=False)
-    quantity = db.Column(db.Integer, default=1)
-    notes = db.Column(db.Text)
-    status = db.Column(db.String(20), default='pending')  # pending, completed, cancelled
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    item = db.relationship('DailyMenuItem', backref='orders')
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

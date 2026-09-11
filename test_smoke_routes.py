@@ -45,7 +45,6 @@ def sample_values(app_module):
             'room_id': first(models.Room),
             'order_id': first(models.Order),
             'booking_id': first(models.RoomBooking),
-            'item_id': first(models.DailyMenuItem),
             'image_id': first(models.ProductImage),
             'admin_id': first(models.Admin),
             'customer_id': first(models.Customer),

@@ -224,18 +224,6 @@ def customer_flows(rep, ids):
         db.session.commit()
         ids['booking'] = nb.id
 
-    # --- ordering a daily menu item --------------------------------------
-    with app.app_context():
-        before = models.DailyMenuOrder.query.count()
-    # customer_phone is required by the route, and the field is `notes`
-    r = post(c, f'/order_daily_item/{ids["menu_item"]}', {
-        'customer_name': 'QA Flow', 'customer_phone': '0912345678',
-        'quantity': '1', 'notes': 'flow'}, '/customer')
-    with app.app_context():
-        after = models.DailyMenuOrder.query.count()
-        no = models.DailyMenuOrder.query.order_by(models.DailyMenuOrder.id.desc()).first()
-    rep.check(after == before + 1, 'ordering a daily menu item', f'{before} -> {after}')
-    ids['menu_order'] = no.id if after > before else None
 
     # --- customer account -------------------------------------------------
     with app.app_context():
@@ -371,7 +359,11 @@ def admin_flows(rep, ids):
 
 
 def manager_flow(rep, ids):
-    """A Manager is a customer account allowed to edit the daily menu."""
+    """The Manager role is still granted and revoked from the accounts page.
+
+    It used to gate a separate daily-menu editor; today's dishes are ordinary
+    products flagged is_daily, so only the promotion itself is checked here.
+    """
     app = app_module.app
     if not ids.get('customer'):
         return
@@ -382,30 +374,11 @@ def manager_flow(rep, ids):
         promoted = db.session.get(models.Customer, ids['customer']).role == 'manager'
     rep.check(promoted, 'super admin promotes a customer to Manager')
 
-    m = app.test_client()
-    post(m, '/customer/authenticate',
-         {'username': 'qa_flow_user', 'password': 'qaflow123'}, '/customer/login')
-    rep.check(m.get('/customer/daily-menu').status_code == 200,
-              'manager can open the daily menu editor')
-    with app.app_context():
-        before = models.DailyMenuItem.query.count()
-    post(m, '/customer/daily-menu/add',
-         {'name': 'QA Flow Dish', 'price': '55000', 'description': 'flow'},
-         '/customer/daily-menu')
-    with app.app_context():
-        after = models.DailyMenuItem.query.count()
-        ni = models.DailyMenuItem.query.filter_by(name='QA Flow Dish').first()
-    rep.check(after == before + 1, 'manager adds a daily menu item', f'{before} -> {after}')
-    ids['menu_item_new'] = ni.id if ni else None
-
-    # a plain customer must NOT be able to reach the editor
     post(a, f'/admin/accounts/{ids["customer"]}/toggle_manager', {}, '/admin/accounts')
-    m2 = app.test_client()
-    post(m2, '/customer/authenticate',
-         {'username': 'qa_flow_user', 'password': 'qaflow123'}, '/customer/login')
-    r = m2.get('/customer/daily-menu')
-    rep.check(r.status_code == 302, 'demoted customer is refused the editor',
-              f'HTTP {r.status_code}')
+    with app.app_context():
+        back = db.session.get(models.Customer, ids['customer']).role == 'customer'
+    rep.check(back, 'and demotes them again')
+
 
 
 def cleanup(ids):
@@ -413,9 +386,7 @@ def cleanup(ids):
     app = app_module.app
     removed = []
     with app.app_context():
-        for model, key in ((models.DailyMenuOrder, 'menu_order'),
-                           (models.DailyMenuItem, 'menu_item_new'),
-                           (models.RoomBooking, 'booking'),
+        for model, key in (                           (models.RoomBooking, 'booking'),
                            (models.Product, 'product_new'),
                            (models.Admin, 'admin_new'),
                            (models.Customer, 'customer')):
@@ -444,12 +415,10 @@ def main():
         ids = {
             'product': models.Product.query.first().id,
             'room': models.Room.query.first().id,
-            'menu_item': models.DailyMenuItem.query.first().id,
         }
         counts_before = {m.__name__: m.query.count() for m in
                          (models.Product, models.Order, models.RoomBooking,
-                          models.Customer, models.Admin, models.DailyMenuItem,
-                          models.DailyMenuOrder)}
+                          models.Customer, models.Admin)}
 
     rep = Report()
     print('--- customer ---')
@@ -463,8 +432,7 @@ def main():
     with app.app_context():
         counts_after = {m.__name__: m.query.count() for m in
                         (models.Product, models.Order, models.RoomBooking,
-                         models.Customer, models.Admin, models.DailyMenuItem,
-                         models.DailyMenuOrder)}
+                         models.Customer, models.Admin)}
 
     failed = rep.summary()
     print(f'\ncleaned up: {", ".join(removed) or "nothing"}')

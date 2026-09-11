@@ -1,5 +1,5 @@
 """Route blueprints, split out of the original single-file app.py."""
 
-from blueprints import admin, auth, menu, public
+from blueprints import admin, auth, public
 
-all_blueprints = (public.bp, auth.bp, admin.bp, menu.bp)
+all_blueprints = (public.bp, auth.bp, admin.bp)

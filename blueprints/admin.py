@@ -26,8 +26,7 @@ import payments
 from extensions import db
 from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, parse_vnd, safe_print as print,
                      save_uploaded_file, save_uploaded_files, send_email)
-from models import (Admin, Customer, DailyMenuItem, DailyMenuOrder,
-                    Notification, Order, OrderItem, Product, ProductImage,
+from models import (Admin, Customer,                     Notification, Order, OrderItem, Product, ProductImage,
                     Room, RoomBooking, RoomImage, create_notification)
 
 logger = logging.getLogger(__name__)
@@ -66,23 +65,6 @@ def manage_products():
     products = products.all()
 
     return render_template('manage_products.html', products=products)
-
-@bp.route('/admin/daily_menu_orders')
-@admin_required
-def admin_daily_menu_orders():
-    orders = DailyMenuOrder.query.order_by(DailyMenuOrder.created_at.desc()).all()
-    return render_template('admin_daily_menu_orders.html', orders=orders)
-
-@bp.route('/admin/daily_menu_order/<int:order_id>/update', methods=['POST'])
-@admin_required
-def admin_update_daily_menu_order(order_id):
-    order = DailyMenuOrder.query.get_or_404(order_id)
-    new_status = request.form.get('status')
-    if new_status in ('pending', 'completed', 'cancelled'):
-        order.status = new_status
-        db.session.commit()
-        flash('Đã cập nhật trạng thái đơn món ăn', 'success')
-    return redirect(url_for('admin.admin_daily_menu_orders'))
 
 @bp.route('/admin/dashboard')
 @admin_required
@@ -327,10 +309,12 @@ def add_product():
         item_type = request.form.get('item_type', 'drink')
         if item_type not in ('drink', 'food'):
             item_type = 'drink'
+        # only food can be "today's dish"; the flag means nothing on a drink
+        is_daily = bool(request.form.get('is_daily')) and item_type == 'food'
 
         image_url = save_uploaded_file(request.files.get('image'))
 
-        product = Product(name=name, description=description, price=price, stock=stock, category=category, item_type=item_type, image=image_url)  # type: ignore[call-arg]
+        product = Product(name=name, description=description, price=price, stock=stock, category=category, item_type=item_type, is_daily=is_daily, image=image_url)  # type: ignore[call-arg]
         db.session.add(product)
         db.session.flush()  # Get product.id before committing
 
@@ -366,6 +350,8 @@ def edit_product(product_id):
         product.category = request.form.get('category')
         item_type = request.form.get('item_type', 'drink')
         product.item_type = item_type if item_type in ('drink', 'food') else 'drink'
+        product.is_daily = (bool(request.form.get('is_daily'))
+                            and product.item_type == 'food')
 
         db.session.commit()
         flash('Sản phẩm đã cập nhật thành công', 'success')
