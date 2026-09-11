@@ -73,6 +73,32 @@ def products():
     if category_filter:
         query = query.filter(Product.category == category_filter)
 
+    # Price bracket, sent as "low-high" with either end allowed to be blank
+    price_range = request.args.get('price_range', '').strip()
+    if price_range and '-' in price_range:
+        low, _, high = price_range.partition('-')
+        try:
+            if low:
+                query = query.filter(Product.price >= float(low))
+            if high:
+                # exclusive, so a 50.000 item lands in "50.000 - 100.000"
+                # only, not in both brackets
+                query = query.filter(Product.price < float(high))
+        except ValueError:
+            pass          # a hand-edited URL sorts itself out as "no filter"
+
+    # Sort. The chips above the grid and the drawer's select post the same
+    # four values; anything else falls back to the catalogue's own order.
+    sort = request.args.get('sort', '').strip()
+    if sort == 'price_low':
+        query = query.order_by(Product.price.asc())
+    elif sort == 'price_high':
+        query = query.order_by(Product.price.desc())
+    elif sort == 'name':
+        query = query.order_by(Product.name.asc())
+    elif sort == 'newest':
+        query = query.order_by(Product.created_at.desc(), Product.id.desc())
+
     # Get filtered products
     products = query.all()
 

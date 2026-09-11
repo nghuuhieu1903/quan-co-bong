@@ -68,6 +68,31 @@ def customer_flows(rep, ids):
     searched = c.get('/products?search=espresso').get_data(as_text=True)
     rep.check('Espresso' in searched, 'search finds a product')
 
+    # Sorting and the price brackets were URL parameters the view never read,
+    # so every chip changed the address bar and nothing else.
+    def prices(qs):
+        html = c.get('/products?' + qs).get_data(as_text=True)
+        # the price sits on its own line inside the div, not right after it
+        return [int(x.replace('.', '')) for x in
+                re.findall(r'class="product-price"[^>]*>\s*([\d.]+) VNĐ', html)]
+
+    high = prices('sort=price_high')
+    rep.check(len(high) > 1 and high == sorted(high, reverse=True),
+              'sorting high to low actually reorders the grid', str(high[:4]))
+    low = prices('sort=price_low')
+    rep.check(low == sorted(low), 'sorting low to high actually reorders it',
+              str(low[:4]))
+
+    band = prices('price_range=30000-50000')
+    rep.check(band and all(30000 <= p < 50000 for p in band),
+              'the price bracket filters the grid', str(band))
+    # brackets must not overlap: every product lands in exactly one
+    buckets = sum(len(prices('price_range=' + q)) for q in
+                  ('-30000', '30000-50000', '50000-100000', '100000-'))
+    everything = len(prices(''))
+    rep.check(buckets == everything, 'the brackets cover each product once',
+              f'{buckets} vs {everything}')
+
     # --- cart: add, update, remove ---------------------------------------
     r = post(c, f'/add_to_cart/{ids["product"]}', {'quantity': '2'}, '/products')
     rep.check(r.status_code == 302, 'add to cart', f'HTTP {r.status_code}')

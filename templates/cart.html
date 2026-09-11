@@ -317,6 +317,129 @@
 .cart-summary-card {
     grid-column: 3;
 }
+
+/* Order summary
+   ------------------------------------------------------------------
+   The old card leaned on solid Font Awesome glyphs beside every label,
+   which read heavier than the text they were labelling, and it put the
+   total and the "keep shopping" link at the same weight as the order
+   button. Here the total is the loudest thing in the card, the two
+   supporting rows are quiet, and only one control looks like a button. */
+.cart-summary-card {
+    padding: 1.5rem;
+}
+
+.sum-title {
+    margin: 0 0 1.25rem;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+}
+
+.sum-rows {
+    display: grid;
+    gap: 0.6rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.sum-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.sum-free {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.sum-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding: 1rem 0 1.25rem;
+}
+
+.sum-total > span {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.sum-total strong {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+}
+
+/* the unit rides along quietly so the number itself carries the weight */
+.sum-cur {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.sum-form {
+    margin: 0;
+}
+
+.sum-field {
+    margin-bottom: 0.85rem;
+}
+
+.sum-label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.sum-opt {
+    font-weight: 400;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.sum-field .form-control {
+    width: 100%;
+    font-size: 0.95rem;
+}
+
+.sum-submit {
+    width: 100%;
+    margin-top: 0.35rem;
+    padding: 0.85rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+/* a link, not a second button competing with "Đặt hàng" */
+.sum-back {
+    display: block;
+    margin-top: 0.9rem;
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-decoration: none;
+}
+
+.sum-back:hover {
+    color: var(--accent-color);
+}
+
+.sum-back i {
+    font-size: 0.75rem;
+    margin-right: 0.2rem;
+}
 @media (max-width: 768px) {
     .cart-summary-card {
         grid-column: 1 / span 1 !important;
@@ -346,7 +469,9 @@
                 </p>
             </div>
             <div style="display: flex; gap: 1rem;">
-                <a href="{{ url_for('public.products') }}" class="btn btn-primary">
+                {# outline, not filled: "Đặt hàng" is the only action on this
+                   page that should read as the primary one #}
+                <a href="{{ url_for('public.products') }}" class="btn btn-outline">
                     <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm
                 </a>
             </div>
@@ -478,54 +603,49 @@
 <section class="cart-summary">
     <div class="grid grid-cols-3">
         <div class="card fade-in cart-summary-card">
-            <div class="card-header">
-                <h3 style="margin: 0; color: var(--text-primary);">
-                    <i class="fas fa-calculator"></i> Tóm tắt đơn hàng
-                </h3>
-            </div>
-            
-            <div style="margin-bottom: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
-                    <span>Tạm tính:</span>
+            <h3 class="sum-title">Tóm tắt đơn hàng</h3>
+
+            <div class="sum-rows">
+                <div class="sum-row">
+                    <span>Tạm tính</span>
                     <span><span data-cart-total>{{ total|vnd }}</span> VNĐ</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; color: var(--text-secondary);">
-                    <span>Phí vận chuyển:</span>
-                    <span>Miễn phí</span>
-                </div>
-                <hr style="border-color: var(--border-color); margin: 1rem 0;">
-                <div style="display: flex; justify-content: space-between; font-size: 1.25rem; font-weight: 500; color: var(--accent-color);">
-                    <span>{{ _('cart_total') }}:</span>
-                    <span><span data-cart-total>{{ total|vnd }}</span> VNĐ</span>
+                <div class="sum-row">
+                    <span>Phí vận chuyển</span>
+                    <span class="sum-free">Miễn phí</span>
                 </div>
             </div>
-            
-            <form method="POST" action="{{ url_for('public.process_order') }}">
+
+            <div class="sum-total">
+                <span>{{ _('cart_total') }}</span>
+                <strong><span data-cart-total>{{ total|vnd }}</span> <span class="sum-cur">VNĐ</span></strong>
+            </div>
+
+            <form method="POST" action="{{ url_for('public.process_order') }}" class="sum-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="form-group">
-                    <label class="form-label">
-                        <i class="fas fa-user"></i> Tên khách hàng (không bắt buộc)
+
+                <div class="sum-field">
+                    <label class="sum-label" for="sumName">
+                        Tên khách hàng <span class="sum-opt">không bắt buộc</span>
                     </label>
-                    <input type="text" name="name" class="form-control" placeholder="Nhập tên của bạn">
+                    <input type="text" id="sumName" name="name" class="form-control"
+                           placeholder="Nhập tên của bạn" autocomplete="name">
                 </div>
-                
-                <div class="form-group">
-                    <label class="form-label">
-                        <i class="fas fa-phone"></i> Số điện thoại (không bắt buộc)
+
+                <div class="sum-field">
+                    <label class="sum-label" for="sumPhone">
+                        Số điện thoại <span class="sum-opt">không bắt buộc</span>
                     </label>
-                    <input type="tel" name="phone" class="form-control" placeholder="Nhập số điện thoại">
+                    <input type="tel" id="sumPhone" name="phone" class="form-control"
+                           placeholder="Nhập số điện thoại" autocomplete="tel" inputmode="tel">
                 </div>
-                
-                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
-                    <i class="fas fa-credit-card"></i> Đặt hàng
-                </button>
+
+                <button type="submit" class="btn btn-primary sum-submit">Đặt hàng</button>
             </form>
-            
-            <div style="margin-top: 1rem; text-align: center;">
-                <a href="{{ url_for('public.products') }}" class="btn btn-outline" style="width: 100%;">
-                    <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm
-                </a>
-            </div>
+
+            <a href="{{ url_for('public.products') }}" class="sum-back">
+                <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm
+            </a>
         </div>
     </div>
 </section>
@@ -658,18 +778,33 @@ const observer = new IntersectionObserver(function(entries) {
         if (entry.isIntersecting) {
             entry.target.style.opacity = '1';
             entry.target.style.transform = 'translateY(0)';
+            observer.unobserve(entry.target);
         }
     });
 }, observerOptions);
 
 document.addEventListener('DOMContentLoaded', function() {
     const fadeElements = document.querySelectorAll('.fade-in');
+
+    // The animation hides the cart first and shows it when it scrolls into
+    // view. That means anything which stops the observer from firing leaves
+    // the customer staring at a blank page, so only hide the content when we
+    // are sure we can bring it back, and reveal it anyway after a moment.
+    if (!('IntersectionObserver' in window)) return;
+
+    function reveal(el) {
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+    }
+
     fadeElements.forEach(el => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(20px)';
         el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
         observer.observe(el);
     });
+
+    setTimeout(function () { fadeElements.forEach(reveal); }, 1200);
 });
 </script>
 {% endblock %}

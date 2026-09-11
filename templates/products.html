@@ -359,7 +359,7 @@
 
     <!-- Sort options as chips. These are the same four values the drawer's
          "Sắp xếp theo" select offers - nothing new was added. -->
-    <div class="sw-chips">
+    <div class="sw-chips" id="sortChips">
         {% set current_sort = request.args.get('sort', '') %}
         {% for value, label in [('', 'Tất cả'), ('newest', 'Mới nhất'), ('price_low', 'Giá thấp đến cao'), ('price_high', 'Giá cao đến thấp'), ('name', 'Tên A-Z')] %}
         <a class="sw-chip {% if current_sort == value %}active{% endif %}"
@@ -369,7 +369,7 @@
         {% endfor %}
     </div>
 
-    <p class="sw-result-count">Hiển thị {{ products|length }} / {{ total_products }} sản phẩm</p>
+    <p class="sw-result-count" id="resultCount">Hiển thị {{ products|length }} / {{ total_products }} sản phẩm</p>
 </section>
 
 <!-- Main Content Layout -->
@@ -404,10 +404,14 @@
                         <label class="form-label">Khoảng giá</label>
                         <select name="price_range" class="form-control">
                             <option value="">Tất cả giá</option>
-                            <option value="0-1000000" {% if request.args.get('price_range') == '0-1000000' %}selected{% endif %}>Dưới 1 triệu</option>
-                            <option value="1000000-5000000" {% if request.args.get('price_range') == '1000000-5000000' %}selected{% endif %}>1-5 triệu</option>
-                            <option value="5000000-10000000" {% if request.args.get('price_range') == '5000000-10000000' %}selected{% endif %}>5-10 triệu</option>
-                            <option value="10000000-" {% if request.args.get('price_range') == '10000000-' %}selected{% endif %}>Trên 10 triệu</option>
+                            {# brackets sized for a coffee shop, not the tech-store
+                               "1-5 triệu" the template shipped with #}
+                            {% for value, label in [('-30000', 'Dưới 30.000đ'),
+                                                    ('30000-50000', '30.000 - 50.000đ'),
+                                                    ('50000-100000', '50.000 - 100.000đ'),
+                                                    ('100000-', 'Trên 100.000đ')] %}
+                            <option value="{{ value }}" {% if request.args.get('price_range') == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     
@@ -437,7 +441,7 @@
     <!-- Main Content - Products -->
     <main style="flex: 1; min-width: 300px;">
         <!-- Products Grid -->
-        <section class="products-grid">
+        <section class="products-grid" id="productsGrid">
             {% if products %}
             <div class="grid grid-products">
                 {% for product in products %}
@@ -608,5 +612,79 @@ function toggleFilter() {
     aside.classList.toggle('active');
     overlay.classList.toggle('active');
 }
+</script>
+
+<script>
+/* Filtering without a page load.
+   ------------------------------------------------------------------
+   The chips and the filter drawer are ordinary links and a form, so they
+   still work with JavaScript off. When it is on, we fetch the same URL,
+   lift the grid and the count out of the response and swap them in. The
+   add-to-cart handler is bound on document, so the new cards keep working.
+*/
+(function () {
+    var grid  = document.getElementById('productsGrid');
+    var count = document.getElementById('resultCount');
+    var chips = document.getElementById('sortChips');
+    if (!grid || !window.DOMParser) return;
+
+    var busy = false;
+
+    function swap(html, url) {
+        var doc = new DOMParser().parseFromString(html, 'text/html');
+        var newGrid  = doc.getElementById('productsGrid');
+        var newCount = doc.getElementById('resultCount');
+        var newChips = doc.getElementById('sortChips');
+        if (!newGrid) { window.location.href = url; return; }
+
+        grid.innerHTML = newGrid.innerHTML;
+        if (newCount && count) count.textContent = newCount.textContent;
+        if (newChips && chips) chips.innerHTML = newChips.innerHTML;
+
+        // keep the drawer's controls showing what is actually applied
+        var q = new URL(url, window.location.origin).searchParams;
+        ['sort', 'price_range', 'search'].forEach(function (name) {
+            document.querySelectorAll('[name="' + name + '"]').forEach(function (el) {
+                el.value = q.get(name) || '';
+            });
+        });
+
+        history.pushState({}, '', url);
+        grid.scrollIntoView({block: 'nearest'});
+    }
+
+    function load(url) {
+        if (busy) return;
+        busy = true;
+        grid.style.opacity = '0.45';
+        fetch(url, {credentials: 'same-origin', headers: {'X-Requested-With': 'fetch'}})
+            .then(function (r) { return r.text(); })
+            .then(function (html) { swap(html, url); })
+            .catch(function () { window.location.href = url; })
+            .then(function () { busy = false; grid.style.opacity = ''; });
+    }
+
+    // chips are replaced on every swap, so listen on the container
+    document.addEventListener('click', function (e) {
+        var chip = e.target.closest('#sortChips a');
+        if (!chip) return;
+        e.preventDefault();
+        load(chip.getAttribute('href'));
+    });
+
+    // the filter drawer
+    document.addEventListener('submit', function (e) {
+        var form = e.target;
+        if (!form.matches('form[action*="/products"]')) return;
+        e.preventDefault();
+        var url = form.getAttribute('action') + '?' +
+                  new URLSearchParams(new FormData(form)).toString();
+        load(url);
+    });
+
+    window.addEventListener('popstate', function () {
+        window.location.reload();
+    });
+})();
 </script>
 {% endblock %}
