@@ -18,7 +18,7 @@ import logging
 import os
 from datetime import datetime
 
-from flask import Blueprint, Response, abort, g, request, url_for
+from flask import Blueprint, Response, abort, g, render_template, request, url_for
 
 from extensions import db
 from models import MediaFile, Product, Room, SiteSetting
@@ -117,6 +117,14 @@ ICON_SIZES = {
     'android-chrome-192.png': 192,
     'android-chrome-512.png': 512,
 }
+
+# Android crops a plain icon to a circle, a squircle or a square depending on
+# the launcher, and cuts into whatever sits near the edge. A "maskable" icon
+# keeps the logo inside a smaller safe zone with padding around it, so every
+# shape crops the padding instead of the logo. Chrome's install prompt and
+# app icon both use this one when it is present.
+MASKABLE_SIZE = 512
+MASKABLE_SAFE_ZONE = 0.6   # logo fills 60% of the canvas, centred
 
 
 def put_media(key, data, content_type):
@@ -222,7 +230,17 @@ def save_icons(file_storage):
               _encode(img.resize((64, 64), Image.LANCZOS), 'ICO',
                       sizes=[(16, 16), (32, 32), (48, 48), (64, 64)]),
               'image/x-icon')
-    return True, f'Đã tạo {len(ICON_SIZES) + 1} kích thước icon từ ảnh {w}x{h}'
+
+    # Maskable: the logo on a solid canvas of the theme colour, shrunk into
+    # the safe zone so any shape the launcher applies crops padding, not logo.
+    canvas = Image.new('RGBA', (MASKABLE_SIZE, MASKABLE_SIZE), '#2F9BFF')
+    logo_side = int(MASKABLE_SIZE * MASKABLE_SAFE_ZONE)
+    logo = img.resize((logo_side, logo_side), Image.LANCZOS)
+    offset = (MASKABLE_SIZE - logo_side) // 2
+    canvas.paste(logo, (offset, offset), logo)
+    put_media('icon:maskable-512.png', _encode(canvas, 'PNG'), 'image/png')
+
+    return True, f'Đã tạo {len(ICON_SIZES) + 2} kích thước icon từ ảnh {w}x{h}'
 
 
 def clear_icons():
@@ -339,13 +357,38 @@ def sitemap():
     return Response('\n'.join(body), mimetype='application/xml')
 
 
+@bp.route('/offline')
+def offline():
+    """Shown by the service worker when a tap has no network to answer it."""
+    cfg = settings()
+    return render_template('offline.html', seo_shop=cfg), 200
+
+
+
+def _short_name(full_name, limit=15):
+    """A home-screen-length name: whole words, not a truncated first one."""
+    words = (full_name or '').split()
+    if not words:
+        return 'Quán'
+    out = words[0]
+    for w in words[1:]:
+        if len(out) + 1 + len(w) > limit:
+            break
+        out += ' ' + w
+    return out
+
+
 @bp.route('/site.webmanifest')
 def webmanifest():
     """Lets Android offer "add to home screen" with the right icon."""
     cfg = settings()
     data = {
         'name': cfg['site_name'],
-        'short_name': cfg['site_name'].split()[0] if cfg['site_name'] else 'Quán',
+        # Android shows this under the home-screen icon, where 12 characters
+        # is roughly the cutoff before it gets truncated with an ellipsis.
+        # The first word alone ("Cô") reads as broken, so take whole words
+        # until the limit instead.
+        'short_name': _short_name(cfg['site_name']),
         'description': cfg['site_description'],
         'start_url': '/',
         'display': 'standalone',
@@ -354,10 +397,13 @@ def webmanifest():
         'icons': [
             {'src': media_url('icon:android-chrome-192.png',
                               'icons/android-chrome-192.png'),
-             'sizes': '192x192', 'type': 'image/png'},
+             'sizes': '192x192', 'type': 'image/png', 'purpose': 'any'},
             {'src': media_url('icon:android-chrome-512.png',
                               'icons/android-chrome-512.png'),
-             'sizes': '512x512', 'type': 'image/png'},
+             'sizes': '512x512', 'type': 'image/png', 'purpose': 'any'},
+            {'src': media_url('icon:maskable-512.png',
+                              'icons/maskable-512.png'),
+             'sizes': '512x512', 'type': 'image/png', 'purpose': 'maskable'},
         ],
     }
     import json

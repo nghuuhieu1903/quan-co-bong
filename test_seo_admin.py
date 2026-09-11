@@ -238,8 +238,12 @@ def main():
 
     upload_icon(800, 600)                    # wide on purpose: must be squared
     rows = icon_rows()
-    rep.check(len(rows) == len(seo.ICON_SIZES) + 1,
+    # ICON_SIZES + the .ico + the maskable variant
+    rep.check(len(rows) == len(seo.ICON_SIZES) + 2,
               'one logo produces the whole icon set', f'{len(rows)} images')
+    got = Image.open(io.BytesIO(rows['icon:maskable-512.png'])).size
+    rep.check(got == (seo.MASKABLE_SIZE, seo.MASKABLE_SIZE),
+              'the maskable icon is stored at its declared size', str(got))
     for name, size in seo.ICON_SIZES.items():
         got = Image.open(io.BytesIO(rows['icon:' + name])).size
         if got != (size, size):

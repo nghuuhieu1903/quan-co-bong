@@ -28,6 +28,10 @@
     <meta name="twitter:image" content="{{ self.og_image() }}">
 
     <meta name="theme-color" content="#2F9BFF">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="{{ seo.site_name }}">
 
     {# --- Icons ---------------------------------------------------------- #}
     <link rel="icon" href="{{ seo.icons['favicon.ico'] }}" sizes="any">
@@ -456,6 +460,10 @@
                     Liên hệ:
                     <a href="tel:{{ seo.shop.contact_phone }}">{{ seo.shop.contact_phone }}</a>{% if seo.shop.contact_label %} - {{ seo.shop.contact_label }}{% endif %}
                 </p>
+                <button type="button" id="installAppBtn" class="install-app-btn" hidden>
+                    <img src="{{ seo.icons['apple-touch-icon.png'] }}" alt="">
+                    Cài đặt {{ seo.site_name }} vào máy
+                </button>
             </footer>
         </div>
     </div>
@@ -659,6 +667,48 @@
 
     <!-- money boxes: a dot every three digits while typing -->
     <script src="{{ url_for('static', filename='js/vnd.js') }}"></script>
+
+    <script>
+    /* Installable app
+       --------------------------------------------------------------
+       Chrome only offers "Install" once a service worker is registered.
+       The prompt itself is Chrome's; this just remembers the event so a
+       tap on the footer button can trigger it - the browser drops the
+       event if nothing calls it within the same page load. */
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+            navigator.serviceWorker.register('{{ url_for("static", filename="js/sw.js") }}')
+                .catch(function () {});   // installable is a bonus, not a requirement
+        });
+    }
+
+    (function () {
+        var btn = document.getElementById('installAppBtn');
+        if (!btn) return;
+        var deferred = null;
+
+        window.addEventListener('beforeinstallprompt', function (e) {
+            e.preventDefault();
+            deferred = e;
+            btn.hidden = false;
+        });
+
+        btn.addEventListener('click', function () {
+            if (!deferred) return;
+            deferred.prompt();
+            deferred.userChoice.finally(function () {
+                deferred = null;
+                btn.hidden = true;
+            });
+        });
+
+        // already installed, or the browser installed it from elsewhere -
+        // either way the button has nothing left to do
+        window.addEventListener('appinstalled', function () {
+            btn.hidden = true;
+        });
+    })();
+    </script>
 
     {% block scripts %}{% endblock %}
 </body>

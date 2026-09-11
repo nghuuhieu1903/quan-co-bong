@@ -1408,6 +1408,43 @@ html.show-onboarding body {
     text-decoration: underline;
 }
 
+/* Shown only once the browser confirms the site is installable - see the
+   beforeinstallprompt handler in modern_base.html. Hidden by default so it
+   never sits there doing nothing on a browser that cannot install it. */
+.install-app-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.9rem;
+    padding: 0.55rem 1.1rem;
+    border: 1px solid var(--accent-color);
+    border-radius: var(--radius-pill);
+    background: var(--bg-card);
+    color: var(--accent-color);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.install-app-btn img {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+}
+
+.install-app-btn:hover {
+    background: var(--accent-color);
+    color: #fff;
+}
+
+@media (hover: none), (pointer: coarse) {
+    .install-app-btn:hover {
+        background: var(--bg-card);
+        color: var(--accent-color);
+    }
+}
+
 /* Touch devices: no hover, real press feedback
    ===================================================================
    A phone has no pointer, so tapping something applies :hover and leaves it
