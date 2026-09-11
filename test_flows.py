@@ -83,6 +83,51 @@ def customer_flows(rep, ids):
     rep.check(low == sorted(low), 'sorting low to high actually reorders it',
               str(low[:4]))
 
+    def names(qs):
+        html = c.get('/products?' + qs).get_data(as_text=True)
+        return [n.strip() for n in
+                re.findall(r'<h3[^>]*class="product-title"[^>]*>([^<]+)', html)] or \
+               [n.strip() for n in re.findall(r'<h3[^>]*>([^<]+)', html) if n.strip()]
+
+    az, za = names('sort=name'), names('sort=name_desc')
+    rep.check(az == sorted(az), 'A-Z sorts by name', str(az[:3]))
+    rep.check(za == list(reversed(az)), 'Z-A is the exact reverse of A-Z',
+              str(za[:3]))
+
+    # best sellers: count what was actually bought, ignoring cancelled orders
+    with app.app_context():
+        target = models.Product.query.filter_by(item_type='drink').order_by(
+            models.Product.name.desc()).first()       # last alphabetically
+        decoy = models.Product.query.filter_by(item_type='drink').order_by(
+            models.Product.name.asc()).first()
+        made = []
+        for prod, qty, status in ((target, 25, 'completed'),
+                                  (decoy, 999, 'cancelled')):
+            o = models.Order(customer_name='QA Flow', customer_phone='0912345678',
+                             total_amount=1000, status=status)
+            db.session.add(o)
+            db.session.flush()
+            db.session.add(models.OrderItem(order_id=o.id, product_id=prod.id,
+                                            quantity=qty, price=1000))
+            made.append(o.id)
+        db.session.commit()
+        top_name, decoy_name = target.name, decoy.name
+
+    best = names('sort=best_selling')
+    rep.check(best and best[0] == top_name,
+              'best sellers put the most-ordered item first', str(best[:2]))
+    # the decoy holds 999 cancelled units: if those counted it would lead
+    rep.check(bool(best) and best[0] != decoy_name,
+              'a cancelled order does not count as a sale',
+              f'first is {best[0] if best else "-"}, decoy is {decoy_name}')
+
+    with app.app_context():
+        for oid in made:
+            for it in models.OrderItem.query.filter_by(order_id=oid).all():
+                db.session.delete(it)
+            db.session.delete(db.session.get(models.Order, oid))
+        db.session.commit()
+
     band = prices('price_range=30000-50000')
     rep.check(band and all(30000 <= p < 50000 for p in band),
               'the price bracket filters the grid', str(band))

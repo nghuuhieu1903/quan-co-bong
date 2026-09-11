@@ -96,6 +96,21 @@ def products():
         query = query.order_by(Product.price.desc())
     elif sort == 'name':
         query = query.order_by(Product.name.asc())
+    elif sort == 'name_desc':
+        query = query.order_by(Product.name.desc())
+    elif sort == 'best_selling':
+        # how many of each item have actually been sold. Cancelled orders do
+        # not count, and an item nobody has ordered yet sums to 0 rather than
+        # dropping out of the list.
+        sold = (db.session.query(OrderItem.product_id.label('pid'),
+                                 func.sum(OrderItem.quantity).label('qty'))
+                .join(Order, Order.id == OrderItem.order_id)
+                .filter(Order.status != 'cancelled')
+                .group_by(OrderItem.product_id)
+                .subquery())
+        query = (query.outerjoin(sold, sold.c.pid == Product.id)
+                      .order_by(func.coalesce(sold.c.qty, 0).desc(),
+                                Product.name.asc()))
     elif sort == 'newest':
         query = query.order_by(Product.created_at.desc(), Product.id.desc())
 

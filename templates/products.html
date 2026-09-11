@@ -385,7 +385,7 @@
          "Sắp xếp theo" select offers - nothing new was added. -->
     <div class="sw-chips" id="sortChips">
         {% set current_sort = request.args.get('sort', '') %}
-        {% for value, label in [('', 'Tất cả'), ('newest', 'Mới nhất'), ('price_low', 'Giá thấp đến cao'), ('price_high', 'Giá cao đến thấp'), ('name', 'Tên A-Z')] %}
+        {% for value, label in [('', 'Tất cả'), ('best_selling', 'Mua nhiều'), ('newest', 'Mới nhất'), ('price_low', 'Giá thấp đến cao'), ('price_high', 'Giá cao đến thấp'), ('name', 'Tên A-Z'), ('name_desc', 'Tên Z-A')] %}
         <a class="sw-chip {% if current_sort == value %}active{% endif %}"
            href="{{ url_for('public.products', type=item_type, sort=value or None, search=request.args.get('search') or None, price_range=request.args.get('price_range') or None) }}">
             {{ label }}
@@ -443,8 +443,10 @@
                         <label class="form-label">Sắp xếp theo</label>
                         <select name="sort" class="form-control">
                             <option value="name" {% if request.args.get('sort') == 'name' %}selected{% endif %}>Tên A-Z</option>
+                            <option value="name_desc" {% if request.args.get('sort') == 'name_desc' %}selected{% endif %}>Tên Z-A</option>
                             <option value="price_low" {% if request.args.get('sort') == 'price_low' %}selected{% endif %}>Giá thấp đến cao</option>
                             <option value="price_high" {% if request.args.get('sort') == 'price_high' %}selected{% endif %}>Giá cao đến thấp</option>
+                            <option value="best_selling" {% if request.args.get('sort') == 'best_selling' %}selected{% endif %}>Mua nhiều</option>
                             <option value="newest" {% if request.args.get('sort') == 'newest' %}selected{% endif %}>Mới nhất</option>
                         </select>
                     </div>
@@ -554,27 +556,10 @@
 
 {% block scripts %}
 <script>
-// Add to cart animation
-document.querySelectorAll('form[action*="add_to_cart"]').forEach(form => {
-    form.addEventListener('submit', function(e) {
-        const button = this.querySelector('button[type="submit"]');
-        const originalText = button.innerHTML;
-        
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang thêm...';
-        button.disabled = true;
-        
-        setTimeout(() => {
-            button.innerHTML = '<i class="fas fa-check"></i> Đã thêm!';
-            button.style.background = 'var(--gradient-success)';
-            
-            setTimeout(() => {
-                button.innerHTML = originalText;
-                button.disabled = false;
-                button.style.background = '';
-            }, 1500);
-        }, 1000);
-    });
-});
+// Adding to the cart is shown by the item flying into the cart icon (see
+// modern_base.html). The button itself stays exactly as it is - it used to
+// swap to a spinner, then to a green tick, then back, which was three
+// changes of state for one tap.
 
 // Filter form enhancement
 document.querySelectorAll('select, input').forEach(element => {
