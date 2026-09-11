@@ -148,60 +148,39 @@
             </div>
         </div>
         
-        <!-- Right: Booking Form (1 column) -->
+        <!-- Right: how to rent (1 column) -->
         <div style="grid-column: span 1;">
             <div class="card fade-in" style="border: 1px solid var(--border-color); position: sticky; top: 2rem;">
-                <div class="card-header" style="margin-bottom: 1.5rem;">
+                <div class="card-header" style="margin-bottom: 1.25rem;">
                     <h3 style="margin: 0; color: var(--text-primary); font-size: 1.25rem;">
-                        <i class="fas fa-calendar-check"></i> Đặt Phòng Trọ
+                        <i class="fas fa-key"></i> Thuê phòng này
                     </h3>
                 </div>
-                
-                <form method="POST" action="{{ url_for('public.book_room', room_id=room.id) }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <!-- Customer Name -->
-                    <div class="form-group">
-                        <label class="form-label" for="customer_name">Tên của bạn *</label>
-                        <input type="text" id="customer_name" name="customer_name" class="form-control" placeholder="Nhập họ và tên" required
-                               value="{% if session.get('customer_name') %}{{ session.get('customer_name') }}{% endif %}">
-                    </div>
-                    
-                    <!-- Customer Phone -->
-                    <div class="form-group">
-                        <label class="form-label" for="customer_phone">Số điện thoại liên hệ *</label>
-                        <input type="tel" id="customer_phone" name="customer_phone" class="form-control" placeholder="Nhập số điện thoại" required
-                               value="{% if session.get('customer_phone') %}{{ session.get('customer_phone') }}{% endif %}">
-                    </div>
-                    
-                    <!-- Booking Date -->
-                    <div class="form-group">
-                        <label class="form-label" for="booking_date">Ngày đặt *</label>
-                        <input type="date" id="booking_date" name="booking_date" class="form-control" required>
-                    </div>
-                    
-                    <!-- Start Time -->
-                    <div class="form-group">
-                        <label class="form-label" for="start_time">Giờ bắt đầu *</label>
-                        <input type="time" id="start_time" name="start_time" class="form-control" required>
-                    </div>
-                    
-                    <!-- Notes -->
-                    <div class="form-group">
-                        <label class="form-label" for="notes">Ghi chú thêm</label>
-                        <textarea id="notes" name="notes" class="form-control" rows="3" placeholder="Nhập các yêu cầu khác nếu có..."></textarea>
-                    </div>
-                    
-                    <!-- Alert Notice -->
-                    <div style="background: rgba(var(--accent-color-rgb), 0.05); border-left: 3px solid var(--accent-color); padding: 0.75rem; border-radius: 4px; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">
-                        <i class="fas fa-info-circle" style="color: var(--accent-color); margin-right: 0.3rem;"></i>
-                        Mỗi lượt đặt phòng có thời hạn mặc định là <strong>1 giờ</strong>.
-                    </div>
-                    
-                    <!-- Submit button -->
-                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
-                        <i class="fas fa-check-circle"></i> Xác Nhận Đặt Phòng
-                    </button>
-                </form>
+
+                <div style="font-size: 1.6rem; font-weight: 700; color: var(--accent-color); line-height: 1.2;">
+                    {{ room.price_per_hour|vnd }} <span style="font-size: 1rem;">VNĐ</span>
+                </div>
+                <div style="color: var(--text-secondary); margin-bottom: 1.25rem;">
+                    mỗi {{ room.price_unit or 'tháng' }}
+                </div>
+
+                <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.25rem;">
+                    Phòng cho thuê theo hợp đồng. Gọi hoặc nhắn Zalo để xem phòng
+                    và trao đổi trực tiếp về thời hạn thuê.
+                </p>
+
+                <a href="tel:{{ seo.shop.contact_phone }}" class="btn btn-primary"
+                   style="width: 100%; padding: 1rem; font-size: 1.05rem; margin-bottom: 0.6rem;">
+                    <i class="fas fa-phone"></i> Gọi {{ seo.shop.contact_phone }}
+                </a>
+                <a href="https://zalo.me/{{ seo.shop.contact_phone }}" target="_blank" rel="noopener"
+                   class="btn btn-outline" style="width: 100%; padding: 1rem; font-size: 1.05rem;">
+                    <i class="fas fa-comment-dots"></i> Nhắn Zalo
+                </a>
+
+                <p style="color: var(--text-muted); font-size: 0.82rem; text-align: center; margin: 1rem 0 0;">
+                    Liên hệ {{ seo.shop.contact_label }}
+                </p>
             </div>
         </div>
     </div>
@@ -279,17 +258,6 @@ document.addEventListener('DOMContentLoaded', function() {
             jumpToImage(idx);
         });
     });
-
-    // Set default date to today
-    const today = new Date().toISOString().split('T')[0];
-    document.getElementById('booking_date').min = today;
-    document.getElementById('booking_date').value = today;
-    
-    // Set default time to next hour
-    const now = new Date();
-    now.setHours(now.getHours() + 1);
-    const nextHour = now.toTimeString().split(' ')[0].substring(0, 5);
-    document.getElementById('start_time').value = nextHour;
 
     // Fade animation
     const fadeElements = document.querySelectorAll('.fade-in');

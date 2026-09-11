@@ -11,6 +11,7 @@ was found.
     python test_flows.py
 """
 
+import datetime
 import re
 import sys
 
@@ -107,18 +108,28 @@ def customer_flows(rep, ids):
         rep.check(c.get(f'/order_confirmation/{ids["order"]}').status_code == 200,
                   'order confirmation renders')
 
-    # --- room booking -----------------------------------------------------
+    # --- renting a room ----------------------------------------------------
+    # Rooms are let by the month on a contract, so there is no online booking
+    # any more: the page hands the visitor a phone number instead.
+    page = c.get(f'/room/{ids["room"]}').get_data(as_text=True)
+    rep.check('book_room' not in page and 'Giờ bắt đầu' not in page,
+              'room page no longer shows a booking form')
+    rep.check('tel:' in page and 'zalo.me' in page,
+              'room page offers a phone number and Zalo')
+    gone = c.post(f'/book_room/{ids["room"]}').status_code
+    rep.check(gone == 404, 'the old booking route is gone', f'HTTP {gone}')
+
+    # The admin screens still manage bookings taken before this change, so put
+    # one straight into the table to keep covering them.
     with app.app_context():
-        before = models.RoomBooking.query.count()
-    r = post(c, f'/book_room/{ids["room"]}', {
-        'customer_name': 'QA Flow', 'customer_phone': '0912345678',
-        'booking_date': '2030-01-01', 'start_time': '09:00', 'end_time': '11:00',
-        'notes': 'automated flow check'}, f'/room/{ids["room"]}')
-    with app.app_context():
-        after = models.RoomBooking.query.count()
-        nb = models.RoomBooking.query.order_by(models.RoomBooking.id.desc()).first()
-    rep.check(after == before + 1, 'booking a room creates it', f'{before} -> {after}')
-    ids['booking'] = nb.id if after > before else None
+        nb = models.RoomBooking(
+            room_id=ids['room'], customer_name='QA Flow',
+            customer_phone='0912345678', booking_date=datetime.date(2030, 1, 1),
+            start_time=datetime.time(9, 0), end_time=datetime.time(11, 0),
+            total_hours=2.0, total_price=0, status='pending')
+        db.session.add(nb)
+        db.session.commit()
+        ids['booking'] = nb.id
 
     # --- ordering a daily menu item --------------------------------------
     with app.app_context():

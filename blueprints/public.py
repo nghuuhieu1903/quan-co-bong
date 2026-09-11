@@ -29,7 +29,7 @@ from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, safe_print as print,
 import payments
 from models import (Admin, Customer, DailyMenuItem, DailyMenuOrder,
                     Notification, Order, OrderItem, Product, ProductImage,
-                    Room, RoomBooking, RoomImage, create_notification)
+                    Room, RoomImage, create_notification)
 
 logger = logging.getLogger(__name__)
 
@@ -95,89 +95,6 @@ def room_detail(room_id):
     room = Room.query.get_or_404(room_id)
     return render_template('room_detail.html', room=room)
 
-@bp.route('/book_room/<int:room_id>', methods=['POST'])
-def book_room(room_id):
-    room = Room.query.get_or_404(room_id)
-    
-    if not room.available:
-        flash('Phòng này hiện không còn trống!', 'error')
-        return redirect(url_for('public.room_detail', room_id=room_id))
-    
-    # Get form data
-    customer_name = request.form.get('customer_name')
-    customer_phone = request.form.get('customer_phone')
-    booking_date_str = request.form.get('booking_date')
-    start_time_str = request.form.get('start_time')
-    notes = request.form.get('notes')
-    
-    # Validate required fields
-    if not all([customer_name, customer_phone, booking_date_str, start_time_str]):
-        flash('Vui lòng điền đầy đủ thông tin bắt buộc!', 'error')
-        return redirect(url_for('public.room_detail', room_id=room_id))
-    
-    try:
-        # Parse date and time
-        from datetime import datetime, date, time, timedelta
-        booking_date = datetime.strptime(booking_date_str, '%Y-%m-%d').date()
-        try:
-            start_time = datetime.strptime(start_time_str, '%H:%M:%S').time()
-        except ValueError:
-            start_time = datetime.strptime(start_time_str, '%H:%M').time()
-        # Fixed 1 hour booking duration
-        start_datetime = datetime.combine(booking_date, start_time)
-        end_datetime = start_datetime + timedelta(hours=1)
-        end_time = end_datetime.time()
-        
-        # Fixed 1 hour booking
-        total_hours = 1.0
-        total_price = total_hours * room.price_per_hour
-
-        # Reject overlapping bookings for the same room/date
-        existing_bookings = RoomBooking.query.filter(
-            RoomBooking.room_id == room.id,
-            RoomBooking.booking_date == booking_date,
-            RoomBooking.status != 'cancelled'
-        ).all()
-        for existing in existing_bookings:
-            if existing.start_time < end_time and existing.end_time > start_time:
-                flash('Khung giờ này đã có người đặt. Vui lòng chọn thời gian khác!', 'error')
-                return redirect(url_for('public.room_detail', room_id=room_id))
-
-        # Create booking
-        booking = RoomBooking(
-            room_id=room.id,
-            customer_name=customer_name,
-            customer_phone=customer_phone,
-            booking_date=booking_date,
-            start_time=start_time,
-            end_time=end_time,
-            total_hours=total_hours,
-            total_price=total_price,
-            notes=notes
-        )
-        
-        db.session.add(booking)
-        
-        # Define end_time_str for notification
-        end_time_str = end_time.strftime('%H:%M')
-        # Create notification for admin
-        notification_message = f"🏠 ĐẶT PHÒNG MỚI!\nKhách hàng: {customer_name}\nSĐT: {customer_phone}\nPhòng: {room.name}\nNgày: {booking_date_str}\nThời gian: {start_time_str} - {end_time_str}\nTổng: {total_price:,.0f} VNĐ"
-        create_notification('room_booking', notification_message)
-        
-        db.session.commit()
-        
-        flash('Đặt phòng thành công! Chúng tôi sẽ liên hệ với bạn sớm.', 'success')
-        # Redirect based on user role
-        if 'admin_logged_in' in session:
-            return redirect(url_for('admin.admin_room_bookings'))
-        else:
-            return redirect(url_for('public.rooms'))
-        
-    except Exception as e:
-        db.session.rollback()
-        logger.exception("Booking error")
-        flash('Có lỗi xảy ra khi đặt phòng. Vui lòng thử lại!', 'error')
-        return redirect(url_for('public.room_detail', room_id=room_id))
 
 @bp.route('/product/<int:product_id>')
 def product_detail_route(product_id):
