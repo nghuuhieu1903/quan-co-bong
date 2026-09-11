@@ -281,6 +281,25 @@ def remove_from_cart(product_id):
         return jsonify(ok=True, **cart_state())
     return redirect(url_for('public.cart'))
 
+@bp.route('/remove_selected_from_cart', methods=['POST'])
+def remove_selected_from_cart():
+    """Drop several items in one go, from the cart's tick boxes."""
+    wanted = set()
+    for raw in request.form.getlist('product_ids'):
+        try:
+            wanted.add(int(raw))
+        except (TypeError, ValueError):
+            continue
+
+    cart = [item for item in session.get('cart', [])
+            if item['product_id'] not in wanted]
+    session['cart'] = cart
+
+    if wants_json():
+        return jsonify(ok=True, **cart_state())
+    return redirect(url_for('public.cart'))
+
+
 @bp.route('/checkout', methods=['GET', 'POST'])
 def checkout():
     cart_items = session.get('cart', [])

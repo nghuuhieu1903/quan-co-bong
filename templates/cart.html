@@ -452,6 +452,144 @@ th.ct-del, td.ct-del { width: 1%; }
     border: 0;
 }
 
+/* Tick boxes and the bulk bar */
+.mobile-item-pick {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin-right: 0.15rem;
+    accent-color: var(--accent-color);
+}
+
+th.ct-pick, td.ct-pick { width: 1%; text-align: center; }
+
+.ct-pick input {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--accent-color);
+    cursor: pointer;
+}
+
+/* display:flex wins over the hidden attribute unless we say otherwise */
+.ct-bulk[hidden] { display: none; }
+
+.ct-bulk {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0 0 0.75rem;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-btn);
+    background: var(--bg-secondary);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.ct-bulk-remove {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid var(--danger-color);
+    border-radius: var(--radius-btn);
+    background: transparent;
+    color: var(--danger-color);
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.ct-bulk-remove:hover {
+    background: var(--danger-color);
+    color: #fff;
+}
+
+/* Confirm dialog */
+.ct-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.ct-modal[hidden] { display: none; }
+
+.ct-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 32, 52, 0.38);
+    animation: ct-fade 140ms ease-out;
+}
+
+.ct-modal-card {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    padding: 1.25rem;
+    border-radius: var(--radius-card);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-lg);
+    animation: ct-pop 160ms ease-out;
+}
+
+.ct-modal-title {
+    margin: 0 0 0.4rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.ct-modal-text {
+    margin: 0 0 1.1rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+.ct-modal-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.ct-modal-actions button {
+    flex: 1;
+    padding: 0.6rem;
+    border-radius: var(--radius-btn);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.ct-modal-cancel {
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+
+.ct-modal-ok {
+    border: 1px solid var(--danger-color);
+    background: var(--danger-color);
+    color: #fff;
+}
+
+@keyframes ct-fade { from { opacity: 0; } to { opacity: 1; } }
+
+@keyframes ct-pop {
+    from { opacity: 0; transform: translateY(8px) scale(0.97); }
+    to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ct-modal-backdrop, .ct-modal-card { animation: none; }
+}
+
 /* Order summary
    ------------------------------------------------------------------
    The old card leaned on solid Font Awesome glyphs beside every label,
@@ -580,6 +718,22 @@ th.ct-del, td.ct-del { width: 1%; }
     }
 }
 </style>
+
+<!-- Confirm dialog. The browser's own confirm() prints the domain name in a
+     grey system box that belongs to nothing on the page; this is the same
+     question in the site's own card. -->
+<div class="ct-modal" id="ctModal" hidden>
+    <div class="ct-modal-backdrop" data-ct-close></div>
+    <div class="ct-modal-card" role="dialog" aria-modal="true" aria-labelledby="ctModalTitle">
+        <h4 class="ct-modal-title" id="ctModalTitle">Xóa món này?</h4>
+        <p class="ct-modal-text" id="ctModalText">Món sẽ được bỏ khỏi giỏ hàng.</p>
+        <div class="ct-modal-actions">
+            <button type="button" class="ct-modal-cancel" data-ct-close>Giữ lại</button>
+            <button type="button" class="ct-modal-ok" id="ctModalOk">Xóa</button>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block title %}{{ seo.site_name }}{% endblock %}
@@ -627,10 +781,20 @@ th.ct-del, td.ct-del { width: 1%; }
             </h3>
         </div>
         
+        <div class="ct-bulk" id="ctBulk" hidden>
+            <span><strong id="ctPickCount">0</strong> món đã chọn</span>
+            <button type="button" class="ct-bulk-remove" id="ctBulkRemove">
+                <i class="fas fa-trash"></i> Xóa đã chọn
+            </button>
+        </div>
+
         <div class="table-responsive">
             <table class="table">
                 <thead>
                     <tr>
+                        <th class="ct-pick">
+                            <input type="checkbox" id="ctPickAll" aria-label="Chọn tất cả">
+                        </th>
                         <th class="ct-img"><span class="sr-only">Hình ảnh</span></th>
                         <th class="ct-name">Sản phẩm</th>
                         <th class="ct-price">Đơn giá</th>
@@ -642,6 +806,11 @@ th.ct-del, td.ct-del { width: 1%; }
                 <tbody>
                     {% for item in cart_items %}
                     <tr data-cart-row="{{ item.product.id }}">
+                        <td class="ct-pick">
+                            <input type="checkbox" class="ct-pick-box"
+                                   value="{{ item.product.id }}"
+                                   aria-label="Chọn {{ item.product.name }}">
+                        </td>
                         <td class="ct-img">
                             <img src="{{ item.product.image_url }}" alt="{{ item.product.name }}">
                         </td>
@@ -683,10 +852,20 @@ th.ct-del, td.ct-del { width: 1%; }
 
     <!-- Mobile Cards View -->
     <div class="cart-items-mobile fade-in">
+        <div class="ct-bulk" id="ctBulkMobile" hidden>
+            <span><strong id="ctPickCountMobile">0</strong> món đã chọn</span>
+            <button type="button" class="ct-bulk-remove" id="ctBulkRemoveMobile">
+                <i class="fas fa-trash"></i> Xóa đã chọn
+            </button>
+        </div>
+
         {% for item in cart_items %}
         <div class="mobile-cart-item-card" data-cart-row="{{ item.product.id }}">
             <!-- Mobile Item Header -->
             <div class="mobile-item-header">
+                <input type="checkbox" class="ct-pick-box mobile-item-pick"
+                       value="{{ item.product.id }}"
+                       aria-label="Chọn {{ item.product.name }}">
                 <img class="mobile-item-img" src="{{ item.product.image_url }}" alt="{{ item.product.name }}">
                 <div class="mobile-item-details">
                     <h4 class="mobile-item-name">{{ item.product.name }}</h4>
@@ -861,13 +1040,6 @@ th.ct-del, td.ct-del { width: 1%; }
         }
         e.preventDefault();
 
-        // ask before deleting - has to live here, not in a separate submit
-        // listener: preventDefault() there would not stop this handler
-        if (form.matches('form[action*="/remove_from_cart/"]') &&
-            !confirm('Bạn có chắc muốn xóa sản phẩm này khỏi giỏ hàng?')) {
-            return;
-        }
-
         var body = new FormData(form);
         // a submit button's name/value only reaches FormData if it was the
         // button that submitted - and that is how + and - tell each other apart
@@ -875,10 +1047,24 @@ th.ct-del, td.ct-del { width: 1%; }
             body.set(e.submitter.name, e.submitter.value);
         }
 
-        // getAttribute, not form.action: the +/- buttons are named "action",
-        // and a control's name shadows the form property of the same name -
-        // form.action returns the button list, not the URL.
-        fetch(form.getAttribute('action'), {
+        // Ask before deleting. The question goes through the page's own
+        // dialog, so we hand send() a callback instead of blocking on
+        // confirm(), which prints the domain in a grey system box.
+        if (form.matches('form[action*="/remove_from_cart/"]')) {
+            ask('Xóa món này?', 'Món sẽ được bỏ khỏi giỏ hàng.', function () {
+                send(form.getAttribute('action'), body, form);
+            });
+            return;
+        }
+
+        send(form.getAttribute('action'), body, form);
+    });
+
+    // getAttribute, not form.action: the +/- buttons are named "action", and
+    // a control's name shadows the form property of the same name - so
+    // form.action returns the button list rather than the URL.
+    function send(url, body, form) {
+        fetch(url, {
             method: 'POST',
             credentials: 'same-origin',
             body: body,
@@ -886,8 +1072,121 @@ th.ct-del, td.ct-del { width: 1%; }
         })
         .then(function (r) { return r.json(); })
         .then(apply)
-        .catch(function () { form.submit(); });   // fall back to a real post
+        .catch(function () { if (form) form.submit(); });  // fall back to a real post
+    }
+
+    /* ---- the confirm dialog ---------------------------------------- */
+    var modal = document.getElementById('ctModal');
+    var pending = null;
+
+    function ask(title, text, onYes) {
+        if (!modal) { onYes(); return; }        // no dialog: just do it
+        document.getElementById('ctModalTitle').textContent = title;
+        document.getElementById('ctModalText').textContent = text;
+        pending = onYes;
+        modal.hidden = false;
+        document.getElementById('ctModalOk').focus();
+    }
+
+    function close() {
+        if (modal) modal.hidden = true;
+        pending = null;
+    }
+
+    if (modal) {
+        modal.addEventListener('click', function (e) {
+            if (e.target.closest('[data-ct-close]')) close();
+        });
+        document.getElementById('ctModalOk').addEventListener('click', function () {
+            var go = pending;
+            close();
+            if (go) go();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !modal.hidden) close();
+        });
+    }
+
+    /* ---- picking several items to remove ---------------------------- */
+    // one bar per view: the desktop table and the mobile cards each have
+    // their own, and only one of them is on screen at a time
+    var bars = [
+        [document.getElementById('ctBulk'), document.getElementById('ctPickCount')],
+        [document.getElementById('ctBulkMobile'), document.getElementById('ctPickCountMobile')]
+    ].filter(function (pair) { return pair[0]; });
+    var pickAll = document.getElementById('ctPickAll');
+
+    function boxes() {
+        return Array.prototype.slice.call(
+            document.querySelectorAll('.ct-pick-box'));
+    }
+
+    // Each product has a box in the table and another in the mobile cards,
+    // so count product ids rather than boxes - otherwise two items read as
+    // four.
+    function pickedIds() {
+        var seen = [];
+        boxes().forEach(function (b) {
+            if (b.checked && seen.indexOf(b.value) === -1) seen.push(b.value);
+        });
+        return seen;
+    }
+
+    // ticking one view ticks the same product in the other
+    function sync(value, checked) {
+        boxes().forEach(function (b) {
+            if (b.value === value) b.checked = checked;
+        });
+    }
+
+    function refresh() {
+        var n = pickedIds().length;
+        bars.forEach(function (pair) {
+            pair[1].textContent = n;
+            pair[0].hidden = n === 0;
+        });
+        if (pickAll) {
+            var total = [];
+            boxes().forEach(function (b) {
+                if (total.indexOf(b.value) === -1) total.push(b.value);
+            });
+            pickAll.checked = total.length > 0 && n === total.length;
+            pickAll.indeterminate = n > 0 && n < total.length;
+        }
+    }
+
+    document.addEventListener('change', function (e) {
+        if (e.target === pickAll) {
+            boxes().forEach(function (b) { b.checked = pickAll.checked; });
+        }
+        if (e.target.classList.contains('ct-pick-box')) {
+            sync(e.target.value, e.target.checked);
+        }
+        if (e.target === pickAll || e.target.classList.contains('ct-pick-box')) {
+            refresh();
+        }
     });
+
+    ['ctBulkRemove', 'ctBulkRemoveMobile'].forEach(function (id) {
+        var bulkBtn = document.getElementById(id);
+        if (!bulkBtn) return;
+        bulkBtn.addEventListener('click', function () {
+            var chosen = pickedIds();
+            if (!chosen.length) return;
+            ask('Xóa ' + chosen.length + ' món?',
+                'Những món đã chọn sẽ được bỏ khỏi giỏ hàng.',
+                function () {
+                    var body = new FormData();
+                    chosen.forEach(function (id) {
+                        body.append('product_ids', id);
+                    });
+                    send('{{ url_for("public.remove_selected_from_cart") }}', body, null);
+                    refresh();
+                });
+        });
+    });
+
+    refresh();
 })();
 </script>
 <script>

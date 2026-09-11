@@ -1442,6 +1442,56 @@ html.show-onboarding body {
         box-shadow: 0 4px 14px rgba(47, 155, 255, 0.32);
     }
 
+    /* Colour was the half this block forgot. Tapping the outline cart button
+       left it filled in solid blue until you tapped somewhere else, and the
+       0.25s background transition made that look like a lagging effect. Each
+       of these keeps its resting colours under a finger. */
+    .btn-outline:hover {
+        background: transparent;
+        color: var(--accent-color);
+    }
+
+    /* resting values spelled out, never `inherit` - that would pull the
+       parent's colours in rather than the element's own */
+    .btn-secondary:hover,
+    .quantity-btn:hover {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+    }
+
+    .sw-filter-btn:hover {
+        background: var(--bg-card);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .pay-option:hover {
+        background: var(--bg-card);
+        border-color: var(--border-color);
+    }
+
+    .sw-tab:hover,
+    .nav-link:hover {
+        color: var(--text-secondary);
+    }
+
+    .table tbody tr:hover {
+        background: transparent;
+    }
+
+    .sw-chip:hover {
+        background: var(--bg-card);
+        border-color: var(--border-color);
+        color: var(--text-secondary);
+    }
+
+    /* the selected chip keeps its filled look - that is state, not hover */
+    .sw-chip.active:hover {
+        background: var(--accent-color);
+        border-color: var(--accent-color);
+        color: #fff;
+    }
+
     .product-card:hover .product-image {
         transform: none;
     }

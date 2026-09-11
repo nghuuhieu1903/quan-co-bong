@@ -152,6 +152,29 @@ def customer_flows(rep, ids):
     cart = c.get('/cart').get_data(as_text=True)
     rep.check('cart_empty' in cart or 'trống' in cart, 'remove from cart empties it')
 
+    # removing several at once, from the cart's tick boxes
+    with app.app_context():
+        others = [pr.id for pr in models.Product.query
+                  .filter(models.Product.id != ids['product']).limit(2).all()]
+    for pid in [ids['product']] + others:
+        post(c, f'/add_to_cart/{pid}', {'quantity': '1'}, '/products')
+    before = len(c.get('/cart').get_data(as_text=True).split('data-cart-row='))
+    r = post(c, '/remove_selected_from_cart',
+             {'product_ids': [str(p) for p in others]}, '/cart')
+    cart = c.get('/cart').get_data(as_text=True)
+    gone = all(f'data-cart-row="{p}"' not in cart for p in others)
+    kept = f'data-cart-row="{ids["product"]}"' in cart
+    rep.check(r.status_code == 302 and gone and kept,
+              'removing several at once drops only the ones picked',
+              f'kept={kept} gone={gone}')
+
+    # a hand-edited id must not take the route down
+    r = post(c, '/remove_selected_from_cart',
+             {'product_ids': ['abc', '999999']}, '/cart')
+    rep.check(r.status_code == 302, 'a bad id in the list is ignored',
+              f'HTTP {r.status_code}')
+    post(c, f'/remove_from_cart/{ids["product"]}', {}, '/cart')
+
     # --- checkout and order placement ------------------------------------
     post(c, f'/add_to_cart/{ids["product"]}', {'quantity': '1'}, '/products')
     rep.check(c.get('/checkout').status_code == 200, 'checkout page reachable with a full cart')
