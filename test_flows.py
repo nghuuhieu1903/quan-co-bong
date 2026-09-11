@@ -324,11 +324,6 @@ def admin_flows(rep, ids):
                '/admin/generate_bank_qr')
     rep.check(bqr.status_code == 200, 'bank QR generation', f'HTTP {bqr.status_code}')
 
-    # --- automation toggles (super admin) ---------------------------------
-    r = post(a, '/admin/automation_toggle', {}, '/admin/automation_settings')
-    rep.check(r.status_code == 302, 'automation toggle')
-    post(a, '/admin/automation_toggle', {}, '/admin/automation_settings')
-    r = post(a, '/admin/speaker_toggle', {}, '/admin/automation_settings')
     rep.check(r.status_code == 302, 'speaker toggle')
     post(a, '/admin/speaker_toggle', {}, '/admin/automation_settings')
 

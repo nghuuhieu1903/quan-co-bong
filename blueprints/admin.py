@@ -1,4 +1,4 @@
-"""Admin area: dashboard, catalogue and room management, orders, debts, QR codes, exports, automation and accounts."""
+"""Admin area: dashboard, catalogue and room management, orders, debts, QR codes, exports and accounts."""
 
 import logging
 
@@ -19,7 +19,6 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from sqlalchemy import func, text
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from automation import automation_controller, gTTS, laptop_speaker, pyautogui, pyttsx3
 from decorators import (admin_required, admin_required_api,
                         admin_required_api_success, manager_required,
                         super_admin_required)
@@ -138,8 +137,6 @@ def admin_dashboard():
         room_bookings=room_bookings,
         notifications=notifications,
         unread_notifications_count=unread_notifications_count,
-        automation=automation_controller,
-        laptop_speaker=laptop_speaker,
         stats=stats
     )
 
@@ -790,6 +787,18 @@ def generate_bank_qr():
         bank_id = request.form.get('bank_id', 'VCB')
         account_no = request.form.get('account_no', '')
         account_name = request.form.get('account_name', '')
+
+        # "Set as the shop's account": from here on, every customer order
+        # collects into it and the transfer content is built against it.
+        if request.form.get('action') == 'set_default':
+            if session.get('admin_role') != 'super_admin':
+                flash('Chỉ tài khoản quản trị cấp cao mới đổi được tài khoản nhận tiền.', 'error')
+            elif payments.save_config(bank_id, account_no, account_name):
+                flash('Đã đặt làm tài khoản nhận tiền của quán. '
+                      'Từ giờ mã QR của khách sẽ chuyển vào tài khoản này.', 'success')
+            else:
+                flash('Cần chọn ngân hàng và nhập số tài khoản.', 'error')
+            return redirect(url_for('admin.generate_bank_qr'))
         # the box shows "1.500.000"; VietQR needs bare digits in the URL
         amount_value = parse_vnd(request.form.get('amount', ''))
         amount = '' if amount_value is None else f'{amount_value:.0f}'
@@ -812,7 +821,9 @@ def generate_bank_qr():
         if params:
             qr_url += "?" + "&".join(params)
             
-    return render_template('bank_qr.html', qr_url=qr_url)
+    return render_template('bank_qr.html', qr_url=qr_url,
+                           shop_account=payments.bank_config(),
+                           saved_here=bool(payments.saved_config()))
 
 @bp.route('/admin/export_orders')
 @super_admin_required
@@ -913,105 +924,6 @@ def export_orders():
     )
 
 # Automation Control Routes
-
-@bp.route('/admin/automation_settings')
-@super_admin_required
-def automation_settings():
-    screen_info = automation_controller.get_screen_info()
-    return render_template('automation_settings.html',
-                         automation=automation_controller,
-                         laptop_speaker=laptop_speaker,
-                         screen_info=screen_info)
-
-@bp.route('/admin/automation_toggle', methods=['POST'])
-@super_admin_required
-def automation_toggle():
-    automation_controller.enabled = not automation_controller.enabled
-    status = "bật" if automation_controller.enabled else "tắt"
-    flash(f'Tự động hóa đã được {status}.', 'success')
-    
-    return redirect(url_for('admin.automation_settings'))
-
-@bp.route('/admin/emergency_stop', methods=['POST'])
-@super_admin_required
-def emergency_stop():
-    automation_controller.emergency_stop()
-    flash('Đã dừng khẩn cấp tất cả tự động hóa!', 'warning')
-    
-    return redirect(url_for('admin.automation_settings'))
-
-@bp.route('/admin/speaker_test', methods=['POST'])
-@super_admin_required
-def speaker_test():
-    try:
-        success = laptop_speaker.test_speaker()
-        if success:
-            flash('Kiểm tra loa laptop thành công!', 'success')
-        else:
-            flash('Kiểm tra loa laptop thất bại. Vui lòng kiểm tra cài đặt.', 'error')
-    except Exception as e:
-        flash(f'Lỗi kiểm tra loa: {e}', 'error')
-    
-    return redirect(url_for('admin.automation_settings'))
-
-@bp.route('/admin/test_notification', methods=['POST'])
-@super_admin_required
-def test_notification():
-    automation_controller.show_order_notification(999, "Khách test", 100000)
-    flash('Đã gửi thông báo kiểm tra!', 'success')
-    
-    return redirect(url_for('admin.automation_settings'))
-
-# Laptop Speaker Control Routes
-
-@bp.route('/admin/speaker_toggle', methods=['POST'])
-@super_admin_required
-def speaker_toggle():
-    enabled = laptop_speaker.toggle_enabled()
-    status = "bật" if enabled else "tắt"
-    flash(f'Thông báo loa laptop đã được {status}.', 'success')
-    
-    return redirect(url_for('admin.automation_settings'))
-
-@bp.route('/admin/speaker_voice_settings', methods=['POST'])
-@super_admin_required
-def speaker_voice_settings():
-    rate = request.form.get('voice_rate')
-    volume = request.form.get('voice_volume')
-    
-    try:
-        # Chuyển đổi thành số nếu có
-        rate_value = int(rate) if rate else None
-        volume_value = float(volume) if volume else None
-        
-        # Gọi set_voice_settings một lần với cả hai tham số
-        laptop_speaker.set_voice_settings(rate=rate_value, volume=volume_value)
-        
-        flash('Cài đặt giọng nói đã được cập nhật!', 'success')
-    except Exception as e:
-        flash(f'Lỗi cập nhật cài đặt: {e}', 'error')
-    
-    return redirect(url_for('admin.automation_settings'))
-
-@bp.route('/admin/toggle_tts_engine', methods=['POST'])
-@super_admin_required
-def toggle_tts_engine():
-    try:
-        # Toggle between gTTS and pyttsx3
-        laptop_speaker.use_gtts = not laptop_speaker.use_gtts
-        
-        engine_type = "gTTS (Google Text-to-Speech)" if laptop_speaker.use_gtts else "pyttsx3 (Windows TTS)"
-        flash(f'Đã chuyển sang sử dụng {engine_type}', 'success')
-        
-        # Reinitialize with new engine
-        laptop_speaker.initialize_engine()
-        
-    except Exception as e:
-        flash(f'Lỗi chuyển đổi engine TTS: {e}', 'error')
-    
-    return redirect(url_for('admin.automation_settings'))
-
-# Account management (Super Admin only)
 
 @bp.route('/admin/accounts')
 @super_admin_required

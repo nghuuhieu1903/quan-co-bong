@@ -19,7 +19,6 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from sqlalchemy import func, text
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from automation import automation_controller, gTTS, laptop_speaker, pyautogui, pyttsx3
 from decorators import (admin_required, admin_required_api,
                         admin_required_api_success, manager_required,
                         super_admin_required)

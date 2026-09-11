@@ -331,12 +331,6 @@ body, .modal-content, .table, .dropdown-menu {
                 <span style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.4rem 0.9rem; border-radius: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem;">
                     <span class="status-dot active"></span> Database Online
                 </span>
-                <span style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.4rem 0.9rem; border-radius: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem;">
-                    <span class="status-dot {% if automation.enabled %}active{% else %}inactive{% endif %}"></span> Tự động hóa {% if automation.enabled %}Bật{% else %}Tắt{% endif %}
-                </span>
-                <span style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.4rem 0.9rem; border-radius: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.4rem;">
-                    <span class="status-dot {% if laptop_speaker.enabled %}active{% else %}inactive{% endif %}"></span> Loa {% if laptop_speaker.enabled %}Bật{% else %}Tắt{% endif %}
-                </span>
             </div>
         </div>
     </div>
@@ -478,9 +472,6 @@ body, .modal-content, .table, .dropdown-menu {
                 <i class="fas fa-university"></i> Tạo QR Ngân Hàng
             </a>
             {% if session.admin_role == 'super_admin' %}
-            <a href="{{ url_for('admin.automation_settings') }}" class="quick-chip" style="background: rgba(245,158,11,0.1); color: #b45309; border: 1px solid rgba(245,158,11,0.25);">
-                <i class="fas fa-cogs"></i> Tự động hóa
-            </a>
             <a href="{{ url_for('admin.export_orders') }}" class="quick-chip" style="background: rgba(100,116,139,0.08); color: var(--text-secondary); border: 1px solid var(--border-color);">
                 <i class="fas fa-download"></i> Xuất đơn
             </a>

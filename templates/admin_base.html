@@ -372,9 +372,6 @@
                 </div>
 
                 {% if session.admin_role == 'super_admin' %}
-                <a href="{{ url_for('admin.automation_settings') }}" class="sidebar-link {% if current_endpoint == 'automation_settings' %}active{% endif %}" onclick="closeSidebar()">
-                    <i class="fas fa-cog"></i> Cài đặt
-                </a>
                 <a href="{{ url_for('admin.admin_seo') }}" class="sidebar-link {% if current_endpoint == 'admin_seo' %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-magnifying-glass-chart"></i> SEO &amp; Thông tin quán
                 </a>

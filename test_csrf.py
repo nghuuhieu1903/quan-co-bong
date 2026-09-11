@@ -61,7 +61,7 @@ PAGES = [
     '/admin/login', '/admin/dashboard', '/admin/manage_products',
     '/admin/product/add', '/admin/rooms', '/admin/room/add',
     '/admin/room_bookings', '/admin/debts', '/admin/generate_qr',
-    '/admin/generate_bank_qr', '/admin/automation_settings',
+    '/admin/generate_bank_qr',
     '/admin/accounts', '/admin/change_password', '/admin/forgot_password',
     '/admin/daily_menu_orders', '/admin/reset_password',
     '/product/{product_id}', '/room/{room_id}', '/order_confirmation/{order_id}',

@@ -36,6 +36,43 @@
         border-radius: 0 !important;
     }
 }
+
+.shop-account {
+    margin-bottom: 1.25rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--success-color);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.55;
+}
+
+.shop-account.is-unset { border-left-color: var(--warning-color); }
+.shop-account strong { display: block; color: var(--text-primary); margin-bottom: 0.2rem; }
+.shop-account small { color: var(--text-muted); }
+
+.btn-set-default {
+    width: 100%;
+    margin-top: 0.6rem;
+    padding: 0.8rem;
+    border: 1px solid var(--accent-color);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--accent-color);
+    font: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.set-default-hint {
+    margin: 0.5rem 0 0;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
 </style>
 {% endblock %}
 
@@ -72,6 +109,19 @@
                 </h3>
             </div>
             
+            <div class="shop-account {% if not shop_account %}is-unset{% endif %}">
+                {% if shop_account %}
+                <strong><i class="fas fa-circle-check"></i> Tài khoản nhận tiền hiện tại</strong>
+                <div>{{ shop_account.bank_id }} · {{ shop_account.account_no }}
+                     {% if shop_account.account_name %}· {{ shop_account.account_name }}{% endif %}</div>
+                <small>{% if saved_here %}Đặt từ trang này{% else %}Lấy từ cấu hình máy chủ (.env){% endif %}</small>
+                {% else %}
+                <strong><i class="fas fa-triangle-exclamation"></i> Chưa đặt tài khoản nhận tiền</strong>
+                <div>Khách đặt hàng xong sẽ không thấy mã QR nào. Điền thông tin bên dưới
+                     rồi bấm “Đặt làm tài khoản nhận tiền của quán”.</div>
+                {% endif %}
+            </div>
+
             <form method="POST" action="{{ url_for('admin.generate_bank_qr') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-group" style="margin-bottom: 1.25rem;">
@@ -139,6 +189,16 @@
                 <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; background: var(--gradient-primary);">
                     <i class="fas fa-magic"></i> Tạo QR Ngân Hàng
                 </button>
+
+                {% if session.admin_role == 'super_admin' %}
+                <button type="submit" name="action" value="set_default" class="btn-set-default">
+                    <i class="fas fa-star"></i> Đặt làm tài khoản nhận tiền của quán
+                </button>
+                <p class="set-default-hint">
+                    Mã QR mà khách thấy sau khi đặt hàng sẽ chuyển vào tài khoản này,
+                    nội dung ghi tên khách kèm mã đơn.
+                </p>
+                {% endif %}
             </form>
         </div>
         

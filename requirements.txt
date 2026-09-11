@@ -7,17 +7,11 @@ Werkzeug==3.1.8
 qrcode[pil]==8.2
 Pillow==12.3.0
 openpyxl==3.1.5
-gTTS==2.5.4
 requests==2.34.2
 gunicorn==26.0.0
 PyMySQL==1.1.1
 python-dotenv==1.0.1
-
-# Optional desktop-automation features (disabled by default; app.py falls
-# back gracefully if these aren't installed). NOT recommended on a
-# headless VPS: pyautogui needs a real display/X server (won't work
-# without one), pyttsx3 needs the system "espeak" package on Linux, and
-# pygame's mixer needs an actual audio device — none of these exist on a
+s mixer needs an actual audio device — none of these exist on a
 # typical server. Uncomment only if you know your VPS has them set up.
 # pyautogui
 # pyttsx3

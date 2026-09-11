@@ -1,16 +1,20 @@
 """Bank-transfer payment: the shop's account, and the QR shown to a customer.
 
 The QR image comes from VietQR, the same service the admin QR generator
-already uses. The account details are read from the environment rather than
-stored in the database, so changing them is a .env edit and a restart - and
-so an admin session can never be used to redirect payments to another
-account.
+already uses. The account is whatever the shop saved on the bank-QR screen,
+falling back to the environment when nothing has been saved.
+
+Note the trade-off that came with making it editable: a stolen super-admin
+session can now point customer payments at another account. Saving is
+therefore limited to the super admin, and the change is worth knowing about
+if the account ever looks wrong.
 
 If the account is not configured the bank option simply does not appear at
 checkout, and cash remains the only method. That is deliberate: showing a
 customer a QR that pays nobody is worse than not offering the option.
 """
 
+import logging
 import os
 import re
 import unicodedata
@@ -26,17 +30,69 @@ QR_TEMPLATE = 'compact2'
 
 # Banks reject or mangle long descriptions, and most Vietnamese banking apps
 # will not accept diacritics in the transfer content at all.
+logger = logging.getLogger(__name__)
+
+# Banks reject long descriptions
 MAX_ADD_INFO = 50
 
 # The fallback name process_order stores when nobody filled the name in.
 GUEST_NAME = 'Guest Customer'
 
 
+# Saved from the bank-QR screen; these keys live in the settings table.
+SAVED_KEYS = ('shop_bank_id', 'shop_bank_account_no', 'shop_bank_account_name')
+
+
+def saved_config():
+    """What the shop saved on the bank-QR screen, or an empty dict."""
+    try:
+        from extensions import db
+        from models import SiteSetting
+        rows = {r.key: (r.value or '').strip()
+                for r in SiteSetting.query.filter(
+                    SiteSetting.key.in_(SAVED_KEYS)).all()}
+    except Exception:
+        # before the table exists, or outside an app context
+        logger.exception('Could not read the saved bank account')
+        return {}
+    return {k: v for k, v in rows.items() if v}
+
+
+def save_config(bank_id, account_no, account_name):
+    """Store the account the whole site should collect into."""
+    from extensions import db
+    from models import SiteSetting
+
+    values = {
+        'shop_bank_id': (bank_id or '').strip().upper(),
+        'shop_bank_account_no': re.sub(r'\D', '', account_no or ''),
+        'shop_bank_account_name': (account_name or '').strip().upper(),
+    }
+    if not (values['shop_bank_id'] and values['shop_bank_account_no']):
+        return False
+
+    for key, value in values.items():
+        row = db.session.get(SiteSetting, key)
+        if row is None:
+            db.session.add(SiteSetting(key=key, value=value))
+        else:
+            row.value = value
+    db.session.commit()
+    return True
+
+
 def bank_config():
-    """The shop's account, or None when it has not been set up."""
-    bank_id = (os.environ.get(BANK_ID_ENV) or '').strip()
-    account_no = (os.environ.get(ACCOUNT_NO_ENV) or '').strip()
-    account_name = (os.environ.get(ACCOUNT_NAME_ENV) or '').strip()
+    """The shop's account, or None when it has not been set up.
+
+    What was saved in the admin wins; the environment is the fallback, so an
+    existing .env deployment keeps working untouched.
+    """
+    saved = saved_config()
+    bank_id = saved.get('shop_bank_id') or (os.environ.get(BANK_ID_ENV) or '').strip()
+    account_no = (saved.get('shop_bank_account_no')
+                  or (os.environ.get(ACCOUNT_NO_ENV) or '').strip())
+    account_name = (saved.get('shop_bank_account_name')
+                    or (os.environ.get(ACCOUNT_NAME_ENV) or '').strip())
     if not (bank_id and account_no):
         return None
     return {

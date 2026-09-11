@@ -19,7 +19,6 @@ from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from sqlalchemy import func, text
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from automation import automation_controller, gTTS, laptop_speaker, pyautogui, pyttsx3
 from decorators import (admin_required, admin_required_api,
                         admin_required_api_success, manager_required,
                         super_admin_required)
@@ -418,15 +417,14 @@ def process_order():
     
     db.session.commit()
     
-    # Announce new order
-    try:
-        items_data = [{'product_id': item['product_id'], 'quantity': item['quantity']} for item in cart_items]
-        laptop_speaker.announce_order(items_data, customer_name, notes=notes)
-    except Exception as e:
-        logger.exception("Error playing sound")
-        
     # Clear cart
     session['cart'] = []
+    # Forget who just ordered. The cart form hands the name and phone to the
+    # checkout page through the session, and on a shared tablet at the counter
+    # that would otherwise sit there pre-filled for whoever orders next.
+    if not session.get('customer_logged_in'):
+        session.pop('customer_name', None)
+        session.pop('customer_phone', None)
     # Remember which orders this browser is allowed to look at. The order
     # table has no owner column and guests check out without an account, so
     # the session is what ties a confirmation page to the person who placed

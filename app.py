@@ -1,6 +1,6 @@
 """Application factory for the Cô Bông Cát Lái site.
 
-This file used to hold everything - models, routes, the speaker/automation
+This file used to hold everything - models, routes, the
 code and the migrations, ~2900 lines of it. It now only wires the pieces
 together; the pieces themselves live in:
 
@@ -9,7 +9,6 @@ together; the pieces themselves live in:
     translations.py  the VI/EN strings
     helpers.py       printing, email, image uploads
     decorators.py    admin / super-admin / manager access control
-    automation.py    LaptopSpeaker and AutomationController
     db_init.py       ALTER TABLE migrations and first-run seed data
     blueprints/      the routes, in four groups
 

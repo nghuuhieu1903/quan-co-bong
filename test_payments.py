@@ -220,6 +220,94 @@ def check_hidden_when_unconfigured(rep, created):
                 os.environ[k] = v
 
 
+def check_saved_account(rep):
+    """The account saved on the bank-QR screen drives the customer's QR."""
+    import payments
+    app = app_module.app
+
+    def admin_client():
+        c = app.test_client()
+        tok = re.search(r'name="csrf_token" value="([^"]+)"',
+                        c.get('/admin/login').get_data(as_text=True)).group(1)
+        c.post('/admin/login', data={'username': 'admin', 'password': 'admin123',
+                                     'csrf_token': tok})
+        return c
+
+    c = admin_client()
+    page = c.get('/admin/generate_bank_qr').get_data(as_text=True)
+    tok = re.search(r'name="csrf_token" value="([^"]+)"', page).group(1)
+    c.post('/admin/generate_bank_qr', data={
+        'csrf_token': tok, 'action': 'set_default', 'bank_id': 'tcb',
+        'account_no': '1903 8888 6666', 'account_name': 'nguyen huu hieu'},
+        follow_redirects=True)
+
+    with app.app_context():
+        cfg = payments.bank_config()
+    rep.check(cfg and cfg['bank_id'] == 'TCB', 'the saved bank is used',
+              cfg['bank_id'] if cfg else '-')
+    rep.check(cfg and cfg['account_no'] == '190388886666',
+              'spaces are stripped from the account number',
+              cfg['account_no'] if cfg else '-')
+    rep.check(cfg and cfg['account_name'] == 'NGUYEN HUU HIEU',
+              'the account name is upper-cased for the bank')
+
+    # it must reach a real customer's QR, not just the settings table
+    cc = app.test_client()
+    with app.app_context():
+        pid = models.Product.query.first().id
+    tok2 = lambda path: re.search(r'name="csrf_token" value="([^"]+)"',
+                                  cc.get(path).get_data(as_text=True)).group(1)
+    cc.post(f'/add_to_cart/{pid}', data={'quantity': '1', 'csrf_token': tok2('/products')})
+    cc.post('/process_order', data={'name': 'Nguyễn Văn An', 'phone': '0912345678',
+                                    'csrf_token': tok2('/cart')}, follow_redirects=True)
+    with app.app_context():
+        order = models.Order.query.order_by(models.Order.id.desc()).first()
+    page = cc.get(f'/order_confirmation/{order.id}').get_data(as_text=True)
+    rep.check('TCB-190388886666' in page,
+              "the customer's QR collects into the saved account")
+    rep.check(f'NGUYEN VAN AN DH{order.id}' in page,
+              'the reference is still name plus order code')
+
+    # only the super admin may move where the money goes
+    with app.app_context():
+        plain = models.Admin(username='qa_plain_admin', password='x', role='admin')
+        db.session.add(plain)
+        db.session.commit()
+        plain_id = plain.id
+    c2 = app.test_client()
+    tok3 = re.search(r'name="csrf_token" value="([^"]+)"',
+                     c2.get('/admin/login').get_data(as_text=True)).group(1)
+    c2.post('/admin/login', data={'username': 'qa_plain_admin', 'password': 'x',
+                                  'csrf_token': tok3})
+    page = c2.get('/admin/generate_bank_qr').get_data(as_text=True)
+    tok4 = re.search(r'name="csrf_token" value="([^"]+)"', page)
+    if tok4:
+        c2.post('/admin/generate_bank_qr', data={
+            'csrf_token': tok4.group(1), 'action': 'set_default', 'bank_id': 'VCB',
+            'account_no': '999999', 'account_name': 'KE GIAN'}, follow_redirects=True)
+    with app.app_context():
+        after = payments.bank_config()
+    rep.check(after and after['account_no'] == '190388886666',
+              'a plain admin cannot redirect the payments',
+              after['account_no'] if after else '-')
+
+    # clean up
+    with app.app_context():
+        for it in models.OrderItem.query.filter_by(order_id=order.id).all():
+            prod = db.session.get(models.Product, it.product_id)
+            if prod:
+                prod.stock += it.quantity
+            db.session.delete(it)
+        db.session.delete(db.session.get(models.Order, order.id))
+        row = db.session.get(models.Admin, plain_id)
+        if row:
+            db.session.delete(row)
+        models.SiteSetting.query.filter(
+            models.SiteSetting.key.in_(payments.SAVED_KEYS)).delete(
+                synchronize_session=False)
+        db.session.commit()
+
+
 def main():
     rep = Report()
     created = []
@@ -227,6 +315,7 @@ def main():
     check_qr_url(rep)
     check_end_to_end(rep, created)
     check_hidden_when_unconfigured(rep, created)
+    check_saved_account(rep)
 
     with app_module.app.app_context():
         for oid in created:
