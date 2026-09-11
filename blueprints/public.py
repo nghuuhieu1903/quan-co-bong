@@ -363,7 +363,10 @@ def process_order():
     # Get form data
     customer_name = request.form.get('name', '').strip() or "Guest Customer"
     customer_phone = request.form.get('phone', '').strip() or "Not provided"
-    payment_method = request.form.get('payment_method', 'cash')
+    # Customers pay by transfer: the confirmation page shows a QR with the
+    # amount and reference filled in. Cash is still a thing at the counter,
+    # which goes through the POS screen, not this route.
+    payment_method = 'bank'
     notes = request.form.get('notes', '').strip()
 
     phone_digits = re.sub(r"\D", "", customer_phone or "")
@@ -482,8 +485,7 @@ def order_confirmation(order_id):
     
     # Only build the transfer panel for orders that chose to pay by bank, and
     # only when an account is actually configured.
-    payment = (payments.payment_details(order)
-               if order.payment_method == 'bank' else None)
+    payment = payments.payment_details(order)
 
     return render_template('order_confirmation.html', order=order,
                            order_items=order_items, subtotal=subtotal,

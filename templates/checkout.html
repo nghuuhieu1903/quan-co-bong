@@ -283,6 +283,24 @@
         grid-column: 1 / span 1 !important;
     }
 }
+
+/* one payment route now: transfer by QR, so this is a note rather than a
+   choice */
+.pay-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-bottom: 1.25rem;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-btn);
+    background: var(--bg-secondary);
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+}
+
+.pay-note i { margin-top: 0.15rem; color: var(--accent-color); }
 </style>
 {% endblock %}
 
@@ -365,28 +383,9 @@
                     <textarea name="notes" class="form-control" rows="2" placeholder="Ghi chú thêm về đơn hàng"></textarea>
                 </div>
                 
-                <div class="form-group">
-                    <label class="form-label">
-                        <i class="fas fa-wallet"></i> Phương thức thanh toán
-                    </label>
-                    <div class="pay-options">
-                        <label class="pay-option">
-                            <input type="radio" name="payment_method" value="cash" checked>
-                            <span>
-                                <strong><i class="fas fa-coins"></i> Tiền mặt</strong>
-                                <small>Thanh toán khi nhận hàng</small>
-                            </span>
-                        </label>
-                        {% if bank_enabled %}
-                        <label class="pay-option">
-                            <input type="radio" name="payment_method" value="bank">
-                            <span>
-                                <strong><i class="fas fa-qrcode"></i> Chuyển khoản QR</strong>
-                                <small>Quét mã sau khi đặt, nội dung điền sẵn</small>
-                            </span>
-                        </label>
-                        {% endif %}
-                    </div>
+                <div class="pay-note">
+                    <i class="fas fa-qrcode"></i>
+                    <span>Đặt xong sẽ hiện mã QR chuyển khoản, nội dung chuyển khoản điền sẵn.</span>
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
@@ -452,39 +451,6 @@
 
 <!-- Payment Methods -->
 <section class="payment-methods" style="margin-top: 2rem;">
-    <div class="card fade-in">
-        <div class="card-header">
-            <h3 style="margin: 0; color: var(--text-primary);">
-                <i class="fas fa-credit-card"></i> Phương thức thanh toán
-            </h3>
-        </div>
-        
-        <div class="grid grid-cols-4">
-            <div class="payment-option" style="text-align: center; padding: 1.5rem; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer;">
-                <i class="fas fa-coins" style="font-size: 2rem; color: var(--success-color); margin-bottom: 0.5rem;"></i>
-                <h4 style="margin: 0.5rem 0; color: var(--text-primary);">Tiền mặt</h4>
-                <p style="margin: 0; color: var(--text-secondary); font-size: 0.8rem;">Thanh toán khi nhận hàng</p>
-            </div>
-            
-            <div class="payment-option" style="text-align: center; padding: 1.5rem; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer;">
-                <i class="fas fa-university" style="font-size: 2rem; color: var(--info-color); margin-bottom: 0.5rem;"></i>
-                <h4 style="margin: 0.5rem 0; color: var(--text-primary);">Chuyển khoản</h4>
-                <p style="margin: 0; color: var(--text-secondary); font-size: 0.8rem;">Ngân hàng điện tử</p>
-            </div>
-            
-            <div class="payment-option" style="text-align: center; padding: 1.5rem; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer;">
-                <i class="fas fa-mobile-alt" style="font-size: 2rem; color: var(--warning-color); margin-bottom: 0.5rem;"></i>
-                <h4 style="margin: 0.5rem 0; color: var(--text-primary);">Ví điện tử</h4>
-                <p style="margin: 0; color: var(--text-secondary); font-size: 0.8rem;">Momo, ZaloPay, v.v.</p>
-            </div>
-            
-            <div class="payment-option" style="text-align: center; padding: 1.5rem; border: 2px solid var(--border-color); border-radius: 8px; cursor: pointer;">
-                <i class="fas fa-credit-card" style="font-size: 2rem; color: var(--accent-color); margin-bottom: 0.5rem;"></i>
-                <h4 style="margin: 0.5rem 0; color: var(--text-primary);">Thẻ tín dụng</h4>
-                <p style="margin: 0; color: var(--text-secondary); font-size: 0.8rem;">Visa, Mastercard</p>
-            </div>
-        </div>
-    </div>
 </section>
 
 {% else %}

@@ -1642,6 +1642,11 @@ html.show-onboarding body {
     flex-shrink: 0;
 }
 
+/* An explicit display always beats the hidden attribute, so anything that
+   sets one has to opt back out. This badge showed a "0" on an empty cart
+   because of it. */
+[hidden] { display: none !important; }
+
 .topbar-cart .cart-count {
     position: absolute;
     top: -5px;

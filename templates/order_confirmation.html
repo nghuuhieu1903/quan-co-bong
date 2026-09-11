@@ -351,7 +351,7 @@
         </div>
     </div>
 </section>
-{% elif order.payment_method == 'bank' %}
+{% else %}{# every customer order is a transfer now, so this is the only fallback #}
 <section class="order-confirmation">
     <div class="card fade-in" style="border-left: 3px solid var(--warning-color);">
         <div style="padding: 1.25rem;">

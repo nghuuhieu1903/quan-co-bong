@@ -147,14 +147,16 @@ def check_end_to_end(rep, created):
     os.environ[payments.ACCOUNT_NO_ENV] = '1234567890'
     os.environ[payments.ACCOUNT_NAME_ENV] = 'QUAN CO BONG'
     try:
-        # checkout offers the bank option when configured
+        # Customers no longer pick a method: every order is a transfer and
+        # the confirmation shows the QR.
         c = app.test_client()
         with app.app_context():
             pid = models.Product.query.first().id
         post(c, f'/add_to_cart/{pid}', {'quantity': '1'}, '/products')
         html = c.get('/checkout').get_data(as_text=True)
-        rep.check('value="bank"' in html, 'checkout offers the QR option')
-        rep.check('value="cash"' in html, 'checkout still offers cash')
+        rep.check('name="payment_method"' not in html,
+                  'checkout no longer asks how to pay')
+        rep.check('pay-note' in html, 'checkout says the QR comes next')
 
         # a named order shows name + code
         c1 = app.test_client()
@@ -176,12 +178,18 @@ def check_end_to_end(rep, created):
         rep.check('GUEST CUSTOMER' not in page.upper().replace('GUEST CUSTOMER</', 'X'),
                   'guest order does not print a placeholder name in the content')
 
-        # a cash order shows no QR at all
+        # even an order posted with payment_method=cash is stored as a
+        # transfer and still gets its QR - the form no longer sends one, and
+        # a hand-crafted post must not slip past
         c3 = app.test_client()
         oid3 = place_order(c3, 'Nguyễn Văn An', 'cash'); created.append(oid3)
         page = c3.get(f'/order_confirmation/{oid3}').get_data(as_text=True)
-        rep.check('pay-panel' not in page and 'img.vietqr.io' not in page,
-                  'cash order shows no QR')
+        rep.check('pay-panel' in page and 'img.vietqr.io' in page,
+                  'every customer order shows a QR')
+        with app.app_context():
+            stored = db.session.get(models.Order, oid3).payment_method
+        rep.check(stored == 'bank', 'the order is recorded as a transfer',
+                  stored)
 
         with app.app_context():
             rep.check(db.session.get(models.Order, oid).payment_method == 'bank',
