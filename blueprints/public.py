@@ -162,7 +162,9 @@ def cart():
     
     final_total = total
     
-    return render_template('cart.html', cart_items=products, products=products, subtotal=total, total=final_total)
+    has_daily_item = any(p['product'].is_daily for p in products)
+    return render_template('cart.html', cart_items=products, products=products, subtotal=total,
+                           total=final_total, has_daily_item=has_daily_item)
 
 def wants_json():
     """True when the caller asked for JSON rather than a redirect.
@@ -333,7 +335,9 @@ def checkout():
                 total += product.price * item['quantity']
         
         final_total = total 
-        return render_template('checkout.html', cart_items=products, subtotal=total, total=final_total, bank_enabled=payments.is_configured())
+        has_daily_item = any(p['product'].is_daily for p in products)
+        return render_template('checkout.html', cart_items=products, subtotal=total, total=final_total,
+                               bank_enabled=payments.is_configured(), has_daily_item=has_daily_item)
     
     # Original GET logic
     products = []
@@ -351,8 +355,10 @@ def checkout():
             total += product.price * item['quantity']
     
     final_total = total 
+    has_daily_item = any(p['product'].is_daily for p in products)
     return render_template('checkout.html', cart_items=products, subtotal=total,
-                           total=final_total, bank_enabled=payments.is_configured())
+                           total=final_total, bank_enabled=payments.is_configured(),
+                           has_daily_item=has_daily_item)
 
 @bp.route('/process_order', methods=['POST'])
 def process_order():
@@ -377,6 +383,20 @@ def process_order():
             return redirect(url_for('public.checkout'))
         customer_phone = phone_digits
 
+    # Optional: "remind me around this time" for a daily-dish order. Blank is
+    # fine - it is never required. A malformed or past value is dropped
+    # rather than rejected outright, since this is a nice-to-have, not
+    # something worth blocking checkout over.
+    reminder_at = None
+    reminder_raw = request.form.get('reminder_at', '').strip()
+    if reminder_raw:
+        try:
+            candidate = datetime.strptime(reminder_raw, '%Y-%m-%dT%H:%M')
+        except ValueError:
+            candidate = None
+        if candidate and candidate > datetime.now():
+            reminder_at = candidate
+
     # Verify stock is still available for every item before committing anything
     total = 0
     for item in cart_items:
@@ -397,7 +417,8 @@ def process_order():
         total_amount=final_total,
         status='pending',
         payment_method=payment_method,
-        notes=notes
+        notes=notes,
+        reminder_at=reminder_at
     )
     db.session.add(order)
     db.session.flush()  # Get order ID
@@ -433,7 +454,10 @@ def process_order():
     # it. Keep the list short - it only needs to cover recent orders.
     session['my_orders'] = (session.get('my_orders', []) + [order.id])[-20:]
 
-    create_notification('new_order', f"Đơn hàng mới #{order.id} - {customer_name} - {final_total:,.0f} VNĐ")
+    reminder_note = (f" - Hẹn nhận lúc {reminder_at.strftime('%H:%M %d/%m')}"
+                    if reminder_at else "")
+    create_notification('new_order',
+        f"Đơn hàng mới #{order.id} - {customer_name} - {final_total:,.0f} VNĐ{reminder_note}")
     
     # Create notification log
     try:

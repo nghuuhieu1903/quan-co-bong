@@ -60,6 +60,11 @@ class Order(db.Model):
     payment_method = db.Column(db.String(20), default='cash')
     notes = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # Optional: "remind me around this time" for a daily-dish order, set by
+    # the customer at checkout. Not a delivery promise - it drives a staff
+    # reminder, not a guarantee to the customer.
+    reminder_at = db.Column(db.DateTime, nullable=True)
+    reminder_notified = db.Column(db.Boolean, nullable=False, default=False)
     items = db.relationship('OrderItem', backref='order', lazy=True)
 
     def __init__(self, **kwargs):

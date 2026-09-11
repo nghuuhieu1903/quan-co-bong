@@ -301,6 +301,15 @@
 }
 
 .pay-note i { margin-top: 0.15rem; color: var(--accent-color); }
+
+.reminder-field { margin-top: -0.5rem; }
+
+.reminder-hint {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
 </style>
 {% endblock %}
 
@@ -382,7 +391,19 @@
                     </label>
                     <textarea name="notes" class="form-control" rows="2" placeholder="Ghi chú thêm về đơn hàng"></textarea>
                 </div>
-                
+
+                {% if has_daily_item %}
+                <div class="form-group reminder-field">
+                    <label class="form-label">
+                        <i class="fas fa-clock"></i> Hẹn giờ nhận món (không bắt buộc)
+                    </label>
+                    <input type="datetime-local" name="reminder_at" class="form-control" id="reminderAtInput">
+                    <small class="reminder-hint">
+                        Quán sẽ được nhắc chuẩn bị món trước giờ hẹn 10 phút.
+                    </small>
+                </div>
+                {% endif %}
+
                 <div class="pay-note">
                     <i class="fas fa-qrcode"></i>
                     <span>Đặt xong sẽ hiện mã QR chuyển khoản, nội dung chuyển khoản điền sẵn.</span>
@@ -481,6 +502,17 @@
 
 {% block scripts %}
 <script>
+// Reminder time: cannot be earlier than "now", and default it a couple of
+// hours out so the picker does not open on today's date at midnight.
+(function () {
+    var input = document.getElementById('reminderAtInput');
+    if (!input) return;
+    function pad(n) { return String(n).padStart(2, '0'); }
+    var now = new Date();
+    input.min = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate())
+        + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+})();
+
 document.addEventListener('DOMContentLoaded', function() {
     // Payment option selection
     const paymentOptions = document.querySelectorAll('.payment-option');

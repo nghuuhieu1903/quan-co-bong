@@ -943,6 +943,15 @@ th.ct-pick, td.ct-pick { width: 1%; text-align: center; }
                            placeholder="Nhập số điện thoại" autocomplete="off" inputmode="tel">
                 </div>
 
+                {% if has_daily_item %}
+                <div class="sum-field">
+                    <label class="sum-label" for="sumReminder">
+                        Hẹn giờ nhận món <span class="sum-opt">không bắt buộc</span>
+                    </label>
+                    <input type="datetime-local" id="sumReminder" name="reminder_at" class="form-control">
+                </div>
+                {% endif %}
+
                 <button type="submit" class="btn btn-primary sum-submit">Đặt hàng</button>
             </form>
 
@@ -981,6 +990,17 @@ th.ct-pick, td.ct-pick { width: 1%; text-align: center; }
 {% endblock %}
 
 {% block scripts %}
+<script>
+// Reminder time: cannot be earlier than "now".
+(function () {
+    var input = document.getElementById('sumReminder');
+    if (!input) return;
+    function pad(n) { return String(n).padStart(2, '0'); }
+    var now = new Date();
+    input.min = now.getFullYear() + '-' + pad(now.getMonth() + 1) + '-' + pad(now.getDate())
+        + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes());
+})();
+</script>
 <script>
 // Cart edits without reloading
 // -------------------------------------------------------------------

@@ -399,6 +399,9 @@
                     <p style="margin: 0.5rem 0;"><strong>Ngày đặt:</strong> {{ order.created_at.strftime('%d/%m/%Y %H:%M') if order.created_at else 'N/A' }}</p>
                     <p style="margin: 0.5rem 0;"><strong>Trạng thái:</strong> <span class="badge badge-warning">{{ order.status }}</span></p>
                     <p style="margin: 0.5rem 0;"><strong>Phương thức thanh toán:</strong> {{ order.payment_method or 'Chưa xác định' }}</p>
+                    {% if order.reminder_at %}
+                    <p style="margin: 0.5rem 0;"><strong><i class="fas fa-clock"></i> Hẹn nhận món:</strong> {{ order.reminder_at.strftime('%H:%M %d/%m/%Y') }}</p>
+                    {% endif %}
                 </div>
             </div>
         </div>

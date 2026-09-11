@@ -33,6 +33,7 @@ except ImportError:
 
 from blueprints import all_blueprints
 from db_init import init_database
+from reminders import start_reminder_thread
 from helpers import configure_logging, format_vnd
 from extensions import csrf, db, sess
 import seo
@@ -149,6 +150,13 @@ def create_app():
     # Runs on both local development and a production Gunicorn import.
     with app.app_context():
         init_database()
+
+    # The Flask reloader (FLASK_DEBUG=1) re-executes this module in a child
+    # process and keeps the parent around to watch for file changes; without
+    # this check the parent would start a thread too, and it would sit there
+    # polling a database it otherwise never touches.
+    if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':
+        start_reminder_thread(app)
 
     return app
 

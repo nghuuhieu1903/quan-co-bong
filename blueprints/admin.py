@@ -471,11 +471,29 @@ def api_new_orders():
             'customer_phone': order.customer_phone,
             'items': items,
             'notes': order.notes or '',
-            'total_amount': "{:,.0f}".format(order.total_amount) + " VNĐ"
+            'total_amount': "{:,.0f}".format(order.total_amount) + " VNĐ",
+            'reminder_at': order.reminder_at.strftime('%H:%M') if order.reminder_at else None
         })
 
     latest_id = new_orders[-1].id if new_orders else since
     return jsonify({'orders': result, 'latest_id': latest_id})
+
+
+@bp.route('/admin/api/reminders')
+@admin_required_api
+def api_reminders():
+    """Poll endpoint: due appointment reminders (Notification rows the
+    background thread created), so the dashboard can announce them the same
+    way it announces a new order - this is what makes "tự động nhắc lại"
+    something the admin actually hears, not just something written down."""
+    since = request.args.get('since', 0, type=int)
+    due = (Notification.query
+          .filter(Notification.id > since, Notification.type == 'order_reminder')
+          .order_by(Notification.id.asc()).all())
+
+    result = [{'id': n.id, 'message': n.message} for n in due]
+    latest_id = due[-1].id if due else since
+    return jsonify({'reminders': result, 'latest_id': latest_id})
 
 @bp.route('/admin/order/<int:order_id>/update', methods=['POST'])
 @admin_required

@@ -116,6 +116,19 @@
     font-size: 0.75rem;
 }
 
+.order-reminder-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.35rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--warning-color) 15%, transparent);
+    color: var(--warning-color);
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
 .orders-empty {
     padding: 3rem 1rem;
     text-align: center;
@@ -195,6 +208,11 @@
                         {% endfor %}
                         {% if order.notes %}
                         <div style="margin-top: 0.25rem;"><em>{{ order.notes }}</em></div>
+                        {% endif %}
+                        {% if order.reminder_at %}
+                        <div class="order-reminder-badge">
+                            <i class="fas fa-clock"></i> Hẹn {{ order.reminder_at.strftime('%H:%M %d/%m') }}
+                        </div>
                         {% endif %}
                     </td>
                     <td style="text-align: right; font-weight: 600; white-space: nowrap;">
