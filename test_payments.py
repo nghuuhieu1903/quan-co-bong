@@ -251,6 +251,40 @@ def check_saved_account(rep):
     rep.check(cfg and cfg['account_name'] == 'NGUYEN HUU HIEU',
               'the account name is upper-cased for the bank')
 
+    # An account number with letters in it must survive untouched. Stripping
+    # every non-digit turned NP82502251356252VCB into 82502251356252, which is
+    # a different account - the worst thing this screen can get wrong.
+    page = c.get('/admin/generate_bank_qr').get_data(as_text=True)
+    tok = re.search(r'name="csrf_token" value="([^"]+)"', page).group(1)
+    c.post('/admin/generate_bank_qr', data={
+        'csrf_token': tok, 'action': 'set_default', 'bank_id': 'VCB',
+        'account_no': 'NP8250 2251-356252VCB', 'account_name': 'LUU THI NHU HOA'},
+        follow_redirects=True)
+    with app.app_context():
+        cfg = payments.bank_config()
+    rep.check(cfg and cfg['account_no'] == 'NP82502251356252VCB',
+              'letters in an account number are kept, separators dropped',
+              cfg['account_no'] if cfg else '-')
+
+    # and the form must come back showing what is actually saved
+    page = c.get('/admin/generate_bank_qr').get_data(as_text=True)
+    shown = re.search(r'name="account_no"[^>]*value="([^"]*)"', page)
+    rep.check(shown and shown.group(1) == 'NP82502251356252VCB',
+              'the form reopens on the saved account, not a placeholder',
+              shown.group(1) if shown else '-')
+    picked = re.search(r'<option value="([A-Z]+)" selected>', page)
+    rep.check(picked and picked.group(1) == 'VCB',
+              'the bank list reopens on the saved bank',
+              picked.group(1) if picked else '-')
+
+    # put the test account back for the checks that follow
+    page = c.get('/admin/generate_bank_qr').get_data(as_text=True)
+    tok = re.search(r'name="csrf_token" value="([^"]+)"', page).group(1)
+    c.post('/admin/generate_bank_qr', data={
+        'csrf_token': tok, 'action': 'set_default', 'bank_id': 'TCB',
+        'account_no': '1903 8888 6666', 'account_name': 'nguyen huu hieu'},
+        follow_redirects=True)
+
     # it must reach a real customer's QR, not just the settings table
     cc = app.test_client()
     with app.app_context():

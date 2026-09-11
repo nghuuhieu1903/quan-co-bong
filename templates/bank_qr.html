@@ -129,20 +129,24 @@
                         <i class="fas fa-piggy-bank"></i> Chọn Ngân hàng *
                     </label>
                     <select name="bank_id" class="form-control" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" required>
-                        <option value="VCB" {% if request.form.get('bank_id') == 'VCB' or not request.form.get('bank_id') %}selected{% endif %}>Vietcombank (VCB)</option>
-                        <option value="MB" {% if request.form.get('bank_id') == 'MB' %}selected{% endif %}>MB Bank (MB)</option>
-                        <option value="TCB" {% if request.form.get('bank_id') == 'TCB' %}selected{% endif %}>Techcombank (TCB)</option>
-                        <option value="BIDV" {% if request.form.get('bank_id') == 'BIDV' %}selected{% endif %}>BIDV</option>
-                        <option value="CTG" {% if request.form.get('bank_id') == 'CTG' %}selected{% endif %}>VietinBank</option>
-                        <option value="ACB" {% if request.form.get('bank_id') == 'ACB' %}selected{% endif %}>ACB</option>
-                        <option value="VPB" {% if request.form.get('bank_id') == 'VPB' %}selected{% endif %}>VPBank</option>
-                        <option value="TPB" {% if request.form.get('bank_id') == 'TPB' %}selected{% endif %}>TPBank</option>
-                        <option value="STB" {% if request.form.get('bank_id') == 'STB' %}selected{% endif %}>Sacombank</option>
-                        <option value="VBA" {% if request.form.get('bank_id') == 'VBA' %}selected{% endif %}>Agribank</option>
-                        <option value="VIB" {% if request.form.get('bank_id') == 'VIB' %}selected{% endif %}>VIB</option>
-                        <option value="MSB" {% if request.form.get('bank_id') == 'MSB' %}selected{% endif %}>MSB</option>
-                        <option value="HDB" {% if request.form.get('bank_id') == 'HDB' %}selected{% endif %}>HDBank</option>
-                        <option value="SHB" {% if request.form.get('bank_id') == 'SHB' %}selected{% endif %}>SHB</option>
+                        {# what was typed wins, then what the shop saved; VCB only
+                           when nothing is set, so reopening the page cannot quietly
+                           switch the bank under a saved account number #}
+                        {% set chosen = request.form.get('bank_id') or (shop_account.bank_id if shop_account else 'VCB') %}
+                        <option value="VCB" {% if chosen == 'VCB' %}selected{% endif %}>Vietcombank (VCB)</option>
+                        <option value="MB" {% if chosen == 'MB' %}selected{% endif %}>MB Bank (MB)</option>
+                        <option value="TCB" {% if chosen == 'TCB' %}selected{% endif %}>Techcombank (TCB)</option>
+                        <option value="BIDV" {% if chosen == 'BIDV' %}selected{% endif %}>BIDV</option>
+                        <option value="CTG" {% if chosen == 'CTG' %}selected{% endif %}>VietinBank</option>
+                        <option value="ACB" {% if chosen == 'ACB' %}selected{% endif %}>ACB</option>
+                        <option value="VPB" {% if chosen == 'VPB' %}selected{% endif %}>VPBank</option>
+                        <option value="TPB" {% if chosen == 'TPB' %}selected{% endif %}>TPBank</option>
+                        <option value="STB" {% if chosen == 'STB' %}selected{% endif %}>Sacombank</option>
+                        <option value="VBA" {% if chosen == 'VBA' %}selected{% endif %}>Agribank</option>
+                        <option value="VIB" {% if chosen == 'VIB' %}selected{% endif %}>VIB</option>
+                        <option value="MSB" {% if chosen == 'MSB' %}selected{% endif %}>MSB</option>
+                        <option value="HDB" {% if chosen == 'HDB' %}selected{% endif %}>HDBank</option>
+                        <option value="SHB" {% if chosen == 'SHB' %}selected{% endif %}>SHB</option>
                     </select>
                 </div>
                 
@@ -150,14 +154,14 @@
                     <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);">
                         <i class="fas fa-credit-card"></i> Số tài khoản *
                     </label>
-                    <input type="text" name="account_no" class="form-control" value="{{ request.form.get('account_no', '1234567890') }}" placeholder="Nhập số tài khoản ngân hàng" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" required>
+                    <input type="text" name="account_no" class="form-control" value="{{ request.form.get('account_no') or (shop_account.account_no if shop_account else '') }}" placeholder="Nhập số tài khoản ngân hàng" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" required>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 1.25rem;">
                     <label class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: var(--text-primary);">
                         <i class="fas fa-user-tie"></i> Tên chủ tài khoản *
                     </label>
-                    <input type="text" name="account_name" class="form-control" value="{{ request.form.get('account_name', 'CO BONG CAT LAI') }}" placeholder="Ví dụ: NGUYEN VAN A (Viết hoa không dấu)" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" required>
+                    <input type="text" name="account_name" class="form-control" value="{{ request.form.get('account_name') or (shop_account.account_name if shop_account else '') }}" placeholder="Ví dụ: NGUYEN VAN A (Viết hoa không dấu)" style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-secondary); color: var(--text-primary);" required>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 1.25rem;">
@@ -286,9 +290,9 @@
                 </div>
                 <form method="POST" action="{{ url_for('admin.generate_bank_qr') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="hidden" name="bank_id" value="VCB">
-                    <input type="hidden" name="account_no" value="1234567890">
-                    <input type="hidden" name="account_name" value="CO BONG CAT LAI">
+                    <input type="hidden" name="bank_id" value="{{ shop_account.bank_id if shop_account else 'VCB' }}">
+                    <input type="hidden" name="account_no" value="{{ shop_account.account_no if shop_account else '' }}">
+                    <input type="hidden" name="account_name" value="{{ shop_account.account_name if shop_account else '' }}">
                     <input type="hidden" name="amount" value="">
                     <input type="hidden" name="add_info" value="CHUYEN KHOAN CUA HANG">
                     <input type="hidden" name="template" value="print">
@@ -306,9 +310,9 @@
                 </div>
                 <form method="POST" action="{{ url_for('admin.generate_bank_qr') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <input type="hidden" name="bank_id" value="VCB">
-                    <input type="hidden" name="account_no" value="1234567890">
-                    <input type="hidden" name="account_name" value="CO BONG CAT LAI">
+                    <input type="hidden" name="bank_id" value="{{ shop_account.bank_id if shop_account else 'VCB' }}">
+                    <input type="hidden" name="account_no" value="{{ shop_account.account_no if shop_account else '' }}">
+                    <input type="hidden" name="account_name" value="{{ shop_account.account_name if shop_account else '' }}">
                     <input type="hidden" name="amount" value="">
                     <input type="hidden" name="add_info" value="CHUYEN KHOAN CUA HANG">
                     <input type="hidden" name="template" value="qr_only">
@@ -327,8 +331,8 @@
                 <form method="POST" action="{{ url_for('admin.generate_bank_qr') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="bank_id" value="TCB">
-                    <input type="hidden" name="account_no" value="1234567890">
-                    <input type="hidden" name="account_name" value="CO BONG CAT LAI">
+                    <input type="hidden" name="account_no" value="{{ shop_account.account_no if shop_account else '' }}">
+                    <input type="hidden" name="account_name" value="{{ shop_account.account_name if shop_account else '' }}">
                     <input type="hidden" name="amount" value="">
                     <input type="hidden" name="add_info" value="TT TIEN HANG">
                     <input type="hidden" name="template" value="compact">

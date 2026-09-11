@@ -65,7 +65,11 @@ def save_config(bank_id, account_no, account_name):
 
     values = {
         'shop_bank_id': (bank_id or '').strip().upper(),
-        'shop_bank_account_no': re.sub(r'\D', '', account_no or ''),
+        # Only separators come out. Stripping every non-digit looked safe
+        # until an account with letters in it silently became a different
+        # account - and a QR pointing at an account that is not yours is the
+        # worst thing this screen can produce.
+        'shop_bank_account_no': re.sub(r'[\s.\-]', '', (account_no or '')).upper(),
         'shop_bank_account_name': (account_name or '').strip().upper(),
     }
     if not (values['shop_bank_id'] and values['shop_bank_account_no']):
