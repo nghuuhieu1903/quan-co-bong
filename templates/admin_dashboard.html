@@ -388,7 +388,7 @@ body, .modal-content, .table, .dropdown-menu {
             </div>
         </div>
         <{% if session.admin_role == 'super_admin' %}a href="{{ url_for('admin.admin_debts') }}"{% else %}div{% endif %} class="stat-card fade-in" style="--stat-gradient: var(--gradient-danger);">
-            <div class="stat-icon"><i class="fas fa-hand-holding-usd"></i></div>
+            <div class="stat-icon"><i class="fas fa-file-invoice"></i></div>
             <div class="stat-info">
                 <div class="stat-value">{{ stats.total_debt|vnd }} <span class="stat-unit">VNĐ</span></div>
                 <div class="stat-label">Tổng nợ ({{ stats.debt_orders_count }} đơn chưa thu)</div>

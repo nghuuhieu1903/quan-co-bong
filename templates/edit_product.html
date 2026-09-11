@@ -82,7 +82,7 @@
             <div class="grid grid-cols-2">
                 <div class="form-group">
                     <label class="form-label">
-                        <i class="fas fa-dollar-sign"></i> Giá bán (VNĐ) *
+                        Giá bán (VNĐ) *
                     </label>
                     <input type="text" inputmode="numeric" data-money name="price" class="form-control" value="{{ product.price|vnd }}" required>
                 </div>
@@ -187,7 +187,7 @@
             
             <div style="text-align: center; padding: 1.5rem;">
                 <div style="background: var(--gradient-warning); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
-                    <i class="fas fa-dollar-sign" style="font-size: 1.5rem; color: white;"></i>
+                    <i class="fas fa-tag" style="font-size: 1.5rem; color: white;"></i>
                 </div>
                 <h4 style="margin-bottom: 0.5rem;">Giá trị</h4>
                 <p style="color: var(--accent-color); font-weight: 600;">{{ (product.price * product.stock)|vnd }} VNĐ</p>
