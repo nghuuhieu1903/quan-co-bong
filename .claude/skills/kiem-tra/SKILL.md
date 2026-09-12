@@ -22,7 +22,6 @@ for t in test_smoke_routes test_csrf test_flows test_security test_seo test_seo_
 done
 ```
 
-Bỏ qua `test_add_product_upload.py` và `test_dashboard_render.py` — đây là hai script debug cũ từ trước, dùng cổng 5000 đã lỗi thời và kiểm tra một dòng chữ JS không còn tồn tại. Chạy chúng chỉ báo lỗi giả, không phải lỗi thật. Nếu người dùng hỏi vì sao không chạy, giải thích đúng lý do này thay vì chạy đại rồi báo cáo kết quả sai.
 
 Nếu bất kỳ suite nào có dòng `REGRESSIONS` hoặc không phải `X/X`: chạy lại đúng file đó với đầu ra đầy đủ (`./venv/bin/python test_xxx.py 2>&1`), tìm dòng `FAIL`, đọc kỹ rồi sửa lỗi trong code — **không được sửa bài test để nó "pass" trừ khi hành vi cũ thật sự đã đổi theo đúng ý người dùng**. Sau khi sửa, quay lại chạy đủ cả 10 suite từ đầu, vì một chỗ sửa có thể làm hỏng chỗ khác.
 
