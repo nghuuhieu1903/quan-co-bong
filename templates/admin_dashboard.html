@@ -870,9 +870,12 @@ function showOrderDetail(orderId) {
                 </div>
             `;
             
-            // Setup print button
+            // In hóa đơn giống chức năng Bán hàng: mở đúng trang hóa đơn khổ
+            // giấy nhiệt (receipt.html) ở tab mới, thay vì in cả trang
+            // dashboard (trước đây window.print() in luôn cả khung popup,
+            // sidebar... ra tới 3 trang).
             document.getElementById('printOrderBtn').onclick = function() {
-                window.print();
+                window.open(`/admin/order/${orderId}/receipt?print=1`, '_blank');
             };
         })
         .catch(error => {
