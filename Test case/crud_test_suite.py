@@ -440,6 +440,61 @@ def order_and_cart_flows(rep, ids, app):
         rep.check('DH-04', still_there and blocked_msg,
                   f'còn tồn tại={still_there} thông báo chặn={blocked_msg}')
 
+    # DH-06/DH-07/DH-08 hành động hàng loạt trên đơn hàng
+    with app.app_context():
+        pid = ids['plain_product']
+        o1 = models.Order(customer_name='QA Bulk Order 1', customer_phone='0944444441',
+                          total_amount=10000, status='pending')
+        o2 = models.Order(customer_name='QA Bulk Order 2', customer_phone='0944444442',
+                          total_amount=10000, status='pending')
+        o3 = models.Order(customer_name='QA Bulk Order 3 (untouched)', customer_phone='0944444443',
+                          total_amount=10000, status='pending')
+        db.session.add_all([o1, o2, o3])
+        db.session.flush()
+        for o in (o1, o2, o3):
+            db.session.add(models.OrderItem(order_id=o.id, product_id=pid, quantity=1, price=10000))
+        db.session.commit()
+        ids['bulk_orders'] = [o1.id, o2.id, o3.id]
+
+    # DH-06 đánh dấu hàng loạt "đã xong" - chỉ 2 trong 3 đơn được chọn
+    token_val = token(a, '/admin/orders')
+    a.post('/admin/orders/bulk_action', data={
+        'csrf_token': token_val, 'action': 'complete',
+        'order_ids': [str(o1.id), str(o2.id)], 'next': 'orders',
+    })
+    with app.app_context():
+        s1 = db.session.get(models.Order, o1.id).status
+        s2 = db.session.get(models.Order, o2.id).status
+        s3 = db.session.get(models.Order, o3.id).status
+    rep.check('DH-06', s1 == 'completed' and s2 == 'completed' and s3 == 'pending',
+              f'o1={s1} o2={s2} o3 (untouched)={s3}')
+
+    # DH-08 xóa hàng loạt - admin thường phải bị chặn (dùng đơn 3, chưa đụng tới)
+    reg = ids['regular_admin_client']
+    token_reg = token(reg, '/admin/orders')
+    reg.post('/admin/orders/bulk_action', data={
+        'csrf_token': token_reg, 'action': 'delete',
+        'order_ids': [str(o3.id)], 'next': 'orders',
+    })
+    with app.app_context():
+        still_there = db.session.get(models.Order, o3.id) is not None
+    rep.check('DH-08', still_there, f'còn tồn tại={still_there}')
+
+    # DH-07 xóa hàng loạt - Super Admin (dùng đơn 1 và 2)
+    a.post('/admin/orders/bulk_action', data={
+        'csrf_token': token_val, 'action': 'delete',
+        'order_ids': [str(o1.id), str(o2.id)], 'next': 'orders',
+    })
+    with app.app_context():
+        gone1 = db.session.get(models.Order, o1.id) is None
+        gone2 = db.session.get(models.Order, o2.id) is None
+        items_gone = models.OrderItem.query.filter(
+            models.OrderItem.order_id.in_([o1.id, o2.id])).count() == 0
+    rep.check('DH-07', gone1 and gone2 and items_gone,
+              f'o1 gone={gone1} o2 gone={gone2} items gone={items_gone}')
+    if gone1 and gone2:
+        ids['bulk_orders'] = [oid for oid in ids['bulk_orders'] if oid not in (o1.id, o2.id)]
+
 
 # ---------------------------------------------------------------------------
 # Công nợ
@@ -690,6 +745,12 @@ def cleanup(ids, app):
                 if pr:
                     pr.stock += it.quantity
                 db.session.delete(it)
+            o = db.session.get(models.Order, oid)
+            if o:
+                db.session.delete(o); removed.append(f'Order#{oid}')
+
+        for oid in ids.get('bulk_orders', []) or []:
+            models.OrderItem.query.filter_by(order_id=oid).delete()
             o = db.session.get(models.Order, oid)
             if o:
                 db.session.delete(o); removed.append(f'Order#{oid}')

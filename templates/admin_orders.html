@@ -135,9 +135,38 @@
     color: var(--text-secondary);
 }
 
+/* Bulk action bar: shown once at least one order is checked */
+.bulk-action-bar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: none;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    background: var(--accent-color, #1F4E78);
+    color: white;
+    padding: 0.85rem 1.25rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.bulk-action-bar span {
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
 @media (max-width: 768px) {
     .debt-total {
         margin-left: 0;
+        width: 100%;
+    }
+    .bulk-action-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .bulk-action-bar .btn {
         width: 100%;
     }
 }
@@ -174,10 +203,32 @@
         {% endif %}
     </div>
 
+    <!-- Bulk actions: chọn hàng loạt rồi áp dụng một thao tác cho tất cả -->
+    <form id="bulkOrderForm" method="POST" action="{{ url_for('admin.admin_orders_bulk_action') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" id="bulkOrderAction" value="">
+        <input type="hidden" name="next" value="orders">
+    </form>
+    <div id="bulkOrderBar" class="bulk-action-bar">
+        <span id="bulkOrderCount">0 đơn được chọn</span>
+        <button type="button" class="btn btn-primary" onclick="submitOrderBulk('complete')">
+            <i class="fas fa-check"></i> Đánh dấu đã xong
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="submitOrderBulk('debt')">
+            <i class="fas fa-clock"></i> Chuyển về còn nợ
+        </button>
+        {% if session.get('admin_role') == 'super_admin' %}
+        <button type="button" class="btn btn-danger" onclick="confirmOrderBulkDelete()">
+            <i class="fas fa-trash"></i> Xóa
+        </button>
+        {% endif %}
+    </div>
+
     <div class="orders-table table-responsive">
         <table class="table">
             <thead>
                 <tr>
+                    <th style="width: 2.5rem;"><input type="checkbox" id="selectAllOrders" onchange="toggleAllOrders(this)"></th>
                     <th>Đơn</th>
                     <th>Khách hàng</th>
                     <th>Món</th>
@@ -190,6 +241,10 @@
             <tbody>
                 {% for order in orders %}
                 <tr>
+                    <td>
+                        <input type="checkbox" class="row-check-order" name="order_ids"
+                               value="{{ order.id }}" form="bulkOrderForm" onchange="updateOrderBulkBar()">
+                    </td>
                     <td>
                         <strong>#{{ order.id }}</strong>
                         <div class="order-when">{{ order.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
@@ -276,7 +331,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="7" class="orders-empty">
+                    <td colspan="8" class="orders-empty">
                         <i class="fas fa-receipt" style="font-size: 2rem; display: block; margin-bottom: 0.75rem; color: var(--text-muted);"></i>
                         Chưa có đơn hàng nào ở mục này.
                     </td>
@@ -286,4 +341,42 @@
         </table>
     </div>
 </div>
+
+<script>
+function updateOrderBulkBar() {
+    const checked = document.querySelectorAll('.row-check-order:checked');
+    const bar = document.getElementById('bulkOrderBar');
+    document.getElementById('bulkOrderCount').textContent = checked.length + ' đơn được chọn';
+    bar.style.display = checked.length > 0 ? 'flex' : 'none';
+    const all = document.querySelectorAll('.row-check-order');
+    document.getElementById('selectAllOrders').checked =
+        all.length > 0 && checked.length === all.length;
+}
+
+function toggleAllOrders(master) {
+    document.querySelectorAll('.row-check-order').forEach(cb => { cb.checked = master.checked; });
+    updateOrderBulkBar();
+}
+
+function submitOrderBulk(action) {
+    const checked = document.querySelectorAll('.row-check-order:checked');
+    if (checked.length === 0) {
+        alert('Chưa chọn đơn hàng nào');
+        return;
+    }
+    document.getElementById('bulkOrderAction').value = action;
+    document.getElementById('bulkOrderForm').submit();
+}
+
+function confirmOrderBulkDelete() {
+    const checked = document.querySelectorAll('.row-check-order:checked');
+    if (checked.length === 0) {
+        alert('Chưa chọn đơn hàng nào');
+        return;
+    }
+    if (confirm(`Xóa hẳn ${checked.length} đơn hàng đã chọn? Không thể hoàn tác.`)) {
+        submitOrderBulk('delete');
+    }
+}
+</script>
 {% endblock %}

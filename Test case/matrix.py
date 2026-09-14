@@ -82,6 +82,15 @@ MATRIX = [
     TestCase('DH-05', 'Đơn hàng', 'Khách đặt hàng qua giỏ hàng', 'Thêm',
              'Khách thêm sản phẩm vào giỏ rồi đặt hàng (checkout)',
              'Đơn hàng mới được tạo với đúng tên/số điện thoại khách đã nhập'),
+    TestCase('DH-06', 'Đơn hàng', 'Đánh dấu hàng loạt "đã xong" / "còn nợ"', 'Sửa',
+             'Admin chọn nhiều đơn hàng cùng lúc rồi đánh dấu tất cả đã hoàn thành, sau đó chuyển lại thành còn nợ',
+             'Tất cả đơn được chọn đổi đúng trạng thái, đơn không được chọn giữ nguyên'),
+    TestCase('DH-07', 'Đơn hàng', 'Xóa hàng loạt đơn hàng - Super Admin', 'Xóa',
+             'Super Admin chọn nhiều đơn hàng rồi xóa cùng lúc',
+             'Tất cả đơn được chọn (và các dòng sản phẩm của chúng) bị xóa hẳn'),
+    TestCase('DH-08', 'Đơn hàng', 'Xóa hàng loạt đơn hàng - Admin thường (phải bị chặn)', 'Xóa',
+             'Tài khoản admin thường cố xóa hàng loạt đơn hàng',
+             'Bị từ chối, tất cả đơn hàng vẫn còn nguyên'),
 
     # --- Giỏ hàng --------------------------------------------------------
     TestCase('GH-01', 'Giỏ hàng', 'Thêm vào giỏ hàng', 'Thêm',

@@ -708,6 +708,49 @@ def admin_orders():
                            total_debt=total_debt, status_filter=status_filter)
 
 
+@bp.route('/admin/orders/bulk_action', methods=['POST'])
+@admin_required
+def admin_orders_bulk_action():
+    """Mark several orders done/owed, or delete them, in one request.
+
+    Deletion stays restricted to super_admin even here - the route is only
+    @admin_required because "hoàn thành"/"còn nợ" are ordinary admin work,
+    but the delete branch re-checks the role itself before touching
+    anything, exactly like generate_bank_qr's set_default action does.
+    """
+    order_ids = [int(x) for x in request.form.getlist('order_ids') if x.isdigit()]
+    action = request.form.get('action', '')
+    nxt = request.form.get('next')
+    redirect_to = url_for(f'admin.admin_{nxt}') if nxt in ('orders', 'debts') \
+        else url_for('admin.admin_orders')
+
+    if not order_ids:
+        flash('Chưa chọn đơn hàng nào', 'error')
+        return redirect(redirect_to)
+
+    if action == 'complete':
+        count = Order.query.filter(Order.id.in_(order_ids)).update(
+            {'status': 'completed'}, synchronize_session=False)
+        db.session.commit()
+        flash(f'Đã đánh dấu {count} đơn hoàn thành', 'success')
+    elif action == 'debt':
+        count = Order.query.filter(Order.id.in_(order_ids)).update(
+            {'status': 'pending'}, synchronize_session=False)
+        db.session.commit()
+        flash(f'Đã chuyển {count} đơn về còn nợ', 'success')
+    elif action == 'delete':
+        if session.get('admin_role') != 'super_admin':
+            flash('Chỉ Super Admin mới có quyền xóa đơn hàng', 'error')
+            return redirect(redirect_to)
+        OrderItem.query.filter(OrderItem.order_id.in_(order_ids)).delete(synchronize_session=False)
+        count = Order.query.filter(Order.id.in_(order_ids)).delete(synchronize_session=False)
+        db.session.commit()
+        flash(f'Đã xóa {count} đơn hàng', 'success')
+    else:
+        flash('Hành động không hợp lệ', 'error')
+
+    return redirect(redirect_to)
+
 @bp.route('/admin/order/<int:order_id>/delete', methods=['POST'])
 @super_admin_required
 def delete_order(order_id):
