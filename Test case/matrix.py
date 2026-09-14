@@ -169,9 +169,12 @@ MATRIX = [
              'Cấu hình được lưu lại, dùng cho mọi mã QR sau này'),
 
     # --- Báo cáo -----------------------------------------------------
-    TestCase('BC-01', 'Báo cáo', 'Xuất Excel danh sách đơn hàng', 'Khác',
-             'Admin bấm xuất file Excel toàn bộ đơn hàng',
-             'File Excel tải về thành công, có dữ liệu bên trong'),
+    TestCase('BC-01', 'Báo cáo', 'Xuất Excel từ trang Đơn hàng', 'Khác',
+             'Admin bấm "Xuất Excel" trên trang Đơn hàng, đúng theo bộ lọc trạng thái đang xem (tất cả/còn nợ/hoàn thành/đã hủy)',
+             'File Excel tải về thành công, chỉ chứa đúng các đơn thuộc bộ lọc đang chọn'),
+    TestCase('BC-02', 'Báo cáo', 'Xuất Excel từ trang Sổ nợ khách hàng', 'Khác',
+             'Admin bấm "Xuất Excel" trên trang Sổ nợ khách hàng',
+             'File Excel tải về thành công, chỉ chứa các đơn còn nợ - không có nút "Xuất Excel" riêng ngoài sidebar nữa'),
 ]
 
 BY_ID = {tc.id: tc for tc in MATRIX}

@@ -706,8 +706,46 @@ def qr_and_report_flows(rep, ids, app):
                     db.session.delete(row)
             db.session.commit()
 
-    x = a.get('/admin/export_orders')
-    rep.check('BC-01', x.status_code == 200 and len(x.data) > 1000, f'{len(x.data)} bytes')
+    # BC-01 xuất Excel đúng theo bộ lọc trạng thái đang xem (không phải luôn
+    # xuất tất cả - đây là lý do chuyển chức năng này từ mục sidebar riêng
+    # sang gắn liền với bộ lọc của trang Đơn hàng)
+    with app.app_context():
+        pid = ids['plain_product']
+        o_done = models.Order(customer_name='QA Export Done', customer_phone='0955555551',
+                              total_amount=10000, status='completed')
+        o_debt = models.Order(customer_name='QA Export Debt', customer_phone='0955555552',
+                              total_amount=10000, status='pending')
+        db.session.add_all([o_done, o_debt])
+        db.session.flush()
+        db.session.add(models.OrderItem(order_id=o_done.id, product_id=pid, quantity=1, price=10000))
+        db.session.add(models.OrderItem(order_id=o_debt.id, product_id=pid, quantity=1, price=10000))
+        db.session.commit()
+        ids['export_orders'] = [o_done.id, o_debt.id]
+
+    import openpyxl as _openpyxl
+    import io as _io
+
+    def names_in(resp):
+        wb = _openpyxl.load_workbook(_io.BytesIO(resp.data))
+        ws = wb.active
+        return {row[1] for row in ws.iter_rows(min_row=2, values_only=True) if row[1]}
+
+    x_all = a.get('/admin/export_orders?status=all')
+    x_debt = a.get('/admin/export_orders?status=debt')
+    all_names = names_in(x_all) if x_all.status_code == 200 else set()
+    debt_names = names_in(x_debt) if x_debt.status_code == 200 else set()
+    both_in_all = 'QA Export Done' in all_names and 'QA Export Debt' in all_names
+    ok = (x_all.status_code == 200 and x_debt.status_code == 200 and both_in_all
+          and 'QA Export Debt' in debt_names and 'QA Export Done' not in debt_names)
+    rep.check('BC-01', ok, f'all có cả 2={both_in_all}, lọc nợ chỉ còn={debt_names}')
+
+    # BC-02 nút xuất Excel không còn là mục riêng trong sidebar, chỉ còn ở
+    # trang Đơn hàng (đã kiểm tra ở BC-01) và trang Sổ nợ khách hàng
+    sidebar_page = a.get('/admin/manage_products').get_data(as_text=True)
+    debts_page = a.get('/admin/debts').get_data(as_text=True)
+    ok2 = ('Xuất Excel' not in sidebar_page
+          and 'Xuất Excel' in debts_page and 'status=debt' in debts_page)
+    rep.check('BC-02', ok2, f'sidebar còn mục riêng={"Xuất Excel" in sidebar_page}')
 
 
 # ---------------------------------------------------------------------------
@@ -750,6 +788,12 @@ def cleanup(ids, app):
                 db.session.delete(o); removed.append(f'Order#{oid}')
 
         for oid in ids.get('bulk_orders', []) or []:
+            models.OrderItem.query.filter_by(order_id=oid).delete()
+            o = db.session.get(models.Order, oid)
+            if o:
+                db.session.delete(o); removed.append(f'Order#{oid}')
+
+        for oid in ids.get('export_orders', []) or []:
             models.OrderItem.query.filter_by(order_id=oid).delete()
             o = db.session.get(models.Order, oid)
             if o:

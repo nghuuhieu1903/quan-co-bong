@@ -196,6 +196,12 @@
         </a>
         {% endfor %}
 
+        {% if session.get('admin_role') == 'super_admin' %}
+        <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.export_orders', status=status_filter) }}">
+            <i class="fas fa-file-excel"></i> Xuất Excel
+        </a>
+        {% endif %}
+
         {% if total_debt %}
         <div class="debt-total">
             Tổng còn nợ: <strong>{{ total_debt|vnd }} VNĐ</strong>

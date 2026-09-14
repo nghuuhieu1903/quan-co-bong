@@ -76,12 +76,21 @@
 {% block content %}
 <section class="page-header" style="background: var(--gradient-accent); padding: 3rem 0; margin: -2rem -2rem 2rem -2rem; border-radius: 0 0 24px 24px;">
     <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
-        <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
-            <i class="fas fa-book"></i> Sổ nợ khách hàng
-        </h1>
-        <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
-            Các đơn hàng chưa được đánh dấu hoàn thành sẽ tự động tính là nợ.
-        </p>
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 style="font-size: 2.5rem; font-weight: 500; color: white; margin-bottom: 0.5rem;">
+                    <i class="fas fa-book"></i> Sổ nợ khách hàng
+                </h1>
+                <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+                    Các đơn hàng chưa được đánh dấu hoàn thành sẽ tự động tính là nợ.
+                </p>
+            </div>
+            {% if debt_orders %}
+            <a href="{{ url_for('admin.export_orders', status='debt') }}" class="btn btn-primary" style="background: white; color: var(--accent-color);">
+                <i class="fas fa-file-excel"></i> Xuất Excel
+            </a>
+            {% endif %}
+        </div>
     </div>
 </section>
 

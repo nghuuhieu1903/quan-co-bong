@@ -26,7 +26,7 @@ from decorators import (admin_required, admin_required_api,
 import payments
 import seo
 from extensions import db
-from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, check_qr_colours, parse_vnd,
+from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, check_qr_colours, format_vnd, parse_vnd,
                      safe_print as print,
                      save_uploaded_file, save_uploaded_files, send_email)
 from models import (Admin, Customer, Notification, Order, OrderItem,
@@ -1069,22 +1069,28 @@ def generate_bank_qr():
 @bp.route('/admin/export_orders')
 @super_admin_required
 def export_orders():
-    # Get today's date
+    """Excel export for orders - reached from the Đơn hàng page (any of its
+    status filters) and from Sổ nợ khách hàng (always the debt list), not
+    from its own sidebar entry anymore so it always exports what the admin
+    is actually looking at instead of a fixed "today" snapshot.
+    """
     today = datetime.now().strftime('%Y-%m-%d')
-    
-    # Get orders for today
-    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    today_end = datetime.now().replace(hour=23, minute=59, second=59, microsecond=999999)
-    
-    orders = Order.query.filter(
-        Order.created_at >= today_start,
-        Order.created_at <= today_end
-    ).order_by(Order.created_at.desc()).all()
-    
+    status_filter = request.args.get('status', 'all')
+
+    query = Order.query
+    if status_filter == 'debt':
+        query = query.filter(Order.status.notin_(['completed', 'cancelled']))
+    elif status_filter in ('completed', 'cancelled'):
+        query = query.filter(Order.status == status_filter)
+    orders = query.order_by(Order.created_at.desc()).all()
+
+    sheet_titles = {'all': 'Tất cả', 'debt': 'Còn nợ',
+                    'completed': 'Hoàn thành', 'cancelled': 'Đã hủy'}
+
     # Create Excel workbook
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = f"Orders_{today}"
+    ws.title = f"Don hang - {sheet_titles.get(status_filter, 'Tất cả')}"
     
     # Define styles
     header_font = Font(bold=True, color='FFFFFF')
@@ -1102,60 +1108,61 @@ def export_orders():
     ws.column_dimensions['G'].width = 20
     
     # Create headers
-    headers = ['Order ID', 'Customer Name', 'Phone', 'Total (VNĐ)', 'Payment Method', 'Status', 'Order Date']
+    headers = ['Mã đơn', 'Khách hàng', 'Số điện thoại', 'Tổng tiền (VNĐ)',
+              'Hình thức thanh toán', 'Trạng thái', 'Ngày đặt']
     for col, header in enumerate(headers, 1):
         cell = ws.cell(row=1, column=col, value=header)
         cell.font = header_font
         cell.fill = header_fill
         cell.border = border
         cell.alignment = Alignment(horizontal='center')
-    
+
     # Add data
     for row, order in enumerate(orders, 2):
         # Order ID
         ws.cell(row=row, column=1, value=f"#{order.id}").border = border
-        
+
         # Customer Name
         ws.cell(row=row, column=2, value=order.customer_name).border = border
-        
+
         # Phone
         ws.cell(row=row, column=3, value=order.customer_phone).border = border
-        
+
         # Total Amount
-        ws.cell(row=row, column=4, value=f"{order.total_amount:,.0f} VNĐ").border = border
-        
+        ws.cell(row=row, column=4, value=f"{format_vnd(order.total_amount)} VNĐ").border = border
+
         # Payment Method
         payment_display = {
-            'cash': '💵 Cash',
-            'bank_transfer': '🏦 Bank Transfer',
-            'pending': '⏳ Pending'
+            'cash': 'Tiền mặt',
+            'bank': 'Chuyển khoản',
         }.get(order.payment_method, order.payment_method)
         ws.cell(row=row, column=5, value=payment_display).border = border
-        
+
         # Status
         status_display = {
-            'pending': '⏳ Pending',
-            'completed': '✅ Completed',
-            'cancelled': '❌ Cancelled'
+            'pending': 'Còn nợ',
+            'completed': 'Hoàn thành',
+            'cancelled': 'Đã hủy',
         }.get(order.status, order.status)
         ws.cell(row=row, column=6, value=status_display).border = border
-        
+
         # Order Date
-        ws.cell(row=row, column=7, value=order.created_at.strftime('%Y-%m-%d %H:%M:%S')).border = border
-    
+        ws.cell(row=row, column=7, value=order.created_at.strftime('%d/%m/%Y %H:%M')).border = border
+
     # Add summary section
     summary_row = len(orders) + 3
-    ws.cell(row=summary_row, column=1, value="Summary").font = Font(bold=True)
-    ws.cell(row=summary_row + 1, column=1, value=f"Total Orders: {len(orders)}")
-    ws.cell(row=summary_row + 2, column=1, value=f"Total Revenue: {sum(order.total_amount for order in orders):,.0f} VNĐ")
-    
+    ws.cell(row=summary_row, column=1, value="Tổng kết").font = Font(bold=True)
+    ws.cell(row=summary_row + 1, column=1, value=f"Số đơn: {len(orders)}")
+    ws.cell(row=summary_row + 2, column=1,
+           value=f"Tổng tiền: {format_vnd(sum(order.total_amount for order in orders))} VNĐ")
+
     # Save to memory
     excel_buffer = io.BytesIO()
     wb.save(excel_buffer)
     excel_buffer.seek(0)
-    
+
     # Create filename
-    filename = f"orders_{today}.xlsx"
+    filename = f"don_hang_{status_filter}_{today}.xlsx"
     
     return send_file(
         excel_buffer,
