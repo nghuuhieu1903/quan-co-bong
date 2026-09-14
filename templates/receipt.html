@@ -17,7 +17,14 @@
 * { box-sizing: border-box; }
 
 body {
-    margin: 0;
+    /* On the roll itself @page already constrains the page to {{ width }}mm,
+       so auto margins resolve to 0 there - no visible change. But "Lưu
+       dưới dạng PDF" / a normal office printer usually ignores @page's
+       custom size and keeps the page at A4/Letter; without this the
+       receipt was pinned to the top-left corner with the rest of the
+       sheet blank. Centering it makes that case look deliberate instead
+       of like a stray fragment. */
+    margin: 0 auto;
     padding: 3mm;
     width: {{ width }}mm;
     /* A monospace face keeps the price column aligned, and thermal heads
