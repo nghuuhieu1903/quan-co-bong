@@ -254,7 +254,7 @@ def delete_room_image(image_id):
     img = RoomImage.query.get_or_404(image_id)
     try:
         # Delete file from disk
-        image_path = os.path.join(app.root_path, 'static', 'images', img.image)
+        image_path = os.path.join(current_app.root_path, 'static', 'images', img.image)
         if os.path.exists(image_path):
             os.remove(image_path)
     except Exception as e:
@@ -267,10 +267,27 @@ def delete_room_image(image_id):
 @bp.route('/admin/room/<int:room_id>/delete', methods=['POST'])
 @admin_required
 def admin_delete_room(room_id):
+    """Delete for real when nothing references the room; otherwise close it
+    instead of deleting - same fallback as delete_product and for the same
+    reason: RoomBooking.room_id is a foreign key with no cascade, so MySQL
+    refuses to delete a room that has any booking history.
+    """
     room = Room.query.get_or_404(room_id)
+    name = room.name
+    RoomImage.query.filter_by(room_id=room.id).delete()
     db.session.delete(room)
-    db.session.commit()
-    
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        room = db.session.get(Room, room_id)
+        room.available = False
+        db.session.commit()
+        flash(f'"{name}" đã có lịch đặt phòng liên quan nên không thể xóa hẳn - '
+              f'đã chuyển sang trạng thái đóng thay vì xóa. Lịch sử đặt phòng vẫn giữ nguyên.',
+              'success')
+        return redirect(url_for('admin.admin_rooms'))
+
     flash('Phòng đã được xóa thành công!', 'success')
     return redirect(url_for('admin.admin_rooms'))
 
@@ -405,14 +422,14 @@ def delete_product(product_id):
     # its image files now.
     if cover_image:
         try:
-            image_path = os.path.join('static', 'images', cover_image)
+            image_path = os.path.join(current_app.root_path, 'static', 'images', cover_image)
             if os.path.exists(image_path):
                 os.remove(image_path)
         except Exception:
             logger.exception("Error deleting cover image")
     for filename in detail_images:
         try:
-            image_path = os.path.join('static', 'images', filename)
+            image_path = os.path.join(current_app.root_path, 'static', 'images', filename)
             if os.path.exists(image_path):
                 os.remove(image_path)
         except Exception:
@@ -438,7 +455,7 @@ def delete_product_image(image_id):
     img = ProductImage.query.get_or_404(image_id)
     try:
         # Delete file from disk
-        image_path = os.path.join('static', 'images', img.image)
+        image_path = os.path.join(current_app.root_path, 'static', 'images', img.image)
         if os.path.exists(image_path):
             os.remove(image_path)
     except Exception as e:

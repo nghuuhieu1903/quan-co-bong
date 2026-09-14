@@ -1,0 +1,156 @@
+"""Danh sách toàn bộ test case (thêm/sửa/xóa) - nguồn dữ liệu duy nhất.
+
+Mỗi khi thêm một chức năng thêm/sửa/xóa mới vào trang web, thêm một dòng
+TestCase mới vào MATRIX bên dưới rồi viết một hàm kiểm tra tương ứng trong
+crud_test_suite.py. Đừng sửa trực tiếp trong file Excel - file đó chỉ là
+báo cáo được sinh ra từ đây, chạy lại sẽ ghi đè.
+"""
+
+from collections import namedtuple
+
+TestCase = namedtuple('TestCase', 'id module feature action description expected')
+
+MATRIX = [
+    # --- Sản phẩm -----------------------------------------------------
+    TestCase('SP-01', 'Sản phẩm', 'Thêm sản phẩm mới', 'Thêm',
+             'Admin điền form và lưu sản phẩm mới',
+             'Sản phẩm xuất hiện trong danh sách quản lý với đúng thông tin'),
+    TestCase('SP-02', 'Sản phẩm', 'Sửa sản phẩm', 'Sửa',
+             'Admin đổi tên, giá, loại của một sản phẩm có sẵn',
+             'Thông tin sản phẩm được cập nhật đúng như đã sửa'),
+    TestCase('SP-03', 'Sản phẩm', 'Xóa sản phẩm chưa từng bán', 'Xóa',
+             'Admin xóa một sản phẩm chưa có trong đơn hàng nào',
+             'Sản phẩm bị xóa hẳn khỏi cơ sở dữ liệu'),
+    TestCase('SP-04', 'Sản phẩm', 'Xóa sản phẩm đã có đơn hàng', 'Xóa',
+             'Admin xóa một sản phẩm đã từng được đặt trong đơn hàng',
+             'Không xóa hẳn (vì phá vỡ lịch sử đơn hàng) - tự động ẩn khỏi menu, đơn hàng cũ vẫn giữ nguyên'),
+    TestCase('SP-05', 'Sản phẩm', 'Khôi phục sản phẩm đã ẩn', 'Sửa',
+             'Admin bấm "Hiện lại" trên sản phẩm đã bị ẩn ở SP-04',
+             'Sản phẩm hiện lại trên menu khách hàng'),
+    TestCase('SP-06', 'Sản phẩm', 'Xóa ảnh phụ của sản phẩm', 'Xóa',
+             'Admin xóa một ảnh phụ (không phải ảnh đại diện) của sản phẩm',
+             'Ảnh biến mất khỏi sản phẩm, file ảnh bị xóa khỏi ổ đĩa'),
+    TestCase('SP-07', 'Sản phẩm', 'Sản phẩm bị ẩn không hiện cho khách', 'Khác',
+             'Sau khi ẩn ở SP-04, kiểm tra trang khách hàng và màn hình bán hàng (POS)',
+             'Sản phẩm đã ẩn không xuất hiện ở trang chủ, danh mục, hay POS'),
+
+    # --- Phòng ---------------------------------------------------------
+    TestCase('PH-01', 'Phòng', 'Thêm phòng mới', 'Thêm',
+             'Admin điền form và lưu phòng mới',
+             'Phòng xuất hiện trong danh sách quản lý phòng'),
+    TestCase('PH-02', 'Phòng', 'Sửa phòng', 'Sửa',
+             'Admin đổi tên, giá, sức chứa của một phòng có sẵn',
+             'Thông tin phòng được cập nhật đúng như đã sửa'),
+    TestCase('PH-03', 'Phòng', 'Bật/tắt trạng thái phòng trống', 'Sửa',
+             'Admin bấm nút đổi trạng thái mở/đóng phòng',
+             'Trạng thái available đảo ngược đúng'),
+    TestCase('PH-04', 'Phòng', 'Xóa phòng chưa từng có lịch đặt', 'Xóa',
+             'Admin xóa một phòng chưa từng được đặt',
+             'Phòng bị xóa hẳn khỏi cơ sở dữ liệu'),
+    TestCase('PH-05', 'Phòng', 'Xóa phòng đã có lịch đặt', 'Xóa',
+             'Admin xóa một phòng đã từng có người đặt (RoomBooking)',
+             'Không xóa hẳn (vì phá vỡ lịch sử đặt phòng) - tự động đóng phòng, lịch sử vẫn giữ nguyên'),
+    TestCase('PH-06', 'Phòng', 'Cập nhật trạng thái đặt phòng', 'Sửa',
+             'Admin đổi trạng thái một lượt đặt phòng (chờ/xác nhận/hủy)',
+             'Trạng thái đặt phòng được cập nhật đúng'),
+
+    # --- Đơn hàng --------------------------------------------------------
+    TestCase('DH-01', 'Đơn hàng', 'Tạo đơn tại quầy (POS)', 'Thêm',
+             'Admin chọn món và tạo đơn ngay tại quầy bán hàng',
+             'Đơn hàng mới được tạo, tồn kho sản phẩm bị trừ đúng số lượng'),
+    TestCase('DH-02', 'Đơn hàng', 'Cập nhật trạng thái đơn hàng', 'Sửa',
+             'Admin đổi trạng thái đơn từ "còn nợ" sang "hoàn thành"',
+             'Trạng thái đơn hàng được cập nhật đúng'),
+    TestCase('DH-03', 'Đơn hàng', 'Xóa đơn hàng - Super Admin', 'Xóa',
+             'Tài khoản Super Admin xóa một đơn hàng test',
+             'Đơn hàng và các dòng sản phẩm trong đơn bị xóa hẳn'),
+    TestCase('DH-04', 'Đơn hàng', 'Xóa đơn hàng - Admin thường (phải bị chặn)', 'Xóa',
+             'Tài khoản admin thường (không phải Super Admin) cố xóa một đơn hàng',
+             'Bị từ chối, đơn hàng vẫn còn nguyên - chỉ Super Admin mới được xóa'),
+    TestCase('DH-05', 'Đơn hàng', 'Khách đặt hàng qua giỏ hàng', 'Thêm',
+             'Khách thêm sản phẩm vào giỏ rồi đặt hàng (checkout)',
+             'Đơn hàng mới được tạo với đúng tên/số điện thoại khách đã nhập'),
+
+    # --- Giỏ hàng --------------------------------------------------------
+    TestCase('GH-01', 'Giỏ hàng', 'Thêm vào giỏ hàng', 'Thêm',
+             'Khách thêm một sản phẩm vào giỏ hàng',
+             'Sản phẩm xuất hiện trong giỏ với đúng số lượng'),
+    TestCase('GH-02', 'Giỏ hàng', 'Cập nhật số lượng trong giỏ', 'Sửa',
+             'Khách đổi số lượng một sản phẩm đang có trong giỏ',
+             'Số lượng trong giỏ được cập nhật đúng'),
+    TestCase('GH-03', 'Giỏ hàng', 'Xóa một món khỏi giỏ', 'Xóa',
+             'Khách xóa một sản phẩm khỏi giỏ hàng',
+             'Sản phẩm biến mất khỏi giỏ hàng'),
+    TestCase('GH-04', 'Giỏ hàng', 'Xóa nhiều món cùng lúc', 'Xóa',
+             'Khách tick chọn nhiều sản phẩm rồi xóa cùng lúc',
+             'Chỉ những sản phẩm được chọn bị xóa, các món khác vẫn còn'),
+
+    # --- Công nợ -----------------------------------------------------
+    TestCase('CN-01', 'Công nợ', 'Thanh toán một đơn nợ', 'Sửa',
+             'Super Admin xác nhận một đơn còn nợ đã được trả',
+             'Trạng thái đơn chuyển thành hoàn thành'),
+    TestCase('CN-02', 'Công nợ', 'Thanh toán nhiều đơn nợ cùng lúc', 'Sửa',
+             'Super Admin chọn nhiều đơn nợ và xác nhận trả cùng lúc',
+             'Tất cả các đơn được chọn chuyển thành hoàn thành'),
+
+    # --- Tài khoản ------------------------------------------------------
+    TestCase('TK-01', 'Tài khoản', 'Thêm tài khoản admin mới', 'Thêm',
+             'Super Admin tạo một tài khoản admin mới',
+             'Tài khoản mới xuất hiện trong danh sách, đăng nhập được'),
+    TestCase('TK-02', 'Tài khoản', 'Đổi vai trò admin', 'Sửa',
+             'Super Admin đổi vai trò một tài khoản admin thành super_admin',
+             'Vai trò được cập nhật đúng'),
+    TestCase('TK-03', 'Tài khoản', 'Đặt lại mật khẩu admin', 'Sửa',
+             'Super Admin đặt mật khẩu mới cho một tài khoản admin khác',
+             'Tài khoản đó đăng nhập được bằng mật khẩu mới'),
+    TestCase('TK-04', 'Tài khoản', 'Đặt lại mật khẩu khách hàng', 'Sửa',
+             'Super Admin đặt mật khẩu mới cho một tài khoản khách hàng',
+             'Tài khoản khách hàng đăng nhập được bằng mật khẩu mới'),
+    TestCase('TK-05', 'Tài khoản', 'Xóa tài khoản admin', 'Xóa',
+             'Super Admin xóa một tài khoản admin (không phải Super Admin cuối cùng)',
+             'Tài khoản bị xóa hẳn, không đăng nhập được nữa'),
+    TestCase('TK-06', 'Tài khoản', 'Không cho xóa Super Admin cuối cùng', 'Xóa',
+             'Super Admin cố xóa chính Super Admin cuối cùng còn lại trong hệ thống',
+             'Bị từ chối, luôn còn ít nhất một Super Admin'),
+    TestCase('TK-07', 'Tài khoản', 'Bật/tắt quyền Manager', 'Sửa',
+             'Super Admin cấp rồi thu hồi quyền Manager cho một khách hàng',
+             'Vai trò khách hàng đổi qua lại đúng giữa customer và manager'),
+    TestCase('TK-08', 'Tài khoản', 'Đăng ký tài khoản khách hàng', 'Thêm',
+             'Khách tự đăng ký tài khoản mới trên trang web',
+             'Tài khoản khách hàng mới được tạo, đăng nhập được ngay'),
+
+    # --- Xác thực --------------------------------------------------------
+    TestCase('XT-01', 'Xác thực', 'Đăng nhập admin đúng mật khẩu', 'Khác',
+             'Đăng nhập với tài khoản/mật khẩu admin đúng',
+             'Đăng nhập thành công, vào được trang quản trị'),
+    TestCase('XT-02', 'Xác thực', 'Đăng nhập admin sai mật khẩu', 'Khác',
+             'Đăng nhập với mật khẩu sai',
+             'Bị từ chối, không vào được trang quản trị'),
+    TestCase('XT-03', 'Xác thực', 'Admin tự đổi mật khẩu', 'Sửa',
+             'Admin đang đăng nhập tự đổi mật khẩu của chính mình',
+             'Đăng nhập lại bằng mật khẩu mới thành công'),
+    TestCase('XT-04', 'Xác thực', 'Đăng nhập khách hàng', 'Khác',
+             'Khách đăng nhập bằng tài khoản đã đăng ký',
+             'Đăng nhập thành công'),
+    TestCase('XT-05', 'Xác thực', 'Đăng xuất khách hàng', 'Khác',
+             'Khách đã đăng nhập bấm đăng xuất',
+             'Phiên đăng nhập kết thúc'),
+
+    # --- QR / Thanh toán --------------------------------------------------
+    TestCase('QR-01', 'QR / Thanh toán', 'Tạo mã QR tuỳ ý', 'Thêm',
+             'Admin tạo một mã QR từ nội dung bất kỳ',
+             'Ảnh mã QR được sinh ra thành công'),
+    TestCase('QR-02', 'QR / Thanh toán', 'Tạo mã QR chuyển khoản ngân hàng', 'Thêm',
+             'Admin tạo mã QR chuyển khoản với số tiền và nội dung',
+             'Ảnh mã QR VietQR được sinh ra thành công'),
+    TestCase('QR-03', 'QR / Thanh toán', 'Đặt tài khoản nhận tiền mặc định', 'Sửa',
+             'Super Admin đặt một tài khoản ngân hàng làm tài khoản nhận tiền mặc định của quán',
+             'Cấu hình được lưu lại, dùng cho mọi mã QR sau này'),
+
+    # --- Báo cáo -----------------------------------------------------
+    TestCase('BC-01', 'Báo cáo', 'Xuất Excel danh sách đơn hàng', 'Khác',
+             'Admin bấm xuất file Excel toàn bộ đơn hàng',
+             'File Excel tải về thành công, có dữ liệu bên trong'),
+]
+
+BY_ID = {tc.id: tc for tc in MATRIX}
