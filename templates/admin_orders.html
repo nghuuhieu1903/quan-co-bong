@@ -255,12 +255,23 @@
                         </div>
                         {% endif %}
                     </td>
-                    <td>
+                    <td style="white-space: nowrap;">
                         <a class="btn btn-secondary btn-sm" target="_blank"
                            href="{{ url_for('admin.order_receipt', order_id=order.id, print=1) }}"
                            title="In hóa đơn">
                             <i class="fas fa-print"></i>
                         </a>
+                        {% if session.get('admin_role') == 'super_admin' %}
+                        <form method="POST" action="{{ url_for('admin.delete_order', order_id=order.id) }}"
+                              style="display: inline;"
+                              onsubmit="return confirm('Xóa hẳn đơn #{{ order.id }}? Không thể hoàn tác.');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <input type="hidden" name="next" value="orders">
+                            <button type="submit" class="btn btn-danger btn-sm" title="Xóa đơn (Super Admin)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
+                        {% endif %}
                     </td>
                 </tr>
                 {% else %}

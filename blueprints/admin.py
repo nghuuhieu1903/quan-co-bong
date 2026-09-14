@@ -588,6 +588,28 @@ def admin_orders():
                            total_debt=total_debt, status_filter=status_filter)
 
 
+@bp.route('/admin/order/<int:order_id>/delete', methods=['POST'])
+@super_admin_required
+def delete_order(order_id):
+    """Delete an order and its line items outright.
+
+    Restricted to super_admin only, by explicit request - regular admins
+    create/settle orders daily and a mis-click deleting real order/debt
+    history would be far worse than a stray test order sitting around.
+    Unlike Product, an order's OrderItem rows belong only to that order (no
+    other table points at them), so there is no "hide instead" fallback
+    needed - they are deleted together with the order itself.
+    """
+    order = Order.query.get_or_404(order_id)
+    OrderItem.query.filter_by(order_id=order.id).delete()
+    db.session.delete(order)
+    db.session.commit()
+    flash(f'Đã xóa đơn #{order.id}', 'success')
+    nxt = request.form.get('next')
+    if nxt in ('orders', 'debts'):
+        return redirect(url_for(f'admin.admin_{nxt}'))
+    return redirect(url_for('admin.admin_dashboard'))
+
 @bp.route('/admin/order/<int:order_id>/receipt')
 @admin_required
 def order_receipt(order_id):
