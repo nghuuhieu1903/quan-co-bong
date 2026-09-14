@@ -48,7 +48,8 @@ def index():
 
 @bp.route('/customer')
 def customer_home():
-    products = Product.query.all()  # Hiển thị tất cả sản phẩm kể cả hết hàng
+    # Hiển thị tất cả sản phẩm kể cả hết hàng, trừ sản phẩm đã ẩn/ngừng bán
+    products = Product.query.filter(Product.is_active.is_(True)).all()
     return render_template('index.html', products=products)
 
 @bp.route('/products')
@@ -60,8 +61,11 @@ def products():
     if item_type not in ('drink', 'food'):
         item_type = 'drink'
 
-    # Start with base query, scoped to the requested item type
-    query = Product.query.filter(Product.item_type == item_type)
+    # Start with base query, scoped to the requested item type. A hidden
+    # (is_active=False) product stays fully intact for its past orders but
+    # drops off the customer-facing catalogue.
+    query = Product.query.filter(Product.item_type == item_type,
+                                 Product.is_active.is_(True))
 
     # Apply search filter
     if search_query:
@@ -123,7 +127,8 @@ def products():
     categories = [cat[0] for cat in categories if cat[0]]  # Remove None values
 
     # Get total products count (within this item type)
-    total_products = Product.query.filter(Product.item_type == item_type).count()
+    total_products = Product.query.filter(Product.item_type == item_type,
+                                          Product.is_active.is_(True)).count()
 
     return render_template('products.html', products=products, categories=categories, total_products=total_products, item_type=item_type)
 
@@ -184,7 +189,14 @@ def cart_count():
 def add_to_cart(product_id):
     product = Product.query.get_or_404(product_id)
     next_url = request.form.get('next') or request.referrer
-    
+
+    if not product.is_active:
+        if wants_json():
+            return jsonify(ok=False, message='Sản phẩm đã ngừng bán',
+                           count=cart_count()), 409
+        flash('Sản phẩm đã ngừng bán', 'error')
+        return redirect(next_url or url_for('public.customer_home'))
+
     if product.stock <= 0:
         if wants_json():
             return jsonify(ok=False, message='Sản phẩm đã hết hàng',

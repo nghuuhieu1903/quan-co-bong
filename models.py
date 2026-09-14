@@ -25,6 +25,13 @@ class Product(db.Model):
     # A dish the shop is serving today. These sort to the top of the food tab;
     # snacks and everything else follow.
     is_daily = db.Column(db.Boolean, nullable=False, default=False)
+    # Once a product has been ordered, deleting the row would violate the
+    # OrderItem foreign key (MySQL rejects it) - and even if it did not,
+    # erasing a product that appears on real order history/debt records
+    # would corrupt that history. Hiding it here is the safe substitute:
+    # it disappears from the customer-facing catalogue and admin's active
+    # list, but every past order still resolves it correctly.
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     images = db.relationship('ProductImage', backref='product', lazy=True, cascade="all, delete-orphan")
 

@@ -309,12 +309,15 @@
         </thead>
         <tbody>
             {% for product in products %}
-            <tr>
+            <tr{% if not product.is_active %} style="opacity: 0.55;"{% endif %}>
                 <td class="hide-mobile">
                     <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image-thumb">
                 </td>
                 <td>
                     <strong>{{ product.name }}</strong>
+                    {% if not product.is_active %}
+                    <span class="badge badge-secondary" title="Không hiện trên menu khách, đơn hàng cũ vẫn giữ nguyên">Đã ẩn</span>
+                    {% endif %}
                     {% if product.description %}
                     <br><small style="color: var(--text-secondary);" class="hide-mobile">{{ product.description[:50] }}{% if product.description|length > 50 %}...{% endif %}</small>
                     {% endif %}
@@ -348,12 +351,21 @@
                         <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" class="btn btn-primary" style="background: var(--accent-color); color: white;">
                             <i class="fas fa-edit"></i> Sửa
                         </a>
-                        <form method="POST" action="{{ url_for('admin.delete_product', product_id=product.id) }}" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')" class="hide-mobile">
+                        {% if product.is_active %}
+                        <form method="POST" action="{{ url_for('admin.delete_product', product_id=product.id) }}" onsubmit="return confirm('Xóa sản phẩm này? Nếu đã có đơn hàng liên quan, sản phẩm sẽ được ẩn khỏi menu thay vì xóa hẳn.')" class="hide-mobile">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-danger">
                                 <i class="fas fa-trash"></i> Xóa
                             </button>
                         </form>
+                        {% else %}
+                        <form method="POST" action="{{ url_for('admin.restore_product', product_id=product.id) }}" class="hide-mobile">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-secondary">
+                                <i class="fas fa-eye"></i> Hiện lại
+                            </button>
+                        </form>
+                        {% endif %}
                     </div>
                 </td>
             </tr>

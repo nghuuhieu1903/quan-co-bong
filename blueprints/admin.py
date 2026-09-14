@@ -17,6 +17,7 @@ from flask import (Blueprint, current_app, flash, jsonify, redirect,
                    render_template, request, send_file, session, url_for)
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from sqlalchemy import func, text
+from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from decorators import (admin_required, admin_required_api,
@@ -72,7 +73,9 @@ def manage_products():
 @bp.route('/admin/dashboard')
 @admin_required
 def admin_dashboard():
-    products = Product.query.all()
+    # Stock alerts are for products the shop is still actively selling - a
+    # hidden/discontinued one does not need a "sắp hết hàng" nudge anymore.
+    products = Product.query.filter(Product.is_active.is_(True)).all()
     orders = Order.query.order_by(Order.created_at.desc()).all()
     rooms = Room.query.all()
     room_bookings = RoomBooking.query.order_by(RoomBooking.created_at.desc()).all()
@@ -365,31 +368,68 @@ def edit_product(product_id):
 @bp.route('/admin/product/<int:product_id>/delete', methods=['POST'])
 @admin_required
 def delete_product(product_id):
+    """Delete for real when nothing references the product; otherwise hide
+    it instead of deleting.
+
+    OrderItem.product_id is a foreign key with no cascade, so MySQL refuses
+    to delete a product that appears on any order - deleting anyway would
+    also erase real order/debt history, not just fail. This tries the real
+    delete first and only falls back to hiding (is_active=False) when the
+    database itself rejects it; either way image files are only removed
+    from disk once the outcome is certain, never before a commit that might
+    still roll back.
+    """
     product = Product.query.get_or_404(product_id)
-    
-    # Delete cover image if exists
-    if product.image:
-        try:
-            image_path = os.path.join('static', 'images', product.image)
-            if os.path.exists(image_path):
-                os.remove(image_path)
-        except Exception as e:
-            logger.exception("Error deleting cover image")
-            
-    # Delete all detail images from disk
-    for img in product.images:
-        try:
-            image_path = os.path.join('static', 'images', img.image)
-            if os.path.exists(image_path):
-                os.remove(image_path)
-        except Exception as e:
-            logger.exception("Error deleting detail image")
-    
-    # Delete product from database
+    name = product.name
+    # Captured before delete/commit: SQLAlchemy expires an object's
+    # attributes after a commit, and a *deleted* row can no longer be
+    # refreshed to satisfy that - reading product.image afterward would
+    # raise, not return the old value.
+    cover_image = product.image
+    detail_images = [img.image for img in product.images]
+
     db.session.delete(product)
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        product = db.session.get(Product, product_id)
+        product.is_active = False
+        db.session.commit()
+        flash(f'"{name}" đã có đơn hàng liên quan nên không thể xóa hẳn - '
+              f'đã ẩn khỏi menu thay vì xóa. Đơn hàng cũ vẫn giữ nguyên.',
+              'success')
+        return redirect(url_for('admin.manage_products'))
+
+    # Only reaching here means the row is actually gone - safe to also drop
+    # its image files now.
+    if cover_image:
+        try:
+            image_path = os.path.join('static', 'images', cover_image)
+            if os.path.exists(image_path):
+                os.remove(image_path)
+        except Exception:
+            logger.exception("Error deleting cover image")
+    for filename in detail_images:
+        try:
+            image_path = os.path.join('static', 'images', filename)
+            if os.path.exists(image_path):
+                os.remove(image_path)
+        except Exception:
+            logger.exception("Error deleting detail image")
+
+    flash(f'Sản phẩm "{name}" đã được xóa thành công!', 'success')
+    return redirect(url_for('admin.manage_products'))
+
+
+@bp.route('/admin/product/<int:product_id>/restore', methods=['POST'])
+@admin_required
+def restore_product(product_id):
+    """Bring a hidden (is_active=False) product back onto the menu."""
+    product = Product.query.get_or_404(product_id)
+    product.is_active = True
     db.session.commit()
-    
-    flash(f'Sản phẩm "{product.name}" đã được xóa thành công!', 'success')
+    flash(f'Đã hiện lại "{product.name}" trên menu.', 'success')
     return redirect(url_for('admin.manage_products'))
 
 @bp.route('/admin/product-image/<int:image_id>/delete', methods=['POST'])
@@ -574,7 +614,8 @@ def pos():
     Everything is on one screen because the terminal is held in one hand -
     there is no room for a multi-step flow.
     """
-    products = Product.query.filter(Product.stock > 0).order_by(
+    products = Product.query.filter(Product.stock > 0,
+                                    Product.is_active.is_(True)).order_by(
         Product.item_type, Product.name).all()
     return render_template('pos.html', products=products,
                            bank_enabled=payments.is_configured())
