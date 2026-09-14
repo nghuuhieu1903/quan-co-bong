@@ -52,6 +52,44 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
+/* Bulk action bar: shown once at least one room is checked */
+.bulk-action-bar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    background: var(--accent-color, #1F4E78);
+    color: white;
+    padding: 0.85rem 1.25rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.bulk-action-bar span {
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+.bulk-action-bar .form-control {
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    border: none;
+}
+
+@media (max-width: 768px) {
+    .bulk-action-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .bulk-action-bar .btn, .bulk-action-bar .form-control {
+        width: 100%;
+    }
+}
+
 /* Responsive layout for admin rooms list */
 @media (max-width: 768px) {
     .page-header {
@@ -135,11 +173,35 @@
 
 <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 1rem 4rem 1rem;">
     {% if rooms %}
+        <!-- Bulk actions: chọn hàng loạt rồi áp dụng một thao tác cho tất cả -->
+        <form id="bulkRoomForm" method="POST" action="{{ url_for('admin.admin_rooms_bulk_action') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="action" id="bulkRoomAction" value="">
+        </form>
+        <div id="bulkRoomBar" class="bulk-action-bar" style="display: none;">
+            <span id="bulkRoomCount">0 phòng được chọn</span>
+            <input type="text" id="bulkRoomPrice" name="price" form="bulkRoomForm"
+                   data-money placeholder="Giá mới (VNĐ)" class="form-control" style="width: 160px;">
+            <button type="button" class="btn btn-primary" onclick="submitRoomBulk('set_price')">
+                <i class="fas fa-tag"></i> Đổi giá hàng loạt
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="submitRoomBulk('open')">
+                <i class="fas fa-eye"></i> Mở
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="submitRoomBulk('close')">
+                <i class="fas fa-eye-slash"></i> Đóng
+            </button>
+            <button type="button" class="btn btn-danger" onclick="confirmRoomBulkDelete()">
+                <i class="fas fa-trash"></i> Xóa
+            </button>
+        </div>
+
         <div class="rooms-table fade-in">
             <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
+                            <th style="width: 2.5rem;"><input type="checkbox" id="selectAllRooms" onchange="toggleAllRooms(this)"></th>
                             <th class="hide-mobile">Hình ảnh</th>
                             <th>Tên phòng</th>
                             <th>Giá thuê</th>
@@ -151,6 +213,10 @@
                     <tbody>
                         {% for room in rooms %}
                             <tr>
+                                <td>
+                                    <input type="checkbox" class="row-check-room" name="room_ids"
+                                           value="{{ room.id }}" form="bulkRoomForm" onchange="updateRoomBulkBar()">
+                                </td>
                                 <td class="hide-mobile">
                                     <img src="{{ room.image_url }}" alt="{{ room.name }}" style="width: 70px; height: 50px; object-fit: cover; border-radius: 6px; background: var(--gradient-secondary);">
                                 </td>
@@ -224,5 +290,48 @@ document.addEventListener('DOMContentLoaded', function() {
         }, index * 100);
     });
 });
+
+function updateRoomBulkBar() {
+    const checked = document.querySelectorAll('.row-check-room:checked');
+    const bar = document.getElementById('bulkRoomBar');
+    document.getElementById('bulkRoomCount').textContent = checked.length + ' phòng được chọn';
+    bar.style.display = checked.length > 0 ? 'flex' : 'none';
+    const all = document.querySelectorAll('.row-check-room');
+    document.getElementById('selectAllRooms').checked =
+        all.length > 0 && checked.length === all.length;
+}
+
+function toggleAllRooms(master) {
+    document.querySelectorAll('.row-check-room').forEach(cb => { cb.checked = master.checked; });
+    updateRoomBulkBar();
+}
+
+function submitRoomBulk(action) {
+    const checked = document.querySelectorAll('.row-check-room:checked');
+    if (checked.length === 0) {
+        alert('Chưa chọn phòng nào');
+        return;
+    }
+    if (action === 'set_price') {
+        const price = document.getElementById('bulkRoomPrice').value.trim();
+        if (!price) {
+            alert('Nhập giá mới trước khi đổi giá hàng loạt');
+            return;
+        }
+    }
+    document.getElementById('bulkRoomAction').value = action;
+    document.getElementById('bulkRoomForm').submit();
+}
+
+function confirmRoomBulkDelete() {
+    const checked = document.querySelectorAll('.row-check-room:checked');
+    if (checked.length === 0) {
+        alert('Chưa chọn phòng nào');
+        return;
+    }
+    if (confirm(`Xóa ${checked.length} phòng đã chọn? Phòng đã có lịch đặt sẽ tự động đóng thay vì xóa hẳn.`)) {
+        submitRoomBulk('delete');
+    }
+}
 </script>
 {% endblock %}

@@ -264,13 +264,13 @@ def delete_room_image(image_id):
     db.session.commit()
     return jsonify({'success': True})
 
-@bp.route('/admin/room/<int:room_id>/delete', methods=['POST'])
-@admin_required
-def admin_delete_room(room_id):
+def _delete_room_or_close(room_id):
     """Delete for real when nothing references the room; otherwise close it
-    instead of deleting - same fallback as delete_product and for the same
-    reason: RoomBooking.room_id is a foreign key with no cascade, so MySQL
-    refuses to delete a room that has any booking history.
+    instead of deleting, for the same reason as _delete_product_or_hide:
+    RoomBooking.room_id is a foreign key with no cascade, so MySQL refuses
+    to delete a room that has any booking history.
+
+    Returns ('deleted' | 'closed', room_name).
     """
     room = Room.query.get_or_404(room_id)
     name = room.name
@@ -283,12 +283,63 @@ def admin_delete_room(room_id):
         room = db.session.get(Room, room_id)
         room.available = False
         db.session.commit()
+        return 'closed', name
+    return 'deleted', name
+
+@bp.route('/admin/room/<int:room_id>/delete', methods=['POST'])
+@admin_required
+def admin_delete_room(room_id):
+    outcome, name = _delete_room_or_close(room_id)
+    if outcome == 'closed':
         flash(f'"{name}" đã có lịch đặt phòng liên quan nên không thể xóa hẳn - '
               f'đã chuyển sang trạng thái đóng thay vì xóa. Lịch sử đặt phòng vẫn giữ nguyên.',
               'success')
+    else:
+        flash('Phòng đã được xóa thành công!', 'success')
+    return redirect(url_for('admin.admin_rooms'))
+
+@bp.route('/admin/rooms/bulk_action', methods=['POST'])
+@admin_required
+def admin_rooms_bulk_action():
+    room_ids = [int(x) for x in request.form.getlist('room_ids') if x.isdigit()]
+    action = request.form.get('action', '')
+    if not room_ids:
+        flash('Chưa chọn phòng nào', 'error')
         return redirect(url_for('admin.admin_rooms'))
 
-    flash('Phòng đã được xóa thành công!', 'success')
+    if action == 'set_price':
+        new_price = parse_vnd(request.form.get('price'))
+        if new_price is None:
+            flash('Giá thuê không hợp lệ', 'error')
+            return redirect(url_for('admin.admin_rooms'))
+        count = Room.query.filter(Room.id.in_(room_ids)).update(
+            {'price_per_hour': new_price}, synchronize_session=False)
+        db.session.commit()
+        flash(f'Đã đổi giá {count} phòng thành {int(new_price):,} VNĐ'.replace(',', '.'),
+              'success')
+    elif action == 'open':
+        count = Room.query.filter(Room.id.in_(room_ids)).update(
+            {'available': True}, synchronize_session=False)
+        db.session.commit()
+        flash(f'Đã mở {count} phòng', 'success')
+    elif action == 'close':
+        count = Room.query.filter(Room.id.in_(room_ids)).update(
+            {'available': False}, synchronize_session=False)
+        db.session.commit()
+        flash(f'Đã đóng {count} phòng', 'success')
+    elif action == 'delete':
+        deleted = closed = 0
+        for rid in room_ids:
+            outcome, _ = _delete_room_or_close(rid)
+            deleted += outcome == 'deleted'
+            closed += outcome == 'closed'
+        msg = f'Đã xóa {deleted} phòng'
+        if closed:
+            msg += f', {closed} phòng có lịch đặt nên chỉ đóng thay vì xóa'
+        flash(msg, 'success')
+    else:
+        flash('Hành động không hợp lệ', 'error')
+
     return redirect(url_for('admin.admin_rooms'))
 
 @bp.route('/admin/room_bookings')
@@ -382,9 +433,7 @@ def edit_product(product_id):
     
     return render_template('edit_product.html', product=product)
 
-@bp.route('/admin/product/<int:product_id>/delete', methods=['POST'])
-@admin_required
-def delete_product(product_id):
+def _delete_product_or_hide(product_id):
     """Delete for real when nothing references the product; otherwise hide
     it instead of deleting.
 
@@ -395,6 +444,8 @@ def delete_product(product_id):
     database itself rejects it; either way image files are only removed
     from disk once the outcome is certain, never before a commit that might
     still roll back.
+
+    Returns ('deleted' | 'hidden', product_name).
     """
     product = Product.query.get_or_404(product_id)
     name = product.name
@@ -413,10 +464,7 @@ def delete_product(product_id):
         product = db.session.get(Product, product_id)
         product.is_active = False
         db.session.commit()
-        flash(f'"{name}" đã có đơn hàng liên quan nên không thể xóa hẳn - '
-              f'đã ẩn khỏi menu thay vì xóa. Đơn hàng cũ vẫn giữ nguyên.',
-              'success')
-        return redirect(url_for('admin.manage_products'))
+        return 'hidden', name
 
     # Only reaching here means the row is actually gone - safe to also drop
     # its image files now.
@@ -435,7 +483,62 @@ def delete_product(product_id):
         except Exception:
             logger.exception("Error deleting detail image")
 
-    flash(f'Sản phẩm "{name}" đã được xóa thành công!', 'success')
+    return 'deleted', name
+
+@bp.route('/admin/product/<int:product_id>/delete', methods=['POST'])
+@admin_required
+def delete_product(product_id):
+    outcome, name = _delete_product_or_hide(product_id)
+    if outcome == 'hidden':
+        flash(f'"{name}" đã có đơn hàng liên quan nên không thể xóa hẳn - '
+              f'đã ẩn khỏi menu thay vì xóa. Đơn hàng cũ vẫn giữ nguyên.',
+              'success')
+    else:
+        flash(f'Sản phẩm "{name}" đã được xóa thành công!', 'success')
+    return redirect(url_for('admin.manage_products'))
+
+@bp.route('/admin/products/bulk_action', methods=['POST'])
+@admin_required
+def admin_products_bulk_action():
+    product_ids = [int(x) for x in request.form.getlist('product_ids') if x.isdigit()]
+    action = request.form.get('action', '')
+    if not product_ids:
+        flash('Chưa chọn sản phẩm nào', 'error')
+        return redirect(url_for('admin.manage_products'))
+
+    if action == 'set_price':
+        new_price = parse_vnd(request.form.get('price'))
+        if new_price is None:
+            flash('Giá không hợp lệ', 'error')
+            return redirect(url_for('admin.manage_products'))
+        count = Product.query.filter(Product.id.in_(product_ids)).update(
+            {'price': new_price}, synchronize_session=False)
+        db.session.commit()
+        flash(f'Đã đổi giá {count} sản phẩm thành {int(new_price):,} VNĐ'.replace(',', '.'),
+              'success')
+    elif action == 'show':
+        count = Product.query.filter(Product.id.in_(product_ids)).update(
+            {'is_active': True}, synchronize_session=False)
+        db.session.commit()
+        flash(f'Đã hiện lại {count} sản phẩm', 'success')
+    elif action == 'hide':
+        count = Product.query.filter(Product.id.in_(product_ids)).update(
+            {'is_active': False}, synchronize_session=False)
+        db.session.commit()
+        flash(f'Đã ẩn {count} sản phẩm', 'success')
+    elif action == 'delete':
+        deleted = hidden = 0
+        for pid in product_ids:
+            outcome, _ = _delete_product_or_hide(pid)
+            deleted += outcome == 'deleted'
+            hidden += outcome == 'hidden'
+        msg = f'Đã xóa {deleted} sản phẩm'
+        if hidden:
+            msg += f', {hidden} sản phẩm đã có đơn hàng nên chỉ ẩn thay vì xóa'
+        flash(msg, 'success')
+    else:
+        flash('Hành động không hợp lệ', 'error')
+
     return redirect(url_for('admin.manage_products'))
 
 

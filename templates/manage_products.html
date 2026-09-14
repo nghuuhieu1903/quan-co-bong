@@ -192,6 +192,45 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
+/* Bulk action bar: shown once at least one row is checked, sticks to the
+   top so it stays reachable while scrolling a long product list. */
+.bulk-action-bar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    background: var(--accent-color, #1F4E78);
+    color: white;
+    padding: 0.85rem 1.25rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.bulk-action-bar span {
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+.bulk-action-bar .form-control {
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    border: none;
+}
+
+@media (max-width: 768px) {
+    .bulk-action-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .bulk-action-bar .btn, .bulk-action-bar .form-control {
+        width: 100%;
+    }
+}
+
 /* Empty state */
 .empty-state {
     text-align: center;
@@ -292,12 +331,36 @@
     </form>
 </section>
 
+<!-- Bulk actions: chọn hàng loạt rồi áp dụng một thao tác cho tất cả -->
+<form id="bulkProductForm" method="POST" action="{{ url_for('admin.admin_products_bulk_action') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="action" id="bulkProductAction" value="">
+</form>
+<div id="bulkProductBar" class="bulk-action-bar" style="display: none;">
+    <span id="bulkProductCount">0 sản phẩm được chọn</span>
+    <input type="text" id="bulkProductPrice" name="price" form="bulkProductForm"
+           data-money placeholder="Giá mới (VNĐ)" class="form-control" style="width: 160px;">
+    <button type="button" class="btn btn-primary" onclick="submitProductBulk('set_price')">
+        <i class="fas fa-tag"></i> Đổi giá hàng loạt
+    </button>
+    <button type="button" class="btn btn-secondary" onclick="submitProductBulk('hide')">
+        <i class="fas fa-eye-slash"></i> Ẩn
+    </button>
+    <button type="button" class="btn btn-secondary" onclick="submitProductBulk('show')">
+        <i class="fas fa-eye"></i> Hiện lại
+    </button>
+    <button type="button" class="btn btn-danger" onclick="confirmProductBulkDelete()">
+        <i class="fas fa-trash"></i> Xóa
+    </button>
+</div>
+
 <!-- Products Table -->
 <section class="products-table">
     {% if products %}
     <table>
         <thead>
             <tr>
+                <th style="width: 2.5rem;"><input type="checkbox" id="selectAllProducts" onchange="toggleAllProducts(this)"></th>
                 <th class="hide-mobile">Hình ảnh</th>
                 <th>Tên sản phẩm</th>
                 <th>Giá</th>
@@ -310,6 +373,10 @@
         <tbody>
             {% for product in products %}
             <tr{% if not product.is_active %} style="opacity: 0.55;"{% endif %}>
+                <td>
+                    <input type="checkbox" class="row-check-product" name="product_ids"
+                           value="{{ product.id }}" form="bulkProductForm" onchange="updateProductBulkBar()">
+                </td>
                 <td class="hide-mobile">
                     <img src="{{ product.image_url }}" alt="{{ product.name }}" class="product-image-thumb">
                 </td>
@@ -416,5 +483,49 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 100 * (index + 1));
     });
 });
+
+function updateProductBulkBar() {
+    const checked = document.querySelectorAll('.row-check-product:checked');
+    const bar = document.getElementById('bulkProductBar');
+    document.getElementById('bulkProductCount').textContent =
+        checked.length + ' sản phẩm được chọn';
+    bar.style.display = checked.length > 0 ? 'flex' : 'none';
+    const all = document.querySelectorAll('.row-check-product');
+    document.getElementById('selectAllProducts').checked =
+        all.length > 0 && checked.length === all.length;
+}
+
+function toggleAllProducts(master) {
+    document.querySelectorAll('.row-check-product').forEach(cb => { cb.checked = master.checked; });
+    updateProductBulkBar();
+}
+
+function submitProductBulk(action) {
+    const checked = document.querySelectorAll('.row-check-product:checked');
+    if (checked.length === 0) {
+        alert('Chưa chọn sản phẩm nào');
+        return;
+    }
+    if (action === 'set_price') {
+        const price = document.getElementById('bulkProductPrice').value.trim();
+        if (!price) {
+            alert('Nhập giá mới trước khi đổi giá hàng loạt');
+            return;
+        }
+    }
+    document.getElementById('bulkProductAction').value = action;
+    document.getElementById('bulkProductForm').submit();
+}
+
+function confirmProductBulkDelete() {
+    const checked = document.querySelectorAll('.row-check-product:checked');
+    if (checked.length === 0) {
+        alert('Chưa chọn sản phẩm nào');
+        return;
+    }
+    if (confirm(`Xóa ${checked.length} sản phẩm đã chọn? Sản phẩm đã có đơn hàng sẽ tự động ẩn thay vì xóa hẳn.`)) {
+        submitProductBulk('delete');
+    }
+}
 </script>
 {% endblock %}

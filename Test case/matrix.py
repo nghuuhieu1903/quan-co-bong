@@ -33,6 +33,12 @@ MATRIX = [
     TestCase('SP-07', 'Sản phẩm', 'Sản phẩm bị ẩn không hiện cho khách', 'Khác',
              'Sau khi ẩn ở SP-04, kiểm tra trang khách hàng và màn hình bán hàng (POS)',
              'Sản phẩm đã ẩn không xuất hiện ở trang chủ, danh mục, hay POS'),
+    TestCase('SP-08', 'Sản phẩm', 'Đổi giá hàng loạt nhiều sản phẩm', 'Sửa',
+             'Admin chọn nhiều sản phẩm cùng lúc rồi nhập một giá mới, áp dụng cho tất cả',
+             'Tất cả sản phẩm được chọn đổi thành đúng giá mới, sản phẩm không được chọn giữ nguyên giá cũ'),
+    TestCase('SP-09', 'Sản phẩm', 'Xóa hàng loạt nhiều sản phẩm', 'Xóa',
+             'Admin chọn nhiều sản phẩm (một sản phẩm chưa từng bán, một sản phẩm đã có đơn hàng) rồi xóa cùng lúc',
+             'Sản phẩm chưa từng bán bị xóa hẳn; sản phẩm đã có đơn hàng chỉ bị ẩn - giống hệt quy tắc xóa từng cái một'),
 
     # --- Phòng ---------------------------------------------------------
     TestCase('PH-01', 'Phòng', 'Thêm phòng mới', 'Thêm',
@@ -53,6 +59,12 @@ MATRIX = [
     TestCase('PH-06', 'Phòng', 'Cập nhật trạng thái đặt phòng', 'Sửa',
              'Admin đổi trạng thái một lượt đặt phòng (chờ/xác nhận/hủy)',
              'Trạng thái đặt phòng được cập nhật đúng'),
+    TestCase('PH-07', 'Phòng', 'Đổi giá hàng loạt nhiều phòng', 'Sửa',
+             'Admin chọn nhiều phòng cùng lúc rồi nhập một giá thuê mới, áp dụng cho tất cả',
+             'Tất cả phòng được chọn đổi thành đúng giá mới, phòng không được chọn giữ nguyên giá cũ'),
+    TestCase('PH-08', 'Phòng', 'Xóa hàng loạt nhiều phòng', 'Xóa',
+             'Admin chọn nhiều phòng (một phòng chưa từng có lịch đặt, một phòng đã có lịch đặt) rồi xóa cùng lúc',
+             'Phòng chưa từng có lịch đặt bị xóa hẳn; phòng đã có lịch đặt chỉ bị đóng - giống hệt quy tắc xóa từng cái một'),
 
     # --- Đơn hàng --------------------------------------------------------
     TestCase('DH-01', 'Đơn hàng', 'Tạo đơn tại quầy (POS)', 'Thêm',

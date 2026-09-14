@@ -155,6 +155,55 @@ def product_flows(rep, ids, app):
     else:
         rep.check('SP-03', False, 'không tạo được sản phẩm để thử xóa')
 
+    # SP-08 đổi giá hàng loạt: 2 sản phẩm được chọn phải đổi giá, 1 sản phẩm
+    # không được chọn phải giữ nguyên giá cũ
+    with app.app_context():
+        bulk_a = models.Product(name='QA Bulk A', description='', price=11111,
+                                stock=5, category='coffee', item_type='drink')
+        bulk_b = models.Product(name='QA Bulk B', description='', price=22222,
+                                stock=5, category='coffee', item_type='drink')
+        bulk_untouched = models.Product(name='QA Bulk Untouched', description='',
+                                        price=33333, stock=5, category='coffee',
+                                        item_type='drink')
+        db.session.add_all([bulk_a, bulk_b, bulk_untouched])
+        db.session.commit()
+        ids['bulk_products'] = [bulk_a.id, bulk_b.id, bulk_untouched.id]
+
+    post(a, '/admin/products/bulk_action', {
+        'product_ids': [str(bulk_a.id), str(bulk_b.id)], 'action': 'set_price',
+        'price': '18000',
+    }, '/admin/manage_products')
+    with app.app_context():
+        pa = db.session.get(models.Product, bulk_a.id)
+        pb = db.session.get(models.Product, bulk_b.id)
+        pu = db.session.get(models.Product, bulk_untouched.id)
+        ok = pa.price == 18000 and pb.price == 18000 and pu.price == 33333
+    rep.check('SP-08', ok, f'A={pa.price} B={pb.price} untouched={pu.price}')
+
+    # SP-09 xóa hàng loạt: 1 sản phẩm chưa từng bán (xóa hẳn), 1 sản phẩm đã
+    # có đơn hàng (chỉ ẩn) - chọn cùng lúc rồi xóa 1 lần
+    with app.app_context():
+        o = models.Order(customer_name='QA Bulk Delete', customer_phone='0900000001',
+                         total_amount=18000, status='completed')
+        db.session.add(o)
+        db.session.flush()
+        db.session.add(models.OrderItem(order_id=o.id, product_id=bulk_b.id,
+                                        quantity=1, price=18000))
+        db.session.commit()
+        ids['order_for_sp09'] = o.id
+
+    post(a, '/admin/products/bulk_action', {
+        'product_ids': [str(bulk_a.id), str(bulk_b.id)], 'action': 'delete',
+    }, '/admin/manage_products')
+    with app.app_context():
+        gone = db.session.get(models.Product, bulk_a.id) is None
+        hidden = db.session.get(models.Product, bulk_b.id)
+        hidden_ok = hidden is not None and hidden.is_active is False
+    rep.check('SP-09', gone and hidden_ok,
+              f'A đã xóa hẳn={gone}, B đã có đơn nên chỉ ẩn={hidden_ok}')
+    if gone:
+        ids['bulk_products'].remove(bulk_a.id)
+
 
 # ---------------------------------------------------------------------------
 # Phòng
@@ -236,6 +285,54 @@ def room_flows(rep, ids, app):
         rep.check('PH-04', gone)
     else:
         rep.check('PH-04', False, 'không tạo được phòng để thử xóa')
+
+    # PH-07 đổi giá hàng loạt: 2 phòng được chọn phải đổi giá, 1 phòng không
+    # được chọn phải giữ nguyên giá cũ
+    with app.app_context():
+        bulk_a = models.Room(name='QA Bulk Room A', description='', price_per_hour=1000000,
+                             price_unit='tháng', capacity=1, amenities='[]', available=True)
+        bulk_b = models.Room(name='QA Bulk Room B', description='', price_per_hour=2000000,
+                             price_unit='tháng', capacity=1, amenities='[]', available=True)
+        bulk_untouched = models.Room(name='QA Bulk Room Untouched', description='',
+                                     price_per_hour=3000000, price_unit='tháng', capacity=1,
+                                     amenities='[]', available=True)
+        db.session.add_all([bulk_a, bulk_b, bulk_untouched])
+        db.session.commit()
+        ids['bulk_rooms'] = [bulk_a.id, bulk_b.id, bulk_untouched.id]
+
+    post(a, '/admin/rooms/bulk_action', {
+        'room_ids': [str(bulk_a.id), str(bulk_b.id)], 'action': 'set_price',
+        'price': '1800000',
+    }, '/admin/rooms')
+    with app.app_context():
+        ra = db.session.get(models.Room, bulk_a.id)
+        rb = db.session.get(models.Room, bulk_b.id)
+        ru = db.session.get(models.Room, bulk_untouched.id)
+        ok = ra.price_per_hour == 1800000 and rb.price_per_hour == 1800000 and ru.price_per_hour == 3000000
+    rep.check('PH-07', ok, f'A={ra.price_per_hour} B={rb.price_per_hour} untouched={ru.price_per_hour}')
+
+    # PH-08 xóa hàng loạt: 1 phòng chưa từng có lịch đặt (xóa hẳn), 1 phòng
+    # đã có lịch đặt (chỉ đóng) - chọn cùng lúc rồi xóa 1 lần
+    with app.app_context():
+        bk = models.RoomBooking(
+            room_id=bulk_b.id, customer_name='QA Bulk Delete', customer_phone='0900000002',
+            booking_date=datetime.date(2030, 1, 1), start_time=datetime.time(9, 0),
+            end_time=datetime.time(11, 0), total_hours=2.0, total_price=0, status='pending')
+        db.session.add(bk)
+        db.session.commit()
+        ids['booking_for_ph08'] = bk.id
+
+    post(a, '/admin/rooms/bulk_action', {
+        'room_ids': [str(bulk_a.id), str(bulk_b.id)], 'action': 'delete',
+    }, '/admin/rooms')
+    with app.app_context():
+        gone = db.session.get(models.Room, bulk_a.id) is None
+        closed = db.session.get(models.Room, bulk_b.id)
+        closed_ok = closed is not None and closed.available is False
+    rep.check('PH-08', gone and closed_ok,
+              f'A đã xóa hẳn={gone}, B đã có lịch nên chỉ đóng={closed_ok}')
+    if gone:
+        ids['bulk_rooms'].remove(bulk_a.id)
 
 
 # ---------------------------------------------------------------------------
@@ -604,10 +701,22 @@ def cleanup(ids, app):
             if o:
                 db.session.delete(o); removed.append(f'Order#{oid}')
 
+        if ids.get('order_for_sp09'):
+            oid = ids['order_for_sp09']
+            models.OrderItem.query.filter_by(order_id=oid).delete()
+            o = db.session.get(models.Order, oid)
+            if o:
+                db.session.delete(o); removed.append(f'Order#{oid}')
+
         if ids.get('booking'):
             b = db.session.get(models.RoomBooking, ids['booking'])
             if b:
                 db.session.delete(b); removed.append(f'RoomBooking#{ids["booking"]}')
+
+        if ids.get('booking_for_ph08'):
+            b = db.session.get(models.RoomBooking, ids['booking_for_ph08'])
+            if b:
+                db.session.delete(b); removed.append(f'RoomBooking#{ids["booking_for_ph08"]}')
 
         if ids.get('room'):
             r = db.session.get(models.Room, ids['room'])
@@ -620,12 +729,23 @@ def cleanup(ids, app):
             if r:
                 db.session.delete(r); removed.append(f'Room({name})')
 
+        for rid in ids.get('bulk_rooms', []) or []:
+            r = db.session.get(models.Room, rid)
+            if r:
+                models.RoomBooking.query.filter_by(room_id=r.id).delete()
+                db.session.delete(r); removed.append(f'Room#{rid}')
+
         if ids.get('product'):
             p = db.session.get(models.Product, ids['product'])
             if p:
                 for img in list(p.images):
                     db.session.delete(img)
                 db.session.delete(p); removed.append(f'Product#{ids["product"]}')
+
+        for pid in ids.get('bulk_products', []) or []:
+            p = db.session.get(models.Product, pid)
+            if p:
+                db.session.delete(p); removed.append(f'Product#{pid}')
 
         for name in ('QA Test Drink Clean',):
             p = models.Product.query.filter_by(name=name).first()
