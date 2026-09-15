@@ -236,23 +236,19 @@
         }
 
         .mobile-topbar-brand {
-            
+            /* it is a <button> now (opens the menu), not a link - reset the
+               native button chrome so it still just looks like a logo+name */
+            background: none;
+            border: none;
+            font: inherit;
             font-size: 1.1rem;
             color: var(--text-primary);
             text-decoration: none;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-        }
-
-        .mobile-menu-btn {
-            display: block;
-            background: none;
-            border: none;
-            font-size: 1.4rem;
-            color: var(--text-primary);
+            padding: 0;
             cursor: pointer;
-            padding: 0.25rem 0.5rem;
         }
 
         .sidebar-overlay {
@@ -355,7 +351,7 @@
         <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <a href="{{ url_for('public.index') }}" class="sidebar-brand">
-                <img src="{{ seo.icons['apple-touch-icon.png'] }}" alt="" class="brand-logo"> {{ seo.site_name }}
+                <img src="{{ seo.icons['apple-touch-icon.png'] }}" alt="" class="brand-logo"> Cô Bông
             </a>
 
             <nav class="sidebar-nav">
@@ -409,9 +405,14 @@
         <div class="main-area">
             <!-- Mobile top bar -->
             <div class="mobile-topbar">
-                <a href="{{ url_for('public.index') }}" class="mobile-topbar-brand">
-                    <img src="{{ seo.icons['apple-touch-icon.png'] }}" alt="" class="brand-logo"> {{ seo.site_name }}
-                </a>
+                {# Tapping the logo itself opens the menu on a phone now -
+                   there is no room for a second, separate hamburger icon
+                   once the cart/theme/language buttons are all in this same
+                   row, and a whole-logo tap target is easier to hit anyway. #}
+                <button type="button" class="mobile-topbar-brand" onclick="toggleSidebar()"
+                        aria-label="{{ _('nav_catalogue') }}" aria-haspopup="true" aria-controls="sidebar">
+                    <img src="{{ seo.icons['apple-touch-icon.png'] }}" alt="" class="brand-logo"> Cô Bông
+                </button>
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <a href="{{ url_for('public.change_lang', lang='en' if current_lang == 'vi' else 'vi') }}" class="lang-toggle-btn" title="Switch language / Đổi ngôn ngữ">
                         <i class="fa-solid fa-globe"></i> {{ current_lang|upper }}
@@ -428,9 +429,6 @@
                         <span class="cart-count" data-cart-count
                               {% if not session.get('cart', []) %}hidden{% endif %}>{{ session.get('cart', [])|length }}</span>
                     </a>
-                    <button class="mobile-menu-btn" onclick="toggleSidebar()">
-                        <i class="fas fa-bars" id="mobile-menu-icon"></i>
-                    </button>
                 </div>
             </div>
 
@@ -624,24 +622,15 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
-            const icon = document.getElementById('mobile-menu-icon');
 
             sidebar.classList.toggle('active');
             overlay.classList.toggle('active');
-
-            if (sidebar.classList.contains('active')) {
-                icon.className = 'fas fa-times';
-                document.body.style.overflow = 'hidden';
-            } else {
-                icon.className = 'fas fa-bars';
-                document.body.style.overflow = '';
-            }
+            document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
         }
 
         function closeSidebar() {
             document.getElementById('sidebar').classList.remove('active');
             document.getElementById('sidebarOverlay').classList.remove('active');
-            document.getElementById('mobile-menu-icon').className = 'fas fa-bars';
             document.body.style.overflow = '';
         }
 
