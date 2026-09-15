@@ -25,6 +25,10 @@ class Product(db.Model):
     # A dish the shop is serving today. These sort to the top of the food tab;
     # snacks and everything else follow.
     is_daily = db.Column(db.Boolean, nullable=False, default=False)
+    # A "Đặc biệt" callout so a new or unusual item gets noticed instead of
+    # sitting unnoticed in the full list - shown on the homepage and the
+    # Cơm trưa tab.
+    is_special = db.Column(db.Boolean, nullable=False, default=False)
     # Once a product has been ordered, deleting the row would violate the
     # OrderItem foreign key (MySQL rejects it) - and even if it did not,
     # erasing a product that appears on real order history/debt records

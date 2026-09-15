@@ -39,6 +39,9 @@ MATRIX = [
     TestCase('SP-09', 'Sản phẩm', 'Xóa hàng loạt nhiều sản phẩm', 'Xóa',
              'Admin chọn nhiều sản phẩm (một sản phẩm chưa từng bán, một sản phẩm đã có đơn hàng) rồi xóa cùng lúc',
              'Sản phẩm chưa từng bán bị xóa hẳn; sản phẩm đã có đơn hàng chỉ bị ẩn - giống hệt quy tắc xóa từng cái một'),
+    TestCase('SP-10', 'Sản phẩm', 'Gắn nhãn "Đặc biệt" khi thêm/sửa sản phẩm', 'Sửa',
+             'Admin tick "Đặc biệt" khi thêm sản phẩm mới, rồi bỏ tick lại khi sửa sản phẩm đó',
+             'Cờ is_special lưu đúng lúc thêm (bật) và lúc sửa (tắt); nhãn "Đặc biệt" chỉ hiện ở trang chủ và tab Cơm trưa, không hiện ở tab Ăn vặt/Đồ uống'),
 
     # --- Phòng ---------------------------------------------------------
     TestCase('PH-01', 'Phòng', 'Thêm phòng mới', 'Thêm',

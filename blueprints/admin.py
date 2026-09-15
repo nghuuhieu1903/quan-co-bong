@@ -385,10 +385,11 @@ def add_product():
             item_type = 'drink'
         # only food can be "today's dish"; the flag means nothing on a drink
         is_daily = bool(request.form.get('is_daily')) and item_type == 'food'
+        is_special = bool(request.form.get('is_special'))
 
         image_url = save_uploaded_file(request.files.get('image'))
 
-        product = Product(name=name, description=description, price=price, stock=stock, category=category, item_type=item_type, is_daily=is_daily, image=image_url)  # type: ignore[call-arg]
+        product = Product(name=name, description=description, price=price, stock=stock, category=category, item_type=item_type, is_daily=is_daily, is_special=is_special, image=image_url)  # type: ignore[call-arg]
         db.session.add(product)
         db.session.flush()  # Get product.id before committing
 
@@ -426,6 +427,7 @@ def edit_product(product_id):
         product.item_type = item_type if item_type in ('drink', 'food') else 'drink'
         product.is_daily = (bool(request.form.get('is_daily'))
                             and product.item_type == 'food')
+        product.is_special = bool(request.form.get('is_special'))
 
         db.session.commit()
         flash('Sản phẩm đã cập nhật thành công', 'success')

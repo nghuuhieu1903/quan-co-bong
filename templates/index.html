@@ -78,10 +78,23 @@
     
     .featured-products .grid,
     .best-sellers .grid {
-        grid-template-columns: 1fr !important;
-        gap: 1rem !important;
+        /* Stays 2-up even at phone width - 1 column here was blowing each
+           card up to the full screen width, which reads as zoomed-in and
+           broken rather than deliberately large. */
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.75rem !important;
     }
-    
+
+    .best-sellers .product-card,
+    .featured-products .product-card {
+        padding: 0.75rem !important;
+    }
+
+    .best-sellers .product-image,
+    .featured-products .product-image {
+        height: 120px !important;
+    }
+
     .card-header {
         flex-direction: column !important;
         gap: 1rem !important;
@@ -176,11 +189,14 @@
                 </a>
                 
                 <div class="product-info">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                        <a href="{{ url_for('public.product_detail_route', product_id=product.id) }}" style="text-decoration: none; color: inherit;">
-                            <h3 class="product-title">{{ product.name }}</h3>
+                    <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem 0.5rem; margin-bottom: 0.5rem;">
+                        <a href="{{ url_for('public.product_detail_route', product_id=product.id) }}" style="text-decoration: none; color: inherit; min-width: 0;">
+                            <h3 class="product-title" style="overflow-wrap: anywhere;">{{ product.name }}</h3>
                         </a>
-                        <span class="badge badge-danger" style="font-size: 0.7rem;">Hot</span>
+                        <span class="badge badge-danger" style="font-size: 0.7rem; flex-shrink: 0;">Hot</span>
+                        {% if product.is_special %}
+                        <span class="badge" style="font-size: 0.7rem; flex-shrink: 0; background: #8b5cf6; color: white;">Đặc biệt</span>
+                        {% endif %}
                     </div>
                     <p style="color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.5;">
                         {{ product.description[:80] }}{% if product.description|length > 80 %}...{% endif %}

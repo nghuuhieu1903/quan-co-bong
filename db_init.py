@@ -67,6 +67,7 @@ def init_database():
         ensure_column('product', 'item_type', "ALTER TABLE product ADD COLUMN item_type VARCHAR(20) NOT NULL DEFAULT 'drink'")
         ensure_column('product', 'is_daily', "ALTER TABLE product ADD COLUMN is_daily TINYINT(1) NOT NULL DEFAULT 0")
         ensure_column('product', 'is_active', "ALTER TABLE product ADD COLUMN is_active TINYINT(1) NOT NULL DEFAULT 1")
+        ensure_column('product', 'is_special', "ALTER TABLE product ADD COLUMN is_special TINYINT(1) NOT NULL DEFAULT 0")
         ensure_column('order', 'reminder_at', "ALTER TABLE `order` ADD COLUMN reminder_at DATETIME")
         ensure_column('order', 'reminder_notified', "ALTER TABLE `order` ADD COLUMN reminder_notified TINYINT(1) NOT NULL DEFAULT 0")
         ensure_column('room', 'basic_costs', "ALTER TABLE room ADD COLUMN basic_costs TEXT")

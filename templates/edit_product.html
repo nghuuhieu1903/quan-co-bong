@@ -90,7 +90,7 @@
                     <option value="food" {% if product.item_type == 'food' %}selected{% endif %}>Đồ ăn</option>
                 </select>
                 <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">
-                    <i class="fas fa-info-circle"></i> Quyết định mặt hàng này hiện ở trang "Đồ uống" hay "Đồ ăn".
+                    <i class="fas fa-info-circle"></i> Quyết định mặt hàng này hiện ở trang "Đồ uống", "Cơm trưa" hay "Ăn vặt".
                 </small>
             </div>
 
@@ -99,8 +99,19 @@
                     <input type="checkbox" name="is_daily" value="1"{% if product.is_daily %} checked{% endif %}>
                     <span>
                         <strong>Món ăn hằng ngày</strong>
-                        <small>Món đang bán hôm nay. Những món này đứng đầu tab "Đồ ăn";
-                               đồ ăn vặt xếp phía dưới.</small>
+                        <small>Món đang bán hôm nay, hiện ở tab "Cơm trưa". Bỏ tick nếu đây là
+                               món ăn vặt bán quanh năm - sẽ hiện ở tab "Ăn vặt" thay vào đó.</small>
+                    </span>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label class="daily-toggle">
+                    <input type="checkbox" name="is_special" value="1"{% if product.is_special %} checked{% endif %}>
+                    <span>
+                        <strong>Đặc biệt</strong>
+                        <small>Gắn nhãn "Đặc biệt" ở trang chủ và tab "Cơm trưa" - dùng cho món
+                               lạ, mới, muốn khách để ý tới.</small>
                     </span>
                 </label>
             </div>

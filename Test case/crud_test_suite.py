@@ -204,6 +204,38 @@ def product_flows(rep, ids, app):
     if gone:
         ids['bulk_products'].remove(bulk_a.id)
 
+    # SP-10 gắn nhãn "Đặc biệt" lúc thêm, bỏ nhãn lúc sửa
+    post(a, '/admin/product/add', {
+        'name': 'QA Special Dish', 'description': 'món đặc biệt test',
+        'price': '50000', 'stock': '5', 'category': 'food',
+        'item_type': 'food', 'is_daily': '1', 'is_special': '1',
+    }, '/admin/product/add')
+    with app.app_context():
+        special_product = models.Product.query.filter_by(name='QA Special Dish').first()
+    added_ok = special_product is not None and special_product.is_special is True
+    ids['special_product'] = special_product.id if special_product else None
+
+    badge_shows = False
+    removed_ok = False
+    if special_product:
+        lunch_page = a.get('/products?type=food&food_kind=daily').get_data(as_text=True)
+        badge_shows = ('QA Special Dish' in lunch_page
+                       and 'is-special">Đặc biệt' in lunch_page)
+
+        # sửa lại: bỏ tick "Đặc biệt" - is_special phải tắt
+        post(a, f'/admin/product/{special_product.id}/edit', {
+            'name': 'QA Special Dish', 'description': 'món đặc biệt test',
+            'price': '50000', 'stock': '5', 'category': 'food', 'item_type': 'food',
+            'is_daily': '1',   # is_special cố tình không gửi -> phải tắt
+        }, f'/admin/product/{special_product.id}/edit')
+        with app.app_context():
+            after_edit = db.session.get(models.Product, special_product.id)
+            removed_ok = after_edit.is_special is False
+
+    rep.check('SP-10', added_ok and badge_shows and removed_ok,
+              f'thêm bật is_special={added_ok}, nhãn hiện ở Cơm trưa={badge_shows}, '
+              f'sửa tắt is_special={removed_ok}')
+
 
 # ---------------------------------------------------------------------------
 # Phòng
@@ -964,6 +996,11 @@ def cleanup(ids, app):
             p = db.session.get(models.Product, pid)
             if p:
                 db.session.delete(p); removed.append(f'Product#{pid}')
+
+        if ids.get('special_product'):
+            p = db.session.get(models.Product, ids['special_product'])
+            if p:
+                db.session.delete(p); removed.append(f'Product#{ids["special_product"]}')
 
         for name in ('QA Test Drink Clean',):
             p = models.Product.query.filter_by(name=name).first()

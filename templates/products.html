@@ -492,6 +492,9 @@
                         {% if product.is_daily %}
                         <span class="sw-badge is-daily">Món hôm nay</span>
                         {% endif %}
+                        {% if product.is_special and item_type == 'food' and food_kind == 'daily' %}
+                        <span class="sw-badge is-special">Đặc biệt</span>
+                        {% endif %}
                         <span class="sw-badge {% if product.stock <= 0 %}is-out{% endif %}">
                             {% if product.stock > 0 %}{{ _('prod_in_stock') }}{% else %}{{ _('prod_out_of_stock') }}{% endif %}
                         </span>

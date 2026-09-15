@@ -684,6 +684,7 @@ input[type="range"]::-moz-range-thumb {
     font-size: 16px;
     font-weight: 400;
     text-transform: uppercase;
+    white-space: nowrap;
 }
 
 .badge-success {
@@ -1122,6 +1123,18 @@ html.show-onboarding body {
 
 .sw-media .sw-badge.is-out {
     background: var(--danger-color);
+}
+
+/* "Đặc biệt": top-right, so it never collides with the daily-dish badge
+   (top-left) or the stock badge (bottom-left). A violet distinct from the
+   site's other badge colors (green/amber/red/blue) so it reads as its own
+   category rather than a stock or freshness signal. */
+.sw-media .sw-badge.is-special {
+    top: 0.6rem;
+    bottom: auto;
+    left: auto;
+    right: 0.6rem;
+    background: #8b5cf6;
 }
 
 @media (max-width: 768px) {
