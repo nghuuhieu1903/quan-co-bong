@@ -792,24 +792,26 @@ html.show-onboarding body {
 
 /* Product card call-to-action pair ("thêm giỏ" + "mua ngay")
    ------------------------------------------------------------------
-   These two buttons share a row inside a product card. On the catalogue
-   page phones get a two-column grid, which leaves each button roughly 60px -
-   too narrow for an icon plus a label, so the label used to wrap onto a
-   second line and the two buttons ended up different heights. There the cart
-   button collapses to just its icon and the primary action takes the rest of
-   the row. The home page stacks its cards full-width and has room for both
-   labels, so the collapse is scoped to .products-layout rather than applied
-   at every narrow viewport. */
+   The quantity stepper and the icon-only cart button must always share one
+   row, with "Mua ngay" on its own row below. This used to be flexbox with
+   flex-wrap - which meant the row's fate depended on every child's computed
+   width adding up correctly, and the exact number that tips it over varies
+   by device: a bigger font-scale setting, a browser's own number-input
+   spinner, slightly different sub-pixel rounding, all pushed the cart
+   button onto its own third row despite fitting on desktop/headless
+   testing. A 2-column CSS grid makes the row split structural instead of
+   arithmetic: the cart button's column is exactly as wide as the button,
+   the stepper's column takes the rest, and nothing can ever wrap to a
+   different row because there is no wrapping mechanism involved at all. */
 .product-cta {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr auto;
     gap: 0.5rem;
     width: 100%;
-    align-items: stretch;
 }
 
 .product-cta .btn {
-    min-width: 0;          /* allow shrinking; flex items default to min-content */
+    min-width: 0;          /* allow shrinking; flex/grid items default to min-content */
     justify-content: center;
     gap: 0.35rem;
     padding: 10px 8px;
@@ -817,28 +819,24 @@ html.show-onboarding body {
     white-space: nowrap;   /* short labels; wrapping was the defect */
 }
 
-/* Row one is the quantity stepper plus a square icon-only cart button; row
-   two is the primary action across the full width. The label came off the
-   cart button because at card width it was being clipped, so the icon plus
-   its aria-label/title carry the meaning now. */
 .product-cta .quantity-selector {
-    flex: 1 1 auto;
+    grid-column: 1;
+    grid-row: 1;
     min-width: 0;
     margin-bottom: 0;
 }
 
 .product-cta .btn-cart {
-    flex: 0 0 40px;
+    grid-column: 2;
+    grid-row: 1;
     width: 40px;
     padding: 0;
     min-height: 38px;      /* square even when it is the tallest thing in the row */
 }
 
-/* Inside a card the stepper has to share ~170px with the cart button, so it
-   uses a tighter scale than the one on the product detail page. Without this
-   the row is 12px too wide and the cart button wraps to a line of its own. */
 .product-cta .quantity-controls {
     width: 100%;
+    min-width: 0;
 }
 
 .product-cta .quantity-btn {
@@ -852,10 +850,21 @@ html.show-onboarding body {
     min-width: 0;
     flex: 1 1 auto;
     font-size: 0.9rem;
+    /* the native up/down spinner is dead weight in a stepper that already
+       has its own +/- buttons, and its width isn't consistent across
+       browsers - remove it so it never eats into the row's budget */
+    -moz-appearance: textfield;
+}
+
+.product-cta .quantity-input::-webkit-outer-spin-button,
+.product-cta .quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .product-cta .btn-buy {
-    flex: 1 0 100%;        /* forces its own row */
+    grid-column: 1 / -1;   /* its own full-width row below the stepper */
+    grid-row: 2;
 }
 
 @media (max-width: 768px) {
@@ -869,21 +878,10 @@ html.show-onboarding body {
         min-height: 36px;
     }
 
-    .product-cta .btn-cart {
-        flex: 0 0 38px;
-        width: 38px;
-    }
-
-    /* The stepper is on the card at every width now, so the primary action
-       keeps its own full-width row underneath it. */
-    .product-cta .btn-buy {
-        flex: 1 0 100%;
-    }
-
     /* At two cards per row there is about 150px to share between the stepper
-       and the cart button, so both shrink to fit rather than wrapping. */
+       and the cart button, so both shrink; the grid guarantees they still
+       never end up on different rows. */
     .product-cta .btn-cart {
-        flex: 0 0 34px;
         width: 34px;
     }
 
