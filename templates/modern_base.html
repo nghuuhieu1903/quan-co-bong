@@ -361,7 +361,7 @@
                 {# One entry for the whole catalogue. Food and drink are tabs
                    inside the page, so two sidebar rows pointing at the same
                    page only made it ambiguous which one was current. #}
-                <a href="{{ url_for('public.products') }}" class="sidebar-link {% if current_endpoint in ['products', 'product_detail_route'] %}active{% endif %}" onclick="closeSidebar()">
+                <a href="{{ url_for('public.products', type='food', food_kind='daily') }}" class="sidebar-link {% if current_endpoint in ['products', 'product_detail_route'] %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-bag-shopping"></i> {{ _('nav_catalogue') }}
                 </a>
                 <a href="{{ url_for('public.rooms') }}" class="sidebar-link {% if current_endpoint in ['rooms', 'room_detail'] %}active{% endif %}" onclick="closeSidebar()">
