@@ -646,7 +646,11 @@ input[type="range"]::-moz-range-thumb {
 .product-image {
     width: 100%;
     height: 200px;
-    object-fit: cover;
+    /* contain, not cover: a tall can/bottle photo cropped to fill this box
+       was losing its label and top/bottom - showing the whole image and
+       letting it shrink to fit keeps the product actually recognisable. */
+    object-fit: contain;
+    background: var(--bg-secondary);
     display: block;
     transition: transform 0.5s ease;
 }

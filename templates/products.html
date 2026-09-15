@@ -344,10 +344,14 @@
     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
         <div>
             <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.25rem 0;">
-                {% if item_type == 'food' %}{{ _('food_title') }}{% else %}{{ _('prod_title') }}{% endif %}
+                {% if item_type == 'food' and food_kind == 'snack' %}{{ _('snack_title') }}
+                {% elif item_type == 'food' %}{{ _('lunch_title') }}
+                {% else %}{{ _('prod_title') }}{% endif %}
             </h1>
             <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">
-                {% if item_type == 'food' %}{{ _('food_desc') }}{% else %}{{ _('prod_desc') }}{% endif %}
+                {% if item_type == 'food' and food_kind == 'snack' %}{{ _('snack_desc') }}
+                {% elif item_type == 'food' %}{{ _('lunch_desc') }}
+                {% else %}{{ _('prod_desc') }}{% endif %}
             </p>
         </div>
         <a href="{{ url_for('public.cart') }}" class="btn btn-primary" style="padding: 10px 18px;">
@@ -358,14 +362,20 @@
         </a>
     </div>
 
-    <!-- The two catalogue types as tabs. Both already existed as separate
-         sidebar links; this is the same ?type= switch, shown the way the
-         reference app shows its categories. -->
+    <!-- Đồ uống, Cơm trưa, Ăn vặt as tabs. Cơm trưa/Ăn vặt are both
+         ?type=food, split further by ?food_kind= on the same is_daily flag
+         the admin sets per product - "món ăn hằng ngày" goes to Cơm trưa,
+         everything else lands in Ăn vặt. -->
     <nav class="sw-tabs">
-        <a href="{{ url_for('public.products', type='food') }}"
-           class="sw-tab {% if item_type == 'food' %}active{% endif %}">
+        <a href="{{ url_for('public.products', type='food', food_kind='daily') }}"
+           class="sw-tab {% if item_type == 'food' and food_kind == 'daily' %}active{% endif %}">
             <span class="sw-tab-icon"><i class="fas fa-utensils"></i></span>
-            <span class="sw-tab-label">{{ _('nav_food') }}</span>
+            <span class="sw-tab-label">{{ _('nav_lunch') }}</span>
+        </a>
+        <a href="{{ url_for('public.products', type='food', food_kind='snack') }}"
+           class="sw-tab {% if item_type == 'food' and food_kind == 'snack' %}active{% endif %}">
+            <span class="sw-tab-icon"><i class="fas fa-cookie-bite"></i></span>
+            <span class="sw-tab-label">{{ _('nav_snack') }}</span>
         </a>
         <a href="{{ url_for('public.products') }}"
            class="sw-tab {% if item_type != 'food' %}active{% endif %}">
@@ -375,9 +385,10 @@
     </nav>
 
     <!-- Search runs the same GET filter form as the drawer; the hidden type
-         field keeps you on the tab you are looking at. -->
+         (and food_kind) fields keep you on the tab you are looking at. -->
     <form method="GET" action="{{ url_for('public.products') }}" class="sw-searchbar">
         <input type="hidden" name="type" value="{{ item_type }}">
+        {% if item_type == 'food' %}<input type="hidden" name="food_kind" value="{{ food_kind }}">{% endif %}
         {% if request.args.get('sort') %}<input type="hidden" name="sort" value="{{ request.args.get('sort') }}">{% endif %}
         {% if request.args.get('price_range') %}<input type="hidden" name="price_range" value="{{ request.args.get('price_range') }}">{% endif %}
         <label class="sw-search">
@@ -396,7 +407,7 @@
         {% set current_sort = request.args.get('sort', '') %}
         {% for value, label in [('', 'Tất cả'), ('best_selling', 'Mua nhiều'), ('newest', 'Mới nhất'), ('price_low', 'Giá thấp đến cao'), ('price_high', 'Giá cao đến thấp'), ('name', 'Tên A-Z'), ('name_desc', 'Tên Z-A')] %}
         <a class="sw-chip {% if current_sort == value %}active{% endif %}"
-           href="{{ url_for('public.products', type=item_type, sort=value or None, search=request.args.get('search') or None, price_range=request.args.get('price_range') or None) }}">
+           href="{{ url_for('public.products', type=item_type, food_kind=food_kind if item_type == 'food' else None, sort=value or None, search=request.args.get('search') or None, price_range=request.args.get('price_range') or None) }}">
             {{ label }}
         </a>
         {% endfor %}
@@ -423,6 +434,7 @@
             <form method="GET" action="{{ url_for('public.products') }}">
                 <!-- without this the filter always returned to the drink tab -->
                 <input type="hidden" name="type" value="{{ item_type }}">
+                {% if item_type == 'food' %}<input type="hidden" name="food_kind" value="{{ food_kind }}">{% endif %}
                 <div style="padding: 1.5rem;">
                     <div class="form-group" style="margin-bottom: 1.5rem;">
                         <label class="form-label">Tìm kiếm sản phẩm</label>
@@ -464,7 +476,7 @@
                         <button type="submit" class="btn btn-primary" style="width: 100%; min-height: 44px; font-size: 16px; padding: 12px 20px;">
                             <i class="fas fa-search"></i> Tìm kiếm
                         </button>
-                        <a href="{{ url_for('public.products', type=item_type) }}" class="btn btn-secondary" style="width: 100%; min-height: 44px; font-size: 16px; padding: 12px 20px; text-align: center;">
+                        <a href="{{ url_for('public.products', type=item_type, food_kind=food_kind if item_type == 'food' else None) }}" class="btn btn-secondary" style="width: 100%; min-height: 44px; font-size: 16px; padding: 12px 20px; text-align: center;">
                             <i class="fas fa-redo"></i> Đặt lại
                         </a>
                     </div>
@@ -545,7 +557,7 @@
                 <p style="color: var(--text-secondary); margin-bottom: 2rem;">
                     Không có sản phẩm nào phù hợp với tiêu chí tìm kiếm của bạn.
                 </p>
-                <a href="{{ url_for('public.products', type=item_type) }}" class="btn btn-primary">
+                <a href="{{ url_for('public.products', type=item_type, food_kind=food_kind if item_type == 'food' else None) }}" class="btn btn-primary">
                     <i class="fas fa-redo"></i> Xem tất cả sản phẩm
                 </a>
             </div>

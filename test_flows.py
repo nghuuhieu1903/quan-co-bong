@@ -60,9 +60,14 @@ def customer_flows(rep, ids):
     c.get('/change_lang/vi')
 
     # --- catalogue tabs and filters --------------------------------------
+    # "Đồ ăn" is two ordering tabs now: Cơm trưa (is_daily) and Ăn vặt (not).
+    # A bare ?type=food with no food_kind lands on Cơm trưa.
     food = c.get('/products?type=food').get_data(as_text=True)
-    rep.check('sw-tab active' in food and 'Đồ ăn</span>' in food,
-              'food tab renders and marks itself active')
+    rep.check('sw-tab active' in food and 'Cơm trưa</span>' in food,
+              'food defaults to the Cơm trưa tab and marks itself active')
+    snacks = c.get('/products?type=food&food_kind=snack').get_data(as_text=True)
+    rep.check('sw-tab active' in snacks and 'Ăn vặt</span>' in snacks,
+              'the Ăn vặt tab renders and marks itself active')
     filtered = c.get('/products?type=food&sort=price_low').get_data(as_text=True)
     rep.check('type=food' in filtered, 'filtering keeps you on the food tab')
     searched = c.get('/products?search=espresso').get_data(as_text=True)

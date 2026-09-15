@@ -497,6 +497,32 @@ def order_and_cart_flows(rep, ids, app):
 
 
 # ---------------------------------------------------------------------------
+# Danh mục (trang khách hàng): tab Cơm trưa / Ăn vặt
+# ---------------------------------------------------------------------------
+
+def catalogue_flows(rep, ids, app):
+    c = ids['customer_client']
+    with app.app_context():
+        lunch = models.Product(name='QA Catalogue Lunch', description='', price=30000,
+                               stock=5, category='food', item_type='food', is_daily=True)
+        snack = models.Product(name='QA Catalogue Snack', description='', price=12000,
+                               stock=5, category='snack', item_type='food', is_daily=False)
+        db.session.add_all([lunch, snack])
+        db.session.commit()
+        ids['catalogue_products'] = [lunch.id, snack.id]
+
+    lunch_page = c.get('/products?type=food&food_kind=daily').get_data(as_text=True)
+    rep.check('DM-01', 'QA Catalogue Lunch' in lunch_page and 'QA Catalogue Snack' not in lunch_page,
+              f'lunch có món trưa={"QA Catalogue Lunch" in lunch_page}, '
+              f'lẫn món ăn vặt={"QA Catalogue Snack" in lunch_page}')
+
+    snack_page = c.get('/products?type=food&food_kind=snack').get_data(as_text=True)
+    rep.check('DM-02', 'QA Catalogue Snack' in snack_page and 'QA Catalogue Lunch' not in snack_page,
+              f'ăn vặt có món ăn vặt={"QA Catalogue Snack" in snack_page}, '
+              f'lẫn cơm trưa={"QA Catalogue Lunch" in snack_page}')
+
+
+# ---------------------------------------------------------------------------
 # Công nợ
 # ---------------------------------------------------------------------------
 
@@ -852,6 +878,11 @@ def cleanup(ids, app):
             if p:
                 db.session.delete(p); removed.append(f'Product#{pid}')
 
+        for pid in ids.get('catalogue_products', []) or []:
+            p = db.session.get(models.Product, pid)
+            if p:
+                db.session.delete(p); removed.append(f'Product#{pid}')
+
         for name in ('QA Test Drink Clean',):
             p = models.Product.query.filter_by(name=name).first()
             if p:
@@ -963,6 +994,8 @@ def main():
         room_flows(rep, ids, app)
         print('--- Đơn hàng & giỏ hàng ---')
         order_and_cart_flows(rep, ids, app)
+        print('--- Danh mục ---')
+        catalogue_flows(rep, ids, app)
         print('--- Công nợ ---')
         debt_flows(rep, ids, app)
         print('--- Tài khoản ---')

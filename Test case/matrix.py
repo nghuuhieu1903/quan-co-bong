@@ -92,6 +92,14 @@ MATRIX = [
              'Tài khoản admin thường cố xóa hàng loạt đơn hàng',
              'Bị từ chối, tất cả đơn hàng vẫn còn nguyên'),
 
+    # --- Danh mục (trang khách hàng) ---------------------------------
+    TestCase('DM-01', 'Danh mục', 'Tab "Cơm trưa" chỉ hiện món ăn hằng ngày', 'Khác',
+             'Khách vào tab Cơm trưa (?type=food&food_kind=daily)',
+             'Chỉ hiện các sản phẩm admin đã đánh dấu "món ăn hằng ngày" (is_daily), không lẫn món ăn vặt'),
+    TestCase('DM-02', 'Danh mục', 'Tab "Ăn vặt" loại trừ món ăn hằng ngày', 'Khác',
+             'Khách vào tab Ăn vặt (?type=food&food_kind=snack)',
+             'Chỉ hiện các món ăn KHÔNG được đánh dấu "món ăn hằng ngày", không lẫn cơm trưa'),
+
     # --- Giỏ hàng --------------------------------------------------------
     TestCase('GH-01', 'Giỏ hàng', 'Thêm vào giỏ hàng', 'Thêm',
              'Khách thêm một sản phẩm vào giỏ hàng',

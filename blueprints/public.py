@@ -61,11 +61,21 @@ def products():
     if item_type not in ('drink', 'food'):
         item_type = 'drink'
 
+    # "Đồ ăn" used to be one tab mixing daily lunch dishes with snacks - now
+    # split into two ordering tabs, keyed off the same is_daily flag the
+    # admin already sets per product. Only meaningful for food; a leftover
+    # ?food_kind= on a drink link is simply ignored.
+    food_kind = request.args.get('food_kind', '').strip()
+    if item_type == 'food' and food_kind not in ('daily', 'snack'):
+        food_kind = 'daily'   # old links to ?type=food land on Cơm trưa
+
     # Start with base query, scoped to the requested item type. A hidden
     # (is_active=False) product stays fully intact for its past orders but
     # drops off the customer-facing catalogue.
     query = Product.query.filter(Product.item_type == item_type,
                                  Product.is_active.is_(True))
+    if item_type == 'food':
+        query = query.filter(Product.is_daily.is_(food_kind == 'daily'))
 
     # Apply search filter
     if search_query:
@@ -122,15 +132,22 @@ def products():
     # Get filtered products
     products = query.all()
 
-    # Get all unique categories from database (within this item type)
-    categories = db.session.query(Product.category).filter(Product.item_type == item_type).distinct().all()
+    # Get all unique categories from database (within this item type + food_kind)
+    category_query = db.session.query(Product.category).filter(Product.item_type == item_type)
+    if item_type == 'food':
+        category_query = category_query.filter(Product.is_daily.is_(food_kind == 'daily'))
+    categories = category_query.distinct().all()
     categories = [cat[0] for cat in categories if cat[0]]  # Remove None values
 
-    # Get total products count (within this item type)
-    total_products = Product.query.filter(Product.item_type == item_type,
-                                          Product.is_active.is_(True)).count()
+    # Get total products count (within this item type + food_kind)
+    total_query = Product.query.filter(Product.item_type == item_type,
+                                       Product.is_active.is_(True))
+    if item_type == 'food':
+        total_query = total_query.filter(Product.is_daily.is_(food_kind == 'daily'))
+    total_products = total_query.count()
 
-    return render_template('products.html', products=products, categories=categories, total_products=total_products, item_type=item_type)
+    return render_template('products.html', products=products, categories=categories,
+                           total_products=total_products, item_type=item_type, food_kind=food_kind)
 
 @bp.route('/rooms')
 def rooms():

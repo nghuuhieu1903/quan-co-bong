@@ -6,6 +6,8 @@ TRANSLATIONS = {
         'nav_home': 'Trang chủ',
         'nav_products': 'Đồ uống',
         'nav_food': 'Đồ ăn',
+        'nav_lunch': 'Cơm trưa',
+        'nav_snack': 'Ăn vặt',
         # one sidebar entry covering both; the two tabs live inside it
         'nav_catalogue': 'Sản phẩm',
         'nav_rooms': 'Căn hộ dịch vụ',
@@ -32,6 +34,10 @@ TRANSLATIONS = {
         # Food
         'food_title': 'Tất cả món ăn',
         'food_desc': 'Thực đơn món ăn hằng ngày, tươi ngon mỗi ngày',
+        'lunch_title': 'Cơm trưa hôm nay',
+        'lunch_desc': 'Món ăn hằng ngày do quán chuẩn bị, đặt trước để không hết suất',
+        'snack_title': 'Ăn vặt',
+        'snack_desc': 'Đồ ăn vặt, món nhẹ có sẵn quanh năm',
         # Rooms / serviced apartments
         'room_title': 'Căn hộ dịch vụ cho thuê',
         'room_desc': 'Căn hộ dịch vụ đầy đủ tiện nghi, phù hợp cho lưu trú ngắn hoặc dài hạn.',
@@ -55,6 +61,8 @@ TRANSLATIONS = {
         'nav_home': 'Home',
         'nav_products': 'Drinks',
         'nav_food': 'Food',
+        'nav_lunch': 'Lunch',
+        'nav_snack': 'Snacks',
         'nav_catalogue': 'Products',
         'nav_rooms': 'Serviced Apartments',
         'nav_cart': 'Cart',
@@ -80,6 +88,10 @@ TRANSLATIONS = {
         # Food
         'food_title': 'All Food',
         'food_desc': 'Fresh daily food menu, made every day',
+        'lunch_title': "Today's Lunch",
+        'lunch_desc': 'Daily dishes prepared by the shop - order ahead before they run out',
+        'snack_title': 'Snacks',
+        'snack_desc': 'Snacks and light bites available year-round',
         # Rooms / serviced apartments
         'room_title': 'Serviced Apartments for Rent',
         'room_desc': 'Fully-equipped serviced apartments, great for short or long stays.',
