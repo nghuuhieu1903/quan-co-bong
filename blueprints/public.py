@@ -35,6 +35,26 @@ logger = logging.getLogger(__name__)
 bp = Blueprint('public', __name__)
 
 
+def prefill_contact():
+    """Name/phone to pre-fill the order form with, so a returning customer
+    never has to retype what the shop already has.
+
+    A logged-in customer's own saved profile wins - it is the one place the
+    name/phone can actually be kept up to date (edited once, used on every
+    order after). A guest with no account falls back to whatever they typed
+    on their last order this session, same as before this existed.
+    """
+    if session.get('customer_logged_in') and session.get('customer_id'):
+        customer = db.session.get(Customer, session['customer_id'])
+        if customer:
+            return customer.full_name, customer.phone
+    name = session.get('customer_name') or ''
+    phone = session.get('customer_phone') or ''
+    if phone == 'Not provided':
+        phone = ''
+    return name, phone
+
+
 @bp.route('/change_lang/<lang>')
 def change_lang(lang):
     if lang in ('vi', 'en'):
@@ -183,10 +203,13 @@ def cart():
             total += product.price * item['quantity']
     
     final_total = total
-    
+
     has_daily_item = any(p['product'].is_daily for p in products)
+    prefill_name, prefill_phone = prefill_contact()
     return render_template('cart.html', cart_items=products, products=products, subtotal=total,
-                           total=final_total, has_daily_item=has_daily_item)
+                           total=final_total, has_daily_item=has_daily_item,
+                           prefill_name=prefill_name, prefill_phone=prefill_phone,
+                           customer_logged_in=bool(session.get('customer_logged_in')))
 
 def wants_json():
     """True when the caller asked for JSON rather than a redirect.
@@ -368,16 +391,19 @@ def checkout():
                 })
                 total += product.price * item['quantity']
         
-        final_total = total 
+        final_total = total
         has_daily_item = any(p['product'].is_daily for p in products)
+        prefill_name, prefill_phone = prefill_contact()
         return render_template('checkout.html', cart_items=products, subtotal=total, total=final_total,
-                               bank_enabled=payments.is_configured(), has_daily_item=has_daily_item)
-    
+                               bank_enabled=payments.is_configured(), has_daily_item=has_daily_item,
+                               prefill_name=prefill_name, prefill_phone=prefill_phone,
+                               customer_logged_in=bool(session.get('customer_logged_in')))
+
     # Original GET logic
     products = []
     total = 0
 
-    
+
     for item in cart_items:
         product = Product.query.get(item['product_id'])
         if product:
@@ -387,12 +413,15 @@ def checkout():
                 'subtotal': product.price * item['quantity']
             })
             total += product.price * item['quantity']
-    
-    final_total = total 
+
+    final_total = total
     has_daily_item = any(p['product'].is_daily for p in products)
+    prefill_name, prefill_phone = prefill_contact()
     return render_template('checkout.html', cart_items=products, subtotal=total,
                            total=final_total, bank_enabled=payments.is_configured(),
-                           has_daily_item=has_daily_item)
+                           has_daily_item=has_daily_item,
+                           prefill_name=prefill_name, prefill_phone=prefill_phone,
+                           customer_logged_in=bool(session.get('customer_logged_in')))
 
 @bp.route('/process_order', methods=['POST'])
 def process_order():

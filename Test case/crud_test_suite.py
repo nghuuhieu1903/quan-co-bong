@@ -375,6 +375,43 @@ def order_and_cart_flows(rep, ids, app):
     cart = c.get('/cart').get_data(as_text=True)
     rep.check('GH-03', f'data-cart-row="{pid}"' not in cart)
 
+    # GH-05 tự động điền tên/SĐT khách đã đăng nhập
+    with app.app_context():
+        from werkzeug.security import generate_password_hash
+        test_customer = models.Customer.query.filter_by(username='qa_prefill_customer').first()
+        if not test_customer:
+            test_customer = models.Customer(username='qa_prefill_customer',
+                                            password=generate_password_hash('qaprefill123'),
+                                            full_name='QA Prefill Customer', phone='0955500001')
+            db.session.add(test_customer)
+            db.session.commit()
+        ids['prefill_customer'] = test_customer.id
+
+    logged_in_client = app.test_client()
+    ids['logged_in_client'] = logged_in_client
+    post(logged_in_client, '/customer/authenticate',
+         {'username': 'qa_prefill_customer', 'password': 'qaprefill123'}, '/customer/login')
+    post(logged_in_client, f'/add_to_cart/{pid}', {'quantity': '1'}, '/products')
+    cart_page = logged_in_client.get('/cart').get_data(as_text=True)
+    ok = 'value="QA Prefill Customer"' in cart_page and 'value="0955500001"' in cart_page
+    rep.check('GH-05', ok, 'kiểm tra ô tên/SĐT đã điền sẵn trên trang giỏ hàng')
+
+    # GH-06 đặt hộ người khác: submit với tên khác tài khoản, đơn phải lưu
+    # đúng tên người nhận vừa gõ, không tự ý dùng lại tên tài khoản
+    with app.app_context():
+        before = models.Order.query.count()
+    post(logged_in_client, '/process_order', {
+        'name': 'Người Nhận Hộ', 'phone': '0966600002',
+        'payment_method': 'cash', 'notes': 'crud suite - đặt hộ'}, '/cart')
+    with app.app_context():
+        after = models.Order.query.count()
+        new_order = models.Order.query.order_by(models.Order.id.desc()).first()
+    ok = (after == before + 1 and new_order is not None
+          and new_order.customer_name == 'Người Nhận Hộ'
+          and new_order.customer_phone == '0966600002')
+    rep.check('GH-06', ok, f'tên lưu={new_order.customer_name if new_order else "-"}')
+    ids['prefill_order'] = new_order.id if ok else None
+
     # DH-05 khách đặt hàng qua checkout
     post(c, f'/add_to_cart/{pid}', {'quantity': '1'}, '/products')
     with app.app_context():
@@ -824,6 +861,22 @@ def cleanup(ids, app):
             o = db.session.get(models.Order, oid)
             if o:
                 db.session.delete(o); removed.append(f'Order#{oid}')
+
+        if ids.get('prefill_order'):
+            oid = ids['prefill_order']
+            for it in models.OrderItem.query.filter_by(order_id=oid).all():
+                pr = db.session.get(models.Product, it.product_id)
+                if pr:
+                    pr.stock += it.quantity
+                db.session.delete(it)
+            o = db.session.get(models.Order, oid)
+            if o:
+                db.session.delete(o); removed.append(f'Order#{oid}')
+
+        if ids.get('prefill_customer'):
+            cu = db.session.get(models.Customer, ids['prefill_customer'])
+            if cu:
+                db.session.delete(cu); removed.append(f'Customer#{ids["prefill_customer"]}')
 
         if ids.get('order_for_sp04'):
             oid = ids['order_for_sp04']

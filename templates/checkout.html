@@ -353,22 +353,31 @@
             
             <form method="POST" action="{{ url_for('public.process_order') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                {% if customer_logged_in %}
+                <label class="sum-checkbox-field" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.85rem; font-size: 0.9rem; cursor: pointer;">
+                    <input type="checkbox" id="checkoutOrderForOther" style="width: 18px; height: 18px; cursor: pointer;"
+                           onchange="toggleOrderForOther(this, 'checkoutName', 'checkoutPhone')">
+                    <span>Đặt hộ người khác</span>
+                </label>
+                {% endif %}
+
                 <div class="grid grid-cols-2">
                     <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-user"></i> Họ và tên *
                         </label>
-                        <input type="text" name="name" class="form-control" placeholder="Nhập họ và tên"
+                        <input type="text" id="checkoutName" name="name" class="form-control" placeholder="Nhập họ và tên"
                                autocomplete="off" required
-                               value="{{ session.get('customer_name', '') }}">
+                               value="{{ prefill_name }}" data-own-value="{{ prefill_name }}">
                     </div>
-                    
+
                     <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-phone"></i> Số điện thoại (không bắt buộc)
                         </label>
-                        <input type="tel" name="phone" class="form-control" placeholder="Nhập số điện thoại"
-                               autocomplete="off" inputmode="tel" value="{{ session.get('customer_phone', '') }}">
+                        <input type="tel" id="checkoutPhone" name="phone" class="form-control" placeholder="Nhập số điện thoại"
+                               autocomplete="off" inputmode="tel" value="{{ prefill_phone }}" data-own-value="{{ prefill_phone }}">
                     </div>
                 </div>
                 
@@ -491,6 +500,23 @@
 {% endblock %}
 
 {% block scripts %}
+<script>
+// "Đặt hộ người khác": the name/phone boxes start filled with the logged-in
+// customer's own saved info so a repeat order never needs retyping. Ticking
+// this clears them for the actual recipient's details instead; unticking
+// puts the account's own info back.
+function toggleOrderForOther(checkbox, nameId, phoneId) {
+    var nameInput = document.getElementById(nameId);
+    var phoneInput = document.getElementById(phoneId);
+    if (checkbox.checked) {
+        if (nameInput) { nameInput.value = ''; nameInput.placeholder = 'Tên người nhận đơn hàng'; nameInput.focus(); }
+        if (phoneInput) { phoneInput.value = ''; phoneInput.placeholder = 'SĐT người nhận (không bắt buộc)'; }
+    } else {
+        if (nameInput) { nameInput.value = nameInput.dataset.ownValue || ''; nameInput.placeholder = 'Nhập họ và tên'; }
+        if (phoneInput) { phoneInput.value = phoneInput.dataset.ownValue || ''; phoneInput.placeholder = 'Nhập số điện thoại'; }
+    }
+}
+</script>
 <script>
 // Reminder time: cannot be earlier than "now", and default it a couple of
 // hours out so the picker does not open on today's date at midnight.

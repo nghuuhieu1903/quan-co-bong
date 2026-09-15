@@ -666,6 +666,23 @@ th.ct-pick, td.ct-pick { width: 1%; text-align: center; }
     margin-bottom: 0.85rem;
 }
 
+.sum-checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.85rem;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.sum-checkbox-field input {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
 .sum-label {
     display: block;
     margin-bottom: 0.35rem;
@@ -923,10 +940,18 @@ th.ct-pick, td.ct-pick { width: 1%; text-align: center; }
             <form method="POST" action="{{ url_for('public.process_order') }}" class="sum-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
+                {% if customer_logged_in %}
+                <label class="sum-checkbox-field">
+                    <input type="checkbox" id="sumOrderForOther" onchange="toggleOrderForOther(this, 'sumName', 'sumPhone')">
+                    <span>Đặt hộ người khác</span>
+                </label>
+                {% endif %}
+
                 <div class="sum-field">
                     <label class="sum-label" for="sumName">Tên khách hàng *</label>
                     <input type="text" id="sumName" name="name" class="form-control"
-                           placeholder="Nhập tên của bạn" autocomplete="off" required>
+                           placeholder="Nhập tên của bạn" autocomplete="off" required
+                           value="{{ prefill_name }}" data-own-value="{{ prefill_name }}">
                 </div>
 
                 <div class="sum-field">
@@ -934,7 +959,8 @@ th.ct-pick, td.ct-pick { width: 1%; text-align: center; }
                         Số điện thoại <span class="sum-opt">không bắt buộc</span>
                     </label>
                     <input type="tel" id="sumPhone" name="phone" class="form-control"
-                           placeholder="Nhập số điện thoại" autocomplete="off" inputmode="tel">
+                           placeholder="Nhập số điện thoại" autocomplete="off" inputmode="tel"
+                           value="{{ prefill_phone }}" data-own-value="{{ prefill_phone }}">
                 </div>
 
                 {% if has_daily_item %}
@@ -984,6 +1010,23 @@ th.ct-pick, td.ct-pick { width: 1%; text-align: center; }
 {% endblock %}
 
 {% block scripts %}
+<script>
+// "Đặt hộ người khác": the name/phone boxes start filled with the logged-in
+// customer's own saved info so a repeat order never needs retyping. Ticking
+// this clears them for the actual recipient's details instead; unticking
+// puts the account's own info back.
+function toggleOrderForOther(checkbox, nameId, phoneId) {
+    var nameInput = document.getElementById(nameId);
+    var phoneInput = document.getElementById(phoneId);
+    if (checkbox.checked) {
+        if (nameInput) { nameInput.value = ''; nameInput.placeholder = 'Tên người nhận đơn hàng'; nameInput.focus(); }
+        if (phoneInput) { phoneInput.value = ''; phoneInput.placeholder = 'SĐT người nhận (không bắt buộc)'; }
+    } else {
+        if (nameInput) { nameInput.value = nameInput.dataset.ownValue || ''; nameInput.placeholder = 'Nhập tên của bạn'; }
+        if (phoneInput) { phoneInput.value = phoneInput.dataset.ownValue || ''; phoneInput.placeholder = 'Nhập số điện thoại'; }
+    }
+}
+</script>
 <script>
 // Reminder time: cannot be earlier than "now".
 (function () {

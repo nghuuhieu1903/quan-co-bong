@@ -113,6 +113,12 @@ MATRIX = [
     TestCase('GH-04', 'Giỏ hàng', 'Xóa nhiều món cùng lúc', 'Xóa',
              'Khách tick chọn nhiều sản phẩm rồi xóa cùng lúc',
              'Chỉ những sản phẩm được chọn bị xóa, các món khác vẫn còn'),
+    TestCase('GH-05', 'Giỏ hàng', 'Tự động điền tên/SĐT khách đã đăng nhập', 'Khác',
+             'Khách đã đăng nhập vào trang giỏ hàng / thanh toán',
+             'Ô tên và số điện thoại tự điền sẵn đúng thông tin đã lưu trong tài khoản, không phải gõ lại'),
+    TestCase('GH-06', 'Giỏ hàng', 'Đặt hộ người khác', 'Thêm',
+             'Khách đã đăng nhập tick "Đặt hộ người khác", xóa tên tài khoản đi và gõ tên người nhận khác rồi đặt hàng',
+             'Đơn hàng lưu đúng tên/SĐT người nhận vừa gõ, không lưu nhầm thành tên tài khoản đang đăng nhập'),
 
     # --- Công nợ -----------------------------------------------------
     TestCase('CN-01', 'Công nợ', 'Thanh toán một đơn nợ', 'Sửa',
