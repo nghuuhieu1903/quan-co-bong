@@ -40,6 +40,15 @@ def super_admin_required(view):
         return view(*args, **kwargs)
     return wrapped
 
+def customer_required(view):
+    """Any signed-in customer account (plain customer or Manager)."""
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if 'customer_logged_in' not in session:
+            return redirect(url_for('auth.customer_login'))
+        return view(*args, **kwargs)
+    return wrapped
+
 def manager_required(view):
     """Allows Manager customer accounts, and also Admin/Super Admin (admins
     have full access by design - Manager is just a helper role for daily

@@ -151,8 +151,14 @@ MATRIX = [
              'Super Admin cấp rồi thu hồi quyền Manager cho một khách hàng',
              'Vai trò khách hàng đổi qua lại đúng giữa customer và manager'),
     TestCase('TK-08', 'Tài khoản', 'Đăng ký tài khoản khách hàng', 'Thêm',
-             'Khách tự đăng ký tài khoản mới trên trang web',
-             'Tài khoản khách hàng mới được tạo, đăng nhập được ngay'),
+             'Khách tự đăng ký tài khoản mới trên trang web, có điền họ tên và SĐT',
+             'Tài khoản khách hàng mới được tạo với đúng họ tên và SĐT đã điền'),
+    TestCase('TK-09', 'Tài khoản', 'Đăng ký thiếu tên/SĐT bị từ chối', 'Thêm',
+             'Khách cố đăng ký tài khoản nhưng bỏ trống họ tên, hoặc điền SĐT sai định dạng',
+             'Bị từ chối với thông báo lỗi rõ ràng, không tạo tài khoản thiếu thông tin'),
+    TestCase('TK-10', 'Tài khoản', 'Khách tự sửa thông tin cá nhân', 'Sửa',
+             'Khách đã đăng nhập vào trang "Thông tin cá nhân", đổi họ tên và SĐT rồi lưu',
+             'Thông tin được cập nhật, tên hiển thị trên thanh điều hướng cũng đổi theo, đơn hàng sau đó tự điền theo thông tin mới'),
 
     # --- Xác thực --------------------------------------------------------
     TestCase('XT-01', 'Xác thực', 'Đăng nhập admin đúng mật khẩu', 'Khác',

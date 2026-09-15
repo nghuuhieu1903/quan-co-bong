@@ -664,8 +664,23 @@ def account_flows(rep, ids, app):
     with app.app_context():
         after = models.Customer.query.count()
         nc = models.Customer.query.filter_by(username='qa_crud_customer').first()
-    rep.check('TK-08', after == before + 1 and nc is not None, f'{before} -> {after}')
+    rep.check('TK-08', after == before + 1 and nc is not None
+              and nc.full_name == 'QA Crud Customer' and nc.phone == '0933333333',
+              f'{before} -> {after}')
     ids['new_customer'] = nc.id if nc else None
+
+    # TK-09 đăng ký thiếu tên, hoặc SĐT sai định dạng, phải bị từ chối
+    with app.app_context():
+        before9 = models.Customer.query.count()
+    post(c, '/customer/create', {
+        'username': 'qa_crud_bad_reg_noname', 'password': 'qacrud123',
+        'full_name': '', 'phone': '0933333334'}, '/customer/register')
+    post(c, '/customer/create', {
+        'username': 'qa_crud_bad_reg_badphone', 'password': 'qacrud123',
+        'full_name': 'QA Bad Reg', 'phone': '123'}, '/customer/register')
+    with app.app_context():
+        after9 = models.Customer.query.count()
+    rep.check('TK-09', after9 == before9, f'{before9} -> {after9} (phải không đổi)')
 
     if nc:
         # TK-04 đặt lại mật khẩu khách hàng
@@ -680,6 +695,20 @@ def account_flows(rep, ids, app):
         r = post(c2, '/customer/authenticate',
                  {'username': 'qa_crud_customer', 'password': 'newqacrud123'}, '/customer/login')
         rep.check('XT-04', r.status_code == 302, f'HTTP {r.status_code}')
+
+        # TK-10 khách tự sửa thông tin cá nhân trên trang "Thông tin cá nhân"
+        post(c2, '/customer/profile/update',
+             {'full_name': 'QA Crud Customer Updated', 'phone': '0944444444'},
+             '/customer/profile')
+        with app.app_context():
+            updated = db.session.get(models.Customer, nc.id)
+            saved_ok = (updated.full_name == 'QA Crud Customer Updated'
+                       and updated.phone == '0944444444')
+        cart_page = c2.get('/cart').get_data(as_text=True)
+        sidebar_ok = 'QA Crud Customer Updated' in cart_page
+        prefill_ok = 'value="QA Crud Customer Updated"' in cart_page and 'value="0944444444"' in cart_page
+        rep.check('TK-10', saved_ok and sidebar_ok and prefill_ok,
+                  f'đã lưu={saved_ok}, tên mới hiện ở sidebar={sidebar_ok}, đơn hàng tự điền theo={prefill_ok}')
 
         # XT-05 đăng xuất khách hàng
         r = c2.get('/customer/logout')
@@ -953,6 +982,11 @@ def cleanup(ids, app):
             cu = db.session.get(models.Customer, ids['new_customer'])
             if cu:
                 db.session.delete(cu); removed.append(f'Customer#{ids["new_customer"]}')
+
+        for uname in ('qa_crud_bad_reg_noname', 'qa_crud_bad_reg_badphone'):
+            leftover_cu = models.Customer.query.filter_by(username=uname).first()
+            if leftover_cu:
+                db.session.delete(leftover_cu); removed.append(f'Customer({uname})')
 
         regular = models.Admin.query.filter_by(username='qa_crud_regular').first()
         if regular:

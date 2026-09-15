@@ -20,8 +20,8 @@ from sqlalchemy import func, text
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from decorators import (admin_required, admin_required_api,
-                        admin_required_api_success, manager_required,
-                        super_admin_required)
+                        admin_required_api_success, customer_required,
+                        manager_required, super_admin_required)
 from extensions import db
 from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, safe_print as print,
                      save_uploaded_file, save_uploaded_files, send_email)
@@ -210,32 +210,75 @@ def customer_logout():
     flash('Đăng xuất thành công!', 'success')
     return redirect(url_for('public.customer_home'))
 
+@bp.route('/customer/profile')
+@customer_required
+def customer_profile():
+    customer = Customer.query.get_or_404(session['customer_id'])
+    return render_template('customer_profile.html', customer=customer)
+
+@bp.route('/customer/profile/update', methods=['POST'])
+@customer_required
+def customer_profile_update():
+    customer = Customer.query.get_or_404(session['customer_id'])
+    full_name = request.form.get('full_name', '').strip()
+    phone = request.form.get('phone', '').strip()
+
+    if not full_name:
+        flash('Vui lòng nhập họ và tên', 'error')
+        return redirect(url_for('auth.customer_profile'))
+
+    phone_digits = re.sub(r'\D', '', phone)
+    if len(phone_digits) < 9 or len(phone_digits) > 11:
+        flash('Số điện thoại không hợp lệ (chỉ gồm 9-11 chữ số)', 'error')
+        return redirect(url_for('auth.customer_profile'))
+
+    customer.full_name = full_name
+    customer.phone = phone_digits
+    db.session.commit()
+    # The sidebar greeting reads this straight from the session, so it has
+    # to be refreshed here too or it would keep showing the old name until
+    # the next login.
+    session['customer_name'] = full_name
+    flash('Đã cập nhật thông tin cá nhân', 'success')
+    return redirect(url_for('auth.customer_profile'))
+
 @bp.route('/customer/register')
 def customer_register():
     return render_template('customer_register.html')
 
 @bp.route('/customer/create', methods=['POST'])
 def customer_create():
-    username = request.form.get('username')
-    password = request.form.get('password')
-    full_name = request.form.get('full_name') or username
-    phone = request.form.get('phone') or ""
-    
+    username = request.form.get('username', '').strip()
+    password = request.form.get('password', '')
+    full_name = request.form.get('full_name', '').strip()
+    phone = request.form.get('phone', '').strip()
+
+    # Both are required now - they are exactly what gets auto-filled into
+    # every order afterward, so an account without them defeats the point.
+    if not full_name:
+        flash('Vui lòng nhập họ và tên', 'error')
+        return redirect(url_for('auth.customer_register'))
+
+    phone_digits = re.sub(r'\D', '', phone)
+    if len(phone_digits) < 9 or len(phone_digits) > 11:
+        flash('Số điện thoại không hợp lệ (chỉ gồm 9-11 chữ số)', 'error')
+        return redirect(url_for('auth.customer_register'))
+
     # Check if username already exists
     if Customer.query.filter_by(username=username).first():
         flash('Tên đăng nhập đã tồn tại', 'error')
         return redirect(url_for('auth.customer_register'))
-    
+
     # Create new customer
     customer = Customer(
         username=username,
         password=generate_password_hash(password),
         full_name=full_name,
-        phone=phone
+        phone=phone_digits
     )
     db.session.add(customer)
     db.session.commit()
-    
+
     flash('Đăng ký thành công!', 'success')
     return redirect(url_for('public.customer_home'))
 

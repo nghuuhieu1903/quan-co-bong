@@ -23,11 +23,29 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-group">
                     <label class="form-label">
+                        <i class="fas fa-id-card"></i> Họ và tên *
+                    </label>
+                    <input type="text" name="full_name" class="form-control" placeholder="Nhập họ và tên" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-phone"></i> Số điện thoại *
+                    </label>
+                    <input type="tel" name="phone" class="form-control" placeholder="Nhập số điện thoại"
+                           inputmode="tel" required>
+                    <small style="color: var(--text-secondary);">
+                        Dùng để tự động điền vào đơn hàng, khỏi phải gõ lại mỗi lần đặt.
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
                         <i class="fas fa-user"></i> Tên đăng nhập *
                     </label>
                     <input type="text" name="username" class="form-control" placeholder="Chọn tên đăng nhập" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label class="form-label">
                         <i class="fas fa-lock"></i> Mật khẩu *

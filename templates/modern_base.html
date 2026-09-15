@@ -377,7 +377,7 @@
                           {% if not session.get('cart', []) %}hidden{% endif %}>{{ session.get('cart', [])|length }}</span>
                 </a>
                 {% if session.get('customer_logged_in') %}
-                <a href="javascript:void(0)" class="sidebar-link">
+                <a href="{{ url_for('auth.customer_profile') }}" class="sidebar-link {% if current_endpoint == 'customer_profile' %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-user-circle"></i> {{ session.get('customer_name', 'Khách') }}
                 </a>
                 {% else %}

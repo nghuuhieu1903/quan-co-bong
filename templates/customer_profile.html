@@ -1,0 +1,75 @@
+{% extends "modern_base.html" %}
+
+{% block title %}{{ seo.site_name }}{% endblock %}
+
+{% block robots %}noindex, nofollow{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 200px); margin: -2rem;">
+    <div class="card fade-in" style="max-width: 480px; width: 100%; margin: 2rem;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="background: var(--gradient-primary); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;">
+                <i class="fas fa-user" style="font-size: 2rem; color: white;"></i>
+            </div>
+            <h2 style="margin: 0; color: var(--text-primary); font-size: 1.8rem;">Thông tin cá nhân</h2>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem;">
+                Tên và số điện thoại ở đây sẽ tự động điền vào mỗi đơn hàng bạn đặt.
+            </p>
+        </div>
+
+        <form method="POST" action="{{ url_for('auth.customer_profile_update') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-user-tag"></i> Tên đăng nhập
+                </label>
+                <input type="text" class="form-control" value="{{ customer.username }}" disabled>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-id-card"></i> Họ và tên *
+                </label>
+                <input type="text" name="full_name" class="form-control" placeholder="Nhập họ và tên"
+                       required value="{{ customer.full_name }}">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-phone"></i> Số điện thoại *
+                </label>
+                <input type="tel" name="phone" class="form-control" placeholder="Nhập số điện thoại"
+                       inputmode="tel" required value="{{ customer.phone }}">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; font-size: 1.1rem;">
+                <i class="fas fa-save"></i> Lưu thay đổi
+            </button>
+        </form>
+
+        <div style="margin-top: 1.5rem; text-align: center;">
+            <a href="{{ url_for('public.customer_home') }}" class="btn btn-outline" style="width: 100%;">
+                <i class="fas fa-arrow-left"></i> Về trang chủ
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const fadeElements = document.querySelectorAll('.fade-in');
+    fadeElements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        setTimeout(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, 100 * (index + 1));
+    });
+});
+</script>
+{% endblock %}
