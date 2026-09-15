@@ -42,13 +42,39 @@
     .product-card {
         padding: 1rem !important;
     }
-    
+
+    /* .product-card's own 1rem padding plus .product-info's separate
+       desktop-sized 1.5rem padding stacked on top of each other, eating
+       close to 60px out of a card only ~150px wide at 2-up - barely
+       enough left for price/stepper/buttons, which is why "Mua ngay" was
+       clipping. One padding layer is enough; matches how the catalogue
+       page's cards are laid out (image edge-to-edge, padding lives on
+       .product-info alone). */
+    .best-sellers .product-card,
+    .featured-products .product-card {
+        padding: 0 !important;
+    }
+
+    .best-sellers .product-info,
+    .featured-products .product-info {
+        padding: 0.75rem !important;
+    }
+
     .product-title {
         font-size: 0.9rem !important;
     }
-    
+
     .product-image {
         height: 150px !important;
+    }
+
+    /* Same compact-card treatment the catalogue page already uses at this
+       width: the description just made an already-tall 2-column card
+       taller and pushed the price/actions further down for no benefit -
+       the name and price already say what it is. */
+    .best-sellers .product-info p,
+    .featured-products .product-info p {
+        display: none !important;
     }
 }
 
@@ -83,11 +109,6 @@
            broken rather than deliberately large. */
         grid-template-columns: repeat(2, 1fr) !important;
         gap: 0.75rem !important;
-    }
-
-    .best-sellers .product-card,
-    .featured-products .product-card {
-        padding: 0.75rem !important;
     }
 
     .best-sellers .product-image,
