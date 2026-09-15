@@ -354,12 +354,6 @@
                 {% else %}{{ _('prod_desc') }}{% endif %}
             </p>
         </div>
-        <a href="{{ url_for('public.cart') }}" class="btn btn-primary" style="padding: 10px 18px;">
-            <i class="fas fa-shopping-cart"></i> {{ _('nav_cart') }}
-            {% if session.get('cart', []) %}
-                <span class="badge" style="background: var(--danger-color); color: white; margin-left: 8px;">{{ session.get('cart', [])|length }}</span>
-            {% endif %}
-        </a>
     </div>
 
     <!-- Đồ uống, Cơm trưa, Ăn vặt as tabs. Cơm trưa/Ăn vặt are both
