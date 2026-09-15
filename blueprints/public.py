@@ -555,7 +555,7 @@ VUI LÒNG KIỂM TRA HỆ THỐNG ĐỂ XỬ LÝ ĐƠN HÀNG!
     except Exception as e:
         logger.exception("Error creating notification log")
     
-    flash('Đặt hàng thành công! Cảm ơn bạn đã mua hàng tại Coffee Vibes.', 'success')
+    flash('Đặt hàng thành công! Cảm ơn bạn đã mua hàng tại Cô Bông Cát Lái.', 'success')
     return redirect(url_for('public.order_confirmation', order_id=order.id))
 
 @bp.route('/order_confirmation/<int:order_id>')
