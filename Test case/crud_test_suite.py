@@ -592,6 +592,86 @@ def catalogue_flows(rep, ids, app):
 
 
 # ---------------------------------------------------------------------------
+# Manager: đăng/tắt món ăn hằng ngày
+# ---------------------------------------------------------------------------
+
+def manager_flows(rep, ids, app):
+    with app.app_context():
+        from werkzeug.security import generate_password_hash
+        manager = models.Customer.query.filter_by(username='qa_manager_test').first()
+        if not manager:
+            manager = models.Customer(username='qa_manager_test',
+                                      password=generate_password_hash('manager123'),
+                                      full_name='QA Manager', phone='0900111222',
+                                      role='manager')
+            db.session.add(manager)
+        plain_customer = models.Customer.query.filter_by(username='qa_plain_customer').first()
+        if not plain_customer:
+            plain_customer = models.Customer(username='qa_plain_customer',
+                                             password=generate_password_hash('plain123'),
+                                             full_name='QA Plain Customer', phone='0900111333',
+                                             role='customer')
+            db.session.add(plain_customer)
+        db.session.commit()
+        ids['manager_account'] = manager.id
+        ids['plain_customer_account'] = plain_customer.id
+
+    m = app.test_client()
+    post(m, '/customer/authenticate',
+         {'username': 'qa_manager_test', 'password': 'manager123'}, '/customer/login')
+
+    # MG-01 đăng món mới lên "món ăn hằng ngày"
+    # (đọc trang quản lý trước mỗi lần kiểm tra để "tiêu" hết flash message
+    # còn treo từ POST vừa rồi - flash lúc thêm/tắt/bật đều chứa nguyên tên
+    # món ăn, nên nếu để lẫn vào lần render trang catalogue tiếp theo sẽ làm
+    # phép so khớp chuỗi tên món bị nhầm thành dương tính giả)
+    fake_image = (io.BytesIO(b'\xff\xd8\xff\xe0fakejpegdata'), 'qa_manager_dish.jpg')
+    post(m, '/manager/daily-menu/add', {
+        'name': 'QA Manager Dish', 'price': '35000', 'stock': '10',
+        'description': 'món test', 'image': fake_image,
+    }, '/manager/daily-menu', content_type='multipart/form-data')
+    m.get('/manager/daily-menu')
+    with app.app_context():
+        dish = models.Product.query.filter_by(name='QA Manager Dish').first()
+    added_ok = (dish is not None and dish.item_type == 'food' and dish.is_daily is True
+               and bool(dish.image))
+    ids['manager_dish'] = dish.id if dish else None
+    lunch_page = m.get('/products?type=food&food_kind=daily').get_data(as_text=True)
+    shows_in_lunch = dish is not None and 'QA Manager Dish' in lunch_page
+    rep.check('MG-01', added_ok and shows_in_lunch,
+              f'tạo đúng field={added_ok}, hiện ở Cơm trưa={shows_in_lunch}')
+
+    if dish:
+        # MG-02 tắt món khỏi "món ăn hằng ngày"
+        post(m, f'/manager/daily-menu/{dish.id}/toggle', {}, '/manager/daily-menu')
+        m.get('/manager/daily-menu')
+        with app.app_context():
+            after_off = db.session.get(models.Product, dish.id)
+        lunch_page2 = m.get('/products?type=food&food_kind=daily').get_data(as_text=True)
+        snack_page2 = m.get('/products?type=food&food_kind=snack').get_data(as_text=True)
+        off_ok = (after_off.is_daily is False and 'QA Manager Dish' not in lunch_page2
+                 and 'QA Manager Dish' in snack_page2)
+        rep.check('MG-02', off_ok, f'is_daily={after_off.is_daily}')
+
+        # MG-03 đăng lại món đã tắt
+        post(m, f'/manager/daily-menu/{dish.id}/toggle', {}, '/manager/daily-menu')
+        m.get('/manager/daily-menu')
+        with app.app_context():
+            after_on = db.session.get(models.Product, dish.id)
+        lunch_page3 = m.get('/products?type=food&food_kind=daily').get_data(as_text=True)
+        on_ok = after_on.is_daily is True and 'QA Manager Dish' in lunch_page3
+        rep.check('MG-03', on_ok, f'is_daily={after_on.is_daily}')
+
+    # MG-04 khách hàng thường không vào được trang Manager
+    p = app.test_client()
+    post(p, '/customer/authenticate',
+         {'username': 'qa_plain_customer', 'password': 'plain123'}, '/customer/login')
+    r = p.get('/manager/daily-menu', follow_redirects=True)
+    blocked = 'Bạn không có quyền truy cập' in r.get_data(as_text=True)
+    rep.check('MG-04', blocked, f'chặn đúng={blocked}')
+
+
+# ---------------------------------------------------------------------------
 # Công nợ
 # ---------------------------------------------------------------------------
 
@@ -1002,6 +1082,20 @@ def cleanup(ids, app):
             if p:
                 db.session.delete(p); removed.append(f'Product#{ids["special_product"]}')
 
+        if ids.get('manager_dish'):
+            p = db.session.get(models.Product, ids['manager_dish'])
+            if p:
+                if p.image:
+                    img_path = os.path.join(HERE, '..', 'static', 'images', p.image)
+                    if os.path.exists(img_path):
+                        os.remove(img_path)
+                db.session.delete(p); removed.append(f'Product#{ids["manager_dish"]}')
+
+        for uname in ('qa_manager_test', 'qa_plain_customer'):
+            cu = models.Customer.query.filter_by(username=uname).first()
+            if cu:
+                db.session.delete(cu); removed.append(f'Customer({uname})')
+
         for name in ('QA Test Drink Clean',):
             p = models.Product.query.filter_by(name=name).first()
             if p:
@@ -1120,6 +1214,8 @@ def main():
         order_and_cart_flows(rep, ids, app)
         print('--- Danh mục ---')
         catalogue_flows(rep, ids, app)
+        print('--- Manager ---')
+        manager_flows(rep, ids, app)
         print('--- Công nợ ---')
         debt_flows(rep, ids, app)
         print('--- Tài khoản ---')

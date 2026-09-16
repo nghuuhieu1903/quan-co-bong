@@ -21,3 +21,6 @@ img/
 # uploaded share image - belongs to the site, not the repo
 static/icons/og-custom.jpg
 static/icons/custom-*
+
+# generated knowledge-graph artifacts (graphify) - regenerate locally, not a build output
+graphify-out/

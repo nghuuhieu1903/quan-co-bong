@@ -372,6 +372,11 @@
                     <span class="badge badge-info cart-count" data-cart-count
                           {% if not session.get('cart', []) %}hidden{% endif %}>{{ session.get('cart', [])|length }}</span>
                 </a>
+                {% if session.get('customer_role') == 'manager' %}
+                <a href="{{ url_for('public.manager_daily_menu') }}" class="sidebar-link {% if current_endpoint == 'manager_daily_menu' %}active{% endif %}" onclick="closeSidebar()">
+                    <i class="fas fa-utensils"></i> Món ăn hằng ngày
+                </a>
+                {% endif %}
                 {% if session.get('customer_logged_in') %}
                 <a href="{{ url_for('auth.customer_profile') }}" class="sidebar-link {% if current_endpoint == 'customer_profile' %}active{% endif %}" onclick="closeSidebar()">
                     <i class="fas fa-user-circle"></i> {{ session.get('customer_name', 'Khách') }}

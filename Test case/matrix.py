@@ -103,6 +103,20 @@ MATRIX = [
              'Khách vào tab Ăn vặt (?type=food&food_kind=snack)',
              'Chỉ hiện các món ăn KHÔNG được đánh dấu "món ăn hằng ngày", không lẫn cơm trưa'),
 
+    # --- Trang Manager (đăng món ăn hằng ngày) ---------------------------
+    TestCase('MG-01', 'Manager', 'Manager đăng món mới lên "món ăn hằng ngày"', 'Thêm',
+             'Tài khoản Manager chụp/chọn ảnh, điền tên + giá rồi đăng món mới',
+             'Sản phẩm mới được tạo với item_type=food, is_daily=True, ảnh được lưu vào ổ đĩa, hiện ngay trong tab Cơm trưa'),
+    TestCase('MG-02', 'Manager', 'Manager tắt một món khỏi "món ăn hằng ngày"', 'Sửa',
+             'Manager bấm "Tắt" trên một món đang lên hôm nay',
+             'is_daily chuyển thành False, món biến mất khỏi tab Cơm trưa (nhưng vẫn còn ở Ăn vặt vì vẫn là food)'),
+    TestCase('MG-03', 'Manager', 'Manager đăng lại món đã tắt', 'Sửa',
+             'Manager bấm "Đăng lên" trên một món đang ở mục "Chưa lên món hôm nay"',
+             'is_daily chuyển lại thành True, món xuất hiện lại ở tab Cơm trưa'),
+    TestCase('MG-04', 'Manager', 'Khách hàng thường không vào được trang Manager', 'Khác',
+             'Một tài khoản khách hàng thường (role=customer, không phải manager) cố truy cập /manager/daily-menu',
+             'Bị từ chối với thông báo không có quyền, không thấy được form đăng món hay danh sách'),
+
     # --- Giỏ hàng --------------------------------------------------------
     TestCase('GH-01', 'Giỏ hàng', 'Thêm vào giỏ hàng', 'Thêm',
              'Khách thêm một sản phẩm vào giỏ hàng',

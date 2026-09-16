@@ -23,7 +23,7 @@ from decorators import (admin_required, admin_required_api,
                         admin_required_api_success, manager_required,
                         super_admin_required)
 from extensions import db
-from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, safe_print as print,
+from helpers import (SUPER_ADMIN_RECOVERY_EMAIL, parse_vnd, safe_print as print,
                      save_uploaded_file, save_uploaded_files, send_email)
 import payments
 from models import (Admin, Customer, Notification, Order, OrderItem,
@@ -583,3 +583,55 @@ def order_confirmation(order_id):
                            order_items=order_items, subtotal=subtotal,
                            total=total, payment=payment,
                            order_code=payments.order_code(order.id))
+
+
+# --- Manager: today's dishes ------------------------------------------------
+# Manager is a Customer-account role (granted from the admin accounts page,
+# not a full admin login) scoped to exactly one job: keep "Cơm trưa" current
+# day to day without needing the full product editor. Only food products are
+# ever touched here - drinks/snacks stay off this screen entirely.
+
+@bp.route('/manager/daily-menu')
+@manager_required
+def manager_daily_menu():
+    dishes = (Product.query.filter_by(item_type='food', is_active=True)
+             .order_by(Product.is_daily.desc(), Product.name.asc()).all())
+    return render_template('manager_daily_menu.html', dishes=dishes)
+
+@bp.route('/manager/daily-menu/add', methods=['POST'])
+@manager_required
+def manager_daily_menu_add():
+    name = request.form.get('name', '').strip()
+    description = request.form.get('description', '').strip()
+    price = parse_vnd(request.form.get('price'))
+    if not name or price is None:
+        flash('Vui lòng nhập tên và giá món ăn hợp lệ.', 'error')
+        return redirect(url_for('public.manager_daily_menu'))
+
+    image_file = request.files.get('image')
+    if not image_file or not image_file.filename:
+        flash('Vui lòng chụp hoặc chọn một ảnh cho món ăn.', 'error')
+        return redirect(url_for('public.manager_daily_menu'))
+    image_url = save_uploaded_file(image_file)
+    if not image_url:
+        flash('Ảnh không hợp lệ (chỉ nhận .jpg, .png, .webp).', 'error')
+        return redirect(url_for('public.manager_daily_menu'))
+
+    dish = Product(name=name, description=description or name, price=price,
+                   stock=request.form.get('stock', type=int) or 20,
+                   category='food', item_type='food', is_daily=True,
+                   image=image_url)  # type: ignore[call-arg]
+    db.session.add(dish)
+    db.session.commit()
+    flash(f'Đã đăng "{name}" vào món ăn hằng ngày.', 'success')
+    return redirect(url_for('public.manager_daily_menu'))
+
+@bp.route('/manager/daily-menu/<int:product_id>/toggle', methods=['POST'])
+@manager_required
+def manager_daily_menu_toggle(product_id):
+    dish = Product.query.filter_by(id=product_id, item_type='food').first_or_404()
+    dish.is_daily = not dish.is_daily
+    db.session.commit()
+    flash(f'"{dish.name}" đã {"lên" if dish.is_daily else "tắt khỏi"} món ăn hằng ngày.',
+          'success')
+    return redirect(url_for('public.manager_daily_menu'))
