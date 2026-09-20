@@ -45,3 +45,22 @@ max_requests_jitter = 100
 
 accesslog = '-'
 errorlog = '-'
+
+
+def post_fork(server, worker):
+    """Give each worker its own database connections.
+
+    preload_app=True means the master imports app.py - and runs
+    init_database() - before forking, so the SQLAlchemy pool's connections
+    are already open in the master when the 3 workers are forked from it.
+    Forked workers inherit copies of those same socket file descriptors;
+    two workers using them concurrently can interleave reads/writes on what
+    MySQL sees as one connection, surfacing as a rare "commands out of sync"
+    -style error (seen as 1 HTTP 500 in 1000 requests under load). Disposing
+    the inherited pool right after fork forces each worker to open its own
+    fresh connections instead of sharing the master's.
+    """
+    from app import app
+    from extensions import db
+    with app.app_context():
+        db.engine.dispose()

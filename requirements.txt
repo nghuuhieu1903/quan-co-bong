@@ -11,8 +11,8 @@ requests==2.34.2
 gunicorn==26.0.0
 PyMySQL==1.1.1
 python-dotenv==1.0.1
-s mixer needs an actual audio device — none of these exist on a
-# typical server. Uncomment only if you know your VPS has them set up.
+# Optional: pyautogui/pyttsx3/pygame need a display or an audio device -
+# neither exists on a typical server. Uncomment only if your VPS has them.
 # pyautogui
 # pyttsx3
 # pygame

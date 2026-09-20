@@ -68,8 +68,11 @@ def index():
 
 @bp.route('/customer')
 def customer_home():
-    # Hiển thị tất cả sản phẩm kể cả hết hàng, trừ sản phẩm đã ẩn/ngừng bán
-    products = Product.query.filter(Product.is_active.is_(True)).all()
+    # index.html only shows the last 4 active products ("Được mua nhiều
+    # nhất") - fetch just those instead of every active product in the shop.
+    products = (Product.query.filter(Product.is_active.is_(True))
+                .order_by(Product.id.desc()).limit(4).all())
+    products.reverse()  # index.html shows them oldest-of-the-four first
     return render_template('index.html', products=products)
 
 @bp.route('/products')
