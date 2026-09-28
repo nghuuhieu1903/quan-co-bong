@@ -340,17 +340,21 @@ body, .modal-content, .table, .dropdown-menu {
 <section style="margin-bottom: 2rem;">
     <div id="soundAlertBar" class="card fade-in" style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; padding: 1.25rem 1.5rem; border: 2px solid var(--warning-color); background: rgba(255, 193, 7, 0.08);">
         <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <i class="fas fa-volume-up" style="font-size: 1.8rem; color: var(--warning-color);"></i>
+            <button type="button" id="soundToggleIcon" onclick="toggleOrderSoundAlerts()" aria-pressed="false"
+                    title="Bấm để bật/tắt thông báo âm thanh"
+                    style="background: none; border: none; padding: 0; cursor: pointer; line-height: 1; color: var(--text-muted);">
+                <i class="fas fa-toggle-off" style="font-size: 2.2rem;"></i>
+            </button>
             <div>
                 <div id="soundAlertTitle" style="font-weight: 600; color: var(--text-primary); font-size: 1.05rem;">
                     Chưa bật thông báo âm thanh
                 </div>
                 <div style="color: var(--text-secondary); font-size: 0.9rem;">
-                    Bấm nút này 1 lần mỗi khi mở trang &mdash; sau đó sẽ tự đọc to khi có đơn hàng mới.
+                    Bấm nút này 1 lần mỗi khi mở trang &mdash; sau đó sẽ tự đọc to khi có đơn hàng mới. Bấm lần nữa để tắt.
                 </div>
             </div>
         </div>
-        <button type="button" id="enableSoundBtn" class="btn btn-primary" style="padding: 0.75rem 1.5rem; font-size: 1rem; white-space: nowrap;" onclick="enableOrderSoundAlerts()">
+        <button type="button" id="enableSoundBtn" class="btn btn-primary" style="padding: 0.75rem 1.5rem; font-size: 1rem; white-space: nowrap;" onclick="toggleOrderSoundAlerts()">
             <i class="fas fa-bell"></i> Bật thông báo âm thanh
         </button>
     </div>
@@ -617,6 +621,13 @@ let lastSeenReminderId = {{ notifications[0].id if notifications else 0 }};
 let soundAlertsEnabled = false;
 let orderPollTimer = null;
 
+// Remembered per browser tab: leaving the dashboard for another admin page
+// and coming back (or a refresh) is still the same tab session, so there is
+// no need to unlock audio again with a fresh click every time. Closing the
+// tab/browser clears it, same as before - the first open of a new session
+// still asks for the one-time tap.
+const SOUND_ALERTS_KEY = 'admin_sound_alerts_enabled';
+
 function beep() {
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -752,16 +763,17 @@ function showReminderToast(message) {
     setTimeout(() => toast.remove(), 10000);
 }
 
-function enableOrderSoundAlerts() {
-    // Test tone + test speech: this user tap is what "unlocks" audio on mobile browsers
-    beep();
-    setTimeout(() => speakVietnamese('Đã bật thông báo âm thanh đơn hàng.'), 400);
+function setSoundToggleIcon(on) {
+    const icon = document.querySelector('#soundToggleIcon i');
+    const btn = document.getElementById('soundToggleIcon');
+    icon.className = on ? 'fas fa-toggle-on' : 'fas fa-toggle-off';
+    icon.style.color = on ? 'var(--success-color)' : 'var(--text-muted)';
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+}
 
-    if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-    }
-
+function markSoundAlertsOn() {
     soundAlertsEnabled = true;
+    setSoundToggleIcon(true);
     document.getElementById('soundAlertTitle').textContent = '🔊 Đã bật thông báo âm thanh';
     document.getElementById('soundAlertBar').style.borderColor = 'var(--success-color)';
     document.getElementById('soundAlertBar').style.background = 'rgba(40, 167, 69, 0.08)';
@@ -772,6 +784,49 @@ function enableOrderSoundAlerts() {
     if (!orderPollTimer) {
         orderPollTimer = setInterval(pollNewOrders, 7000);
     }
+}
+
+function markSoundAlertsOff() {
+    soundAlertsEnabled = false;
+    setSoundToggleIcon(false);
+    document.getElementById('soundAlertTitle').textContent = 'Chưa bật thông báo âm thanh';
+    document.getElementById('soundAlertBar').style.borderColor = 'var(--warning-color)';
+    document.getElementById('soundAlertBar').style.background = 'rgba(255, 193, 7, 0.08)';
+    document.getElementById('enableSoundBtn').innerHTML = '<i class="fas fa-bell"></i> Bật thông báo âm thanh';
+    document.getElementById('enableSoundBtn').classList.remove('btn-success');
+    document.getElementById('enableSoundBtn').classList.add('btn-primary');
+
+    if (orderPollTimer) {
+        clearInterval(orderPollTimer);
+        orderPollTimer = null;
+    }
+}
+
+function toggleOrderSoundAlerts() {
+    if (soundAlertsEnabled) {
+        try { sessionStorage.removeItem(SOUND_ALERTS_KEY); } catch (e) {}
+        markSoundAlertsOff();
+        return;
+    }
+
+    // Test tone + test speech: this user tap is what "unlocks" audio on mobile browsers
+    beep();
+    setTimeout(() => speakVietnamese('Đã bật thông báo âm thanh đơn hàng.'), 400);
+
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+
+    try { sessionStorage.setItem(SOUND_ALERTS_KEY, '1'); } catch (e) {}
+    markSoundAlertsOn();
+}
+
+function restoreSoundAlertsIfEnabled() {
+    // Same tab already unlocked audio earlier this session - resume silently,
+    // no need to replay the test tone or ask for notification permission again.
+    let wasEnabled = false;
+    try { wasEnabled = sessionStorage.getItem(SOUND_ALERTS_KEY) === '1'; } catch (e) {}
+    if (wasEnabled) markSoundAlertsOn();
 }
 
 // Add slide-in animation for toasts
@@ -921,5 +976,7 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(el);
     });
 });
+
+document.addEventListener('DOMContentLoaded', restoreSoundAlertsIfEnabled);
 </script>
 {% endblock %}
