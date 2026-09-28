@@ -144,17 +144,17 @@
                     <label class="form-label">
                         <i class="fas fa-image"></i> Ảnh bìa chính
                     </label>
-                    <input type="file" name="image" class="form-control" accept="image/*">
+                    <input type="file" name="image" class="form-control" accept="image/*" capture="environment">
                     <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">
                         <i class="fas fa-info-circle"></i> Tỷ lệ chuẩn: <strong>Hình vuông (1:1)</strong>, kích thước khuyên dùng <strong>800x800px</strong> (JPG, PNG, WEBP, tối đa 2MB).
                     </small>
                 </div>
-                
+
                 <div class="form-group">
                     <label class="form-label">
                         <i class="fas fa-images"></i> Các ảnh chi tiết phụ
                     </label>
-                    <input type="file" name="images" class="form-control" accept="image/*" multiple>
+                    <input type="file" name="images" class="form-control" accept="image/*" capture="environment" multiple>
                     <small style="color: var(--text-muted); display: block; margin-top: 0.25rem;">
                         <i class="fas fa-info-circle"></i> Tỷ lệ chuẩn: <strong>Hình vuông (1:1)</strong>, kích thước khuyên dùng <strong>800x800px</strong> (Có thể chọn nhiều ảnh, tối đa 2MB/ảnh).
                     </small>
