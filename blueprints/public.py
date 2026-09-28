@@ -529,35 +529,7 @@ def process_order():
                     if reminder_at else "")
     create_notification('new_order',
         f"Đơn hàng mới #{order.id} - {customer_name} - {final_total:,.0f} VNĐ{reminder_note}")
-    
-    # Create notification log
-    try:
-        log_entry = f"""
-=====================================
-🔔 ĐƠN HÀNG MỚI - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
-=====================================
-Mã đơn: #{order.id}
-Khách hàng: {customer_name}
-Số điện thoại: {customer_phone}
-Phương thức thanh toán: {payment_method}
-Tổng tiền: {final_total:,.0f} VNĐ
-Sản phẩm: {len(cart_items)} loại
-Ghi chú: {notes}
-Trạng thái: {order.status}
-=====================================
-VUI LÒNG KIỂM TRA HỆ THỐNG ĐỂ XỬ LÝ ĐƠN HÀNG!
-=====================================
 
-"""
-        
-        with open('notification_log.txt', 'a', encoding='utf-8') as f:
-            f.write(log_entry)
-        
-        print("✅ Notification log created: notification_log.txt")
-        
-    except Exception as e:
-        logger.exception("Error creating notification log")
-    
     flash('Đặt hàng thành công! Cảm ơn bạn đã mua hàng tại Cô Bông Cát Lái.', 'success')
     return redirect(url_for('public.order_confirmation', order_id=order.id))
 

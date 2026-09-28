@@ -77,14 +77,29 @@ def send_email(to_email, subject, body):
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
+# The app-wide MAX_CONTENT_LENGTH (16MB, see app.py) bounds a whole request,
+# not one file - a product/room form can attach several images at once, so
+# without a per-file cap a single upload could still be a 15MB photo. 5MB is
+# generous for a phone camera photo of a product or room.
+MAX_UPLOAD_SIZE = 5 * 1024 * 1024
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def save_uploaded_file(file, prefix=''):
-    """Save one uploaded file with a unique timestamped name. Returns the saved filename, or None if no valid file was given."""
+    """Save one uploaded file with a unique timestamped name. Returns the
+    saved filename, or None if no valid file was given (wrong extension or
+    over MAX_UPLOAD_SIZE)."""
     if not file or file.filename == '' or not allowed_file(file.filename):
         return None
+
+    file.stream.seek(0, os.SEEK_END)
+    size = file.stream.tell()
+    file.stream.seek(0)
+    if size > MAX_UPLOAD_SIZE:
+        return None
+
     filename = secure_filename(file.filename)
     timestamp = int(time.time())
     filename = f"{timestamp}_{prefix}{filename}"
