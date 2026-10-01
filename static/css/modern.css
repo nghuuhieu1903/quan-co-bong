@@ -1751,3 +1751,23 @@ html.show-onboarding body {
 @media (max-width: 768px) {
     .cart-toast { display: none !important; }
 }
+
+/* "Chụp ảnh" button injected by js/camera-upload.js next to image inputs.
+   Hidden on a desktop with a mouse (there the camera attribute does nothing
+   useful); shown on tablet/phone widths and on any touch device. */
+.btn.camera-btn {
+    display: none;
+    margin-top: 0.5rem;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+@media (max-width: 1024px), (pointer: coarse) {
+    .btn.camera-btn { display: inline-flex; }
+}
+
+@media (max-width: 768px) {
+    .btn.camera-btn { width: 100%; }
+}
